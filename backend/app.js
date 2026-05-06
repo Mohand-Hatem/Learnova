@@ -1,10 +1,11 @@
+import "dotenv/config";
+console.log("GOOGLE_ID:", process.env.GOOGLE_ID);
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import passport from "./config/passport.js";
-
+// import passport from "./config/passport.js";
 import notFound from "./middleware/notFound.middleware.js";
 import errorMiddleware from "./middleware/error.middleware.js";
 import connectDB from "./config/db.js";
@@ -19,7 +20,7 @@ app.use(morgan("dev"));
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(passport.initialize());
+// app.use(passport.initialize());
 
 app.use("/api/auth", authRoutes);
 

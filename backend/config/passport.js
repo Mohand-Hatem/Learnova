@@ -1,5 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import crypto from "crypto";
 import User from "../models/User.model.js";
 
 passport.use(
@@ -14,20 +15,26 @@ passport.use(
         const email = profile.emails?.[0]?.value;
 
         if (!email) {
-          return done(null, false);
+          return done(null, false, {
+            message: "Google account email not found",
+          });
         }
 
         let user = await User.findOne({ email });
 
         if (!user) {
           user = await User.create({
-            name: profile.displayName,
+            name: {
+              en: profile.displayName || "Google User",
+              ar: profile.displayName || "مستخدم جوجل",
+            },
             email,
-            avatar: profile.photos?.[0]?.value || null,
-            provider: "google",
+            password: crypto.randomBytes(8).toString("hex").slice(0, 15),
+            avatar:
+              profile.photos?.[0]?.value ||
+              "https://cdn-icons-png.flaticon.com/512/149/149071.png",
             googleId: profile.id,
             role: "student",
-            isEmailVerified: true,
           });
         }
 

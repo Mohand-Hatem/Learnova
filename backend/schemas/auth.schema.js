@@ -1,19 +1,14 @@
 import Joi from "joi";
 
 export const registerSchema = Joi.object({
-  name: Joi.string().trim().min(2).max(50).required(),
+  name: Joi.object({
+    en: Joi.string().trim().min(2).max(50).required(),
+    ar: Joi.string().trim().min(2).max(50).required(),
+  }).required(),
 
   email: Joi.string().trim().lowercase().email().required(),
 
-  password: Joi.string()
-    .min(8)
-    .max(128)
-    .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$"))
-    .required()
-    .messages({
-      "string.pattern.base":
-        "Password must contain uppercase, lowercase and number",
-    }),
+  password: Joi.string().min(3).max(15).required(),
 
   role: Joi.string().valid("student", "admin").default("student"),
 });
@@ -24,5 +19,5 @@ export const loginSchema = Joi.object({
 });
 
 export const refreshTokenSchema = Joi.object({
-  refreshToken: Joi.string().required(),
+  refreshToken: Joi.string().optional(),
 });

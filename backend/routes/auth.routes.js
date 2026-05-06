@@ -22,8 +22,11 @@ import {
 const router = express.Router();
 
 router.post("/register", validate(registerSchema), register);
+
 router.post("/login", validate(loginSchema), login);
+
 router.post("/refresh-token", validate(refreshTokenSchema), refreshAccessToken);
+
 router.post("/logout", logout);
 
 router.get("/me", protect, getMe);
@@ -46,9 +49,9 @@ router.get(
 );
 
 router.get("/google/failure", (req, res) => {
-  res.status(401).json({
+  return res.status(401).json({
     success: false,
-    message: "Google auth failed",
+    message: "Google authentication failed",
   });
 });
 

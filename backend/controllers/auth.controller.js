@@ -1,49 +1,74 @@
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 import { generateTokens } from "../utils/generateTokens.js";
 
-const cookieOptions = {
+const accessCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  maxAge: 15 * 60 * 1000,
+};
+
+const refreshCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
+const setAuthCookies = (res, accessToken, refreshToken) => {
+  res.cookie("accessToken", accessToken, accessCookieOptions);
+  res.cookie("refreshToken", refreshToken, refreshCookieOptions);
+};
+
+const clearAuthCookies = (res) => {
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+};
+
+const formatUser = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  avatar: user.avatar,
+  plan: user.plan,
+  maxToken: user.maxToken,
+  tokenUsage: user.tokenUsage,
+  googleId: user.googleId,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+});
+
 export const register = async (req, res, next) => {
   try {
     const { name, email, password, role } = req.body;
 
-    const exists = await User.findOne({ email });
+    const existingUser = await User.findOne({ email });
 
-    if (exists) {
-      return res.status(409).json({
+    if (existingUser) {
+      return res.status(400).json({
         success: false,
         message: "Email already exists",
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
+      password,
       role: role || "student",
-      provider: "local",
     });
 
     const { accessToken, refreshToken } = generateTokens(user);
 
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    setAuthCookies(res, accessToken, refreshToken);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Account created successfully",
       data: {
-        user,
-        accessToken,
-        refreshToken,
+        user: formatUser(user),
       },
     });
   } catch (error) {
@@ -55,41 +80,33 @@ export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid email or password",
       });
     }
 
-    if (user.isBlocked) {
-      return res.status(403).json({
-        success: false,
-        message: "Account blocked",
-      });
-    }
+    const isMatch = await user.matchPassword(password);
 
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
+    if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid email or password",
       });
     }
 
     const { accessToken, refreshToken } = generateTokens(user);
 
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    setAuthCookies(res, accessToken, refreshToken);
 
-    res.json({
+    return res.status(200).json({
       success: true,
+      message: "Logged in successfully",
       data: {
-        user,
-        accessToken,
-        refreshToken,
+        user: formatUser(user),
       },
     });
   } catch (error) {
@@ -97,56 +114,79 @@ export const login = async (req, res, next) => {
   }
 };
 
-export const refreshAccessToken = async (req, res) => {
+export const refreshAccessToken = async (req, res, next) => {
   try {
-    const token = req.body.refreshToken || req.cookies.refreshToken;
+    const token = req.cookies?.refreshToken;
 
     if (!token) {
-      return res.status(401).json({ message: "No refresh token" });
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token is required",
+      });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
     const user = await User.findById(decoded.id);
 
-    const tokens = generateTokens(user);
+    if (!user) {
+      clearAuthCookies(res);
 
-    res.cookie("refreshToken", tokens.refreshToken, cookieOptions);
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token",
+      });
+    }
 
-    res.json({
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    setAuthCookies(res, accessToken, refreshToken);
+
+    return res.status(200).json({
       success: true,
-      data: tokens,
+      message: "Token refreshed successfully",
+      data: {
+        user: formatUser(user),
+      },
     });
-  } catch {
-    res.status(401).json({
-      success: false,
-      message: "Invalid refresh token",
-    });
+  } catch (error) {
+    clearAuthCookies(res);
+    next(error);
   }
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("refreshToken");
-  res.json({ success: true });
+  clearAuthCookies(res);
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };
 
 export const getMe = (req, res) => {
-  res.json({
+  return res.status(200).json({
     success: true,
-    data: req.user,
+    data: {
+      user: formatUser(req.user),
+    },
   });
 };
 
-export const googleAuthCallback = (req, res) => {
-  const tokens = generateTokens(req.user);
+export const googleAuthCallback = (req, res, next) => {
+  try {
+    const { accessToken, refreshToken } = generateTokens(req.user);
 
-  res.cookie("refreshToken", tokens.refreshToken, cookieOptions);
+    setAuthCookies(res, accessToken, refreshToken);
 
-  res.json({
-    success: true,
-    data: {
-      user: req.user,
-      ...tokens,
-    },
-  });
+    return res.status(200).json({
+      success: true,
+      message: "Google login successful",
+      data: {
+        user: formatUser(req.user),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
