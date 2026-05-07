@@ -13,6 +13,9 @@ import Env from "./config/handelEnv.js";
 
 import authRoutes from "./routes/auth.routes.js";
 
+import adminRoutes from "./routes/admin.routes.js";
+
+
 const app = express();
 
 app.use(helmet());
@@ -24,6 +27,7 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 
+app.use("/api/admin", adminRoutes);
 app.use(notFound);
 app.use(errorMiddleware);
 
