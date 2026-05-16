@@ -1,232 +1,209 @@
-import crypto from "crypto";
 import User from "../models/User.model.js";
-import { sendEmail } from "../utils/sendEmail.js";
+import CV from "../models/Cv.model.js";
+import Payment from "../models/Payment.model.js";
+import { PLANS, MIME_TO_FILETYPE } from "../config/helpers.config.js";
+import {
+  getToken,
+  createOrder,
+  createPaymentKey,
+  getCheckoutUrl,
+} from "../config/paymob.js";
+import asyncHandler from "express-async-handler";
 
+export const getProfile = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: req.user,
+  });
+});
 
-export const getProfile = async (req, res, next) => {
-  try {
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { name } = req.body;
 
-    res.status(200).json({
-      success: true,
-      data: req.user,
+  const updateData = {};
+
+  if (name) updateData.name = name;
+
+  if (req.file) updateData.avatar = req.file.path;
+
+  if (Object.keys(updateData).length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "No data provided to update",
     });
-  } catch (error) {
-    next(error);
   }
-};
+  const user = await User.findByIdAndUpdate(req.user._id, updateData, {
+    new: true,
+    runValidators: true,
+  });
 
+  res.status(200).json({
+    success: true,
+    message: "Profile updated successfully",
+    data: user,
+  });
+});
 
-export const updateProfile = async (req, res, next) => {
-  try {
-    const { name } = req.body;
+export const updatePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
 
-  
-    const updateData = {};
+  const user = await User.findById(req.user._id).select("+password");
 
- 
-    if (name) {
-      updateData.name = name;
-    }
+  const isMatch = await user.matchPassword(currentPassword);
 
-    
-    if (req.file) {
-      updateData.avatar = req.file.path; 
-    }
-
- 
-    if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No data provided to update",
-      });
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      updateData,
-      {
-        new: true,          
-        runValidators: true, 
-      }
-    ).select("-password -resetPasswordToken -resetPasswordExpire");
-
-    res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      data: user,
+  if (!isMatch) {
+    return res.status(400).json({
+      success: false,
+      message: "Current password is incorrect",
     });
-  } catch (error) {
-    next(error);
   }
-};
 
+  user.password = newPassword;
+  await user.save();
 
-export const updatePassword = async (req, res, next) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
+  res.status(200).json({
+    success: true,
+    message: "Password updated successfully",
+  });
+});
 
-    const user = await User.findById(req.user._id).select("+password");
+export const uploadUserFile = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: "No file uploaded. Please attach a PDF, DOC, or DOCX.",
+    });
+  }
 
+  const fileType = MIME_TO_FILETYPE[req.file.mimetype];
 
-    const isMatch = await user.matchPassword(currentPassword);
+  const cv = await CV.create({
+    userId: req.user._id,
+    originalFile: {
+      url: req.file.path,
+      publicId: req.file.filename,
+      fileType,
+      fileName: req.file.originalname,
+      fileSize: req.file.size,
+    },
+    processingStatus: "uploaded",
+  });
 
-    if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        message: "Current password is incorrect",
-      });
-    }
+  res.status(201).json({
+    success: true,
+    message: "File uploaded and saved successfully",
+    data: {
+      cvId: cv._id,
+      url: cv.originalFile.url,
+      fileType: cv.originalFile.fileType,
+      fileName: cv.originalFile.fileName,
+      fileSize: cv.originalFile.fileSize,
+      status: cv.processingStatus,
+      uploadedAt: cv.createdAt,
+    },
+  });
+});
 
+export const userUpdateSubscription = asyncHandler(async (req, res) => {
+  const { plan } = req.body;
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+  if (!PLANS[plan]) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid plan",
+    });
+  }
 
-    user.password = newPassword;
+  user.plan = plan;
+  user.maxToken = PLANS[plan].maxToken;
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Subscription updated successfully",
+    data: user,
+  });
+});
+
+export const payWithPaymob = asyncHandler(async (req, res) => {
+  const user = req.user;
+  const { plan } = req.body;
+
+  if (!PLANS[plan]) {
+    return res.status(400).json({ success: false, message: "Invalid plan" });
+  }
+
+  const amount = PLANS[plan].price;
+
+  if (amount === 0) {
+    // Direct update for free plan
+    user.plan = plan;
+    user.maxToken = PLANS[plan].maxToken;
     await user.save();
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Password updated successfully",
+      message: "Successfully switched to Free plan",
     });
-  } catch (error) {
-    next(error);
   }
-};
 
+  const token = await getToken();
+  const order = await createOrder(token, amount);
+  const paymentToken = await createPaymentKey(token, order.id, amount, user);
 
-export const forgotPassword = async (req, res, next) => {
-  try {
-    const { email } = req.body;
+  const url = getCheckoutUrl(paymentToken);
 
-    const user = await User.findOne({ email });
+  await Payment.create({
+    user: user._id,
+    orderId: order.id.toString(),
+    plan,
+    amount,
+    status: "Pending",
+  });
 
-   
-    if (!user) {
-      return res.status(200).json({
-        success: true,
-        message: "If this email exists, a reset link has been sent",
-      });
-    }
+  res.json({ success: true, url });
+});
 
+export const paymobWebhook = asyncHandler(async (req, res) => {
+  console.log("WEBHOOK HIT 🔥");
+  const data = req.body;
 
-    const rawToken = crypto.randomBytes(32).toString("hex");
+  const success = data?.obj?.success;
+  const orderId = data?.obj?.order?.id?.toString();
 
-   
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(rawToken)
-      .digest("hex");
-
-    user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; 
-    await user.save({ validateBeforeSave: false });
-
-  
-    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${rawToken}`;
-
-    await sendEmail({
-      to: user.email,
-      subject: "Password Reset Request - Learnova",
-      html: `
-        <h2>Password Reset Request</h2>
-        <p>You requested to reset your password.</p>
-        <p>Click the link below to reset it:</p>
-        <a href="${resetURL}" style="
-          background: #6c63ff;
-          color: white;
-          padding: 12px 24px;
-          border-radius: 6px;
-          text-decoration: none;
-        ">
-          Reset Password
-        </a>
-        <p>This link expires in <strong>1 hour</strong>.</p>
-        <p>If you didn't request this, ignore this email.</p>
-      `,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "If this email exists, a reset link has been sent",
-    });
-  } catch (error) {
-
-    if (req.user) {
-      req.user.resetPasswordToken = null;
-      req.user.resetPasswordExpire = null;
-      await req.user.save({ validateBeforeSave: false });
-    }
-    next(error);
+  if (!orderId) {
+    return res.sendStatus(400);
   }
-};
 
+  const payment = await Payment.findOne({ orderId });
 
+  if (!payment) return res.sendStatus(404);
 
-export const resetPassword = async (req, res, next) => {
-  try {
-    const { token } = req.params;
-    const { newPassword } = req.body;
-
-
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
-
-   
-    const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpire: { $gt: Date.now() }, // $gt = greater than
-    });
-
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired reset token",
-      });
-    }
-
-   
-    user.password = newPassword;
-
- 
-    user.resetPasswordToken = null;
-    user.resetPasswordExpire = null;
-
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Password reset successfully, please login",
-    });
-  } catch (error) {
-    next(error);
+  if (payment.status === "Paid") {
+    return res.json({ ok: true });
   }
-};
 
+  if (success) {
+    payment.status = "Paid";
+    await payment.save();
 
-
-export const uploadUserFile = async (req, res, next) => {
-  try {
-   
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file uploaded",
-      });
+    const foundUser = await User.findById(payment.user);
+    if (foundUser) {
+      foundUser.plan = payment.plan;
+      foundUser.tokenUsage = 0;
+      foundUser.maxToken = PLANS[payment.plan].maxToken;
+      await foundUser.save();
     }
-
-   
-    const fileUrl = req.file.path;
-    const fileType = req.file.mimetype;
-
-    res.status(200).json({
-      success: true,
-      message: "File uploaded successfully",
-      data: {
-        url: fileUrl,
-        type: fileType,
-        originalName: req.file.originalname,
-      },
-    });
-  } catch (error) {
-    next(error);
+  } else {
+    payment.status = "Failed";
+    await payment.save();
   }
-};
+
+  res.json({ ok: true });
+});

@@ -5,27 +5,26 @@ import {
   deleteUser,
   updateUserRole,
   updateUserPlan,
+  getOneUser,
 } from "../controllers/admin.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
+import { validate } from "../middleware/validate.middleware.js";
+import { updateRoleSchema, updatePlanSchema } from "../schemas/admin.schema.js";
 
 const router = express.Router();
 
-// ALL ADMIN ROUTES ARE PROTECTED
 router.use(protect);
 router.use(roleMiddleware("admin"));
 
-// GET ALL USERS
-router.get("/users", getAllUsers);
+router.get("/all", getAllUsers);
+router.get("/:id", getOneUser);
 
-// DELETE USER
 router.delete("/users/:id", deleteUser);
 
-// UPDATE ROLE
-router.put("/users/:id/role", updateUserRole);
+router.put("/users/:id/role", validate(updateRoleSchema), updateUserRole);
 
-// UPDATE PLAN
-router.put("/users/:id/plan", updateUserPlan);
+router.put("/users/:id/plan", validate(updatePlanSchema), updateUserPlan);
 
 export default router;

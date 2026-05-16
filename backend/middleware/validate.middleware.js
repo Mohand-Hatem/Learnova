@@ -1,31 +1,37 @@
 export const validate = (schema) => {
   return (req, res, next) => {
-    // لو Zod schema
-    if (typeof schema.safeParse === "function") {
-      const result = schema.safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({
-          success: false,
-          message: result.error.errors[0].message,
-        });
-      }
-      req.body = result.data;
-      return next();
+    const result = schema.safeParse(req.body || {});
+
+    if (!result.success) {
+      const errors = result.error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors,
+      });
     }
 
-    // لو Joi schema
-    if (typeof schema.validate === "function") {
-      const { error, value } = schema.validate(req.body);
-      if (error) {
-        return res.status(400).json({
-          success: false,
-          message: error.details[0].message,
-        });
-      }
-      req.body = value;
-      return next();
-    }
+    req.body = result.data;
 
     next();
   };
+};
+
+export const parseJsonFields = (req, res, next) => {
+  try {
+    if (req.body.name && typeof req.body.name === "string") {
+      req.body.name = JSON.parse(req.body.name);
+    }
+
+    next();
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid JSON format",
+    });
+  }
 };

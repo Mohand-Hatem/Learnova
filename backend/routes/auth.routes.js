@@ -1,6 +1,5 @@
 import express from "express";
 import passport from "../config/passport.js";
-
 import {
   register,
   login,
@@ -8,16 +7,16 @@ import {
   logout,
   getMe,
   googleAuthCallback,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/auth.controller.js";
-
-import { protect } from "../middleware/auth.middleware.js";
-import validate from "../middleware/validate.middleware.js";
-
 import {
-  registerSchema,
-  loginSchema,
-  refreshTokenSchema,
-} from "../schemas/auth.schema.js";
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "../schemas/user.schema.js";
+import { protect } from "../middleware/auth.middleware.js";
+import { validate } from "../middleware/validate.middleware.js";
+import { registerSchema, loginSchema } from "../schemas/auth.schema.js";
 
 const router = express.Router();
 
@@ -25,27 +24,29 @@ router.post("/register", validate(registerSchema), register);
 
 router.post("/login", validate(loginSchema), login);
 
-router.post("/refresh-token", validate(refreshTokenSchema), refreshAccessToken);
+router.post("/refresh", refreshAccessToken);
 
 router.post("/logout", logout);
 
 router.get("/me", protect, getMe);
 
+router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
+router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
+
 router.get(
   "/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
-    session: false,
-  })
+  }),
 );
 
 router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "/api/auth/google/failure",
+    failureRedirect: "/auth/google/failure",
   }),
-  googleAuthCallback
+  googleAuthCallback,
 );
 
 router.get("/google/failure", (req, res) => {

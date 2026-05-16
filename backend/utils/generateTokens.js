@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import Env from "../config/handelEnv.js";
 
 export const generateAccessToken = (user) => {
   return jwt.sign(
@@ -6,8 +7,8 @@ export const generateAccessToken = (user) => {
       id: user._id,
       role: user.role,
     },
-    process.env.JWT_SECRET,
-    { expiresIn: "15m" }
+    Env.JWT_SECRET,
+    { expiresIn: "15m" },
   );
 };
 
@@ -16,8 +17,8 @@ export const generateRefreshToken = (user) => {
     {
       id: user._id,
     },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
+    Env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" },
   );
 };
 

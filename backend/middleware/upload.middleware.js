@@ -1,87 +1,68 @@
-
 import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../config/cloudinary.js";
-import { Readable } from "stream";
+import {
+  IMAGE_FORMATS,
+  DOCUMENT_FORMATS,
+  ALLOWED_IMAGE_MIMES,
+  ALLOWED_DOC_MIMES,
+} from "../config/helpers.config.js";
 
-const uploadToCloudinary = (buffer, options) => {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      options,
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
-    );
-    Readable.from(buffer).pipe(uploadStream);
-  });
-};
+const avatarStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req) => ({
+    folder: "learnova/avatars",
+    resource_type: "image",
+    allowed_formats: IMAGE_FORMATS,
+    transformation: [
+      { width: 300, height: 300, crop: "fill", quality: "auto" },
+    ],
+    public_id: `avatar_${req.user?._id ?? Date.now()}`,
+  }),
+});
 
-const fileFilter = (req, file, cb) => {
-  const allowedMimes = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "application/pdf",
-    "video/mp4",
-    "video/mkv",
-    "video/webm",
-  ];
+const documentStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (_, file) => {
+    const isPDF = file.mimetype === "application/pdf";
+    const isDoc =
+      file.mimetype === "application/msword" ||
+      file.mimetype ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-  if (allowedMimes.includes(file.mimetype)) {
+    return {
+      folder: isPDF || isDoc ? "learnova/docs" : "learnova/images",
+      resource_type: isPDF || isDoc ? "raw" : "image",
+      allowed_formats: DOCUMENT_FORMATS,
+      public_id: `file_${Date.now()}`,
+    };
+  },
+});
+
+const avatarFilter = (_, file, cb) => {
+  if (ALLOWED_IMAGE_MIMES.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("File type not allowed"), false);
+    cb(new Error("Avatar must be an image (JPEG, PNG)."), false);
+  }
+};
+
+const documentFilter = (_, file, cb) => {
+  if (ALLOWED_DOC_MIMES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Allowed file types: PDF, DOC, DOCX."), false);
   }
 };
 
 export const uploadAvatar = multer({
-  storage: multer.memoryStorage(),
+  storage: avatarStorage,
   limits: { fileSize: 2 * 1024 * 1024 },
-  fileFilter,
+  fileFilter: avatarFilter,
 }).single("avatar");
 
 export const uploadFile = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 100 * 1024 * 1024 },
-  fileFilter,
+  storage: documentStorage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: documentFilter,
 }).single("file");
-
-export const handleAvatarUpload = async (req, res, next) => {
-  try {
-    if (!req.file) return next();
-    const result = await uploadToCloudinary(req.file.buffer, {
-      folder: "learnova/avatars",
-      transformation: [{ width: 300, height: 300, crop: "fill" }],
-    });
-    req.file.path = result.secure_url;
-    next();
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const handleFileUpload = async (req, res, next) => {
-  try {
-    if (!req.file) return next();
-
-    let folder = "learnova/files";
-    let resource_type = "auto";
-
-    if (req.file.mimetype === "application/pdf") {
-      folder = "learnova/pdfs";
-    } else if (req.file.mimetype.startsWith("video/")) {
-      folder = "learnova/videos";
-    } else if (req.file.mimetype.startsWith("image/")) {
-      folder = "learnova/images";
-    }
-
-    const result = await uploadToCloudinary(req.file.buffer, {
-      folder,
-      resource_type,
-    });
-    req.file.path = result.secure_url;
-    next();
-  } catch (error) {
-    next(error);
-  }
-};

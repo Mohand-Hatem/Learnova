@@ -3,20 +3,21 @@ import {
   getProfile,
   updateProfile,
   updatePassword,
-  forgotPassword,
-  resetPassword,
-  uploadUserFile,          
+  uploadUserFile,
+  paymobWebhook,
+  payWithPaymob,
+  userUpdateSubscription,
 } from "../controllers/user.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
-import { uploadAvatar, uploadFile,    handleAvatarUpload,
-  handleFileUpload, } from "../middleware/upload.middleware.js";
-import { validate } from "../middleware/validate.middleware.js";
+import { uploadAvatar, uploadFile } from "../middleware/upload.middleware.js";
+import {
+  parseJsonFields,
+  validate,
+} from "../middleware/validate.middleware.js";
 import {
   updateProfileSchema,
   updatePasswordSchema,
-  forgotPasswordSchema,
-  resetPasswordSchema,
 } from "../schemas/user.schema.js";
 
 const router = Router();
@@ -27,21 +28,23 @@ router.put(
   "/update-profile",
   protect,
   uploadAvatar,
-  handleAvatarUpload,
+  parseJsonFields,
   validate(updateProfileSchema),
-  updateProfile
+  updateProfile,
 );
-router.put("/update-password", protect, validate(updatePasswordSchema), updatePassword);
 
-router.post(
-  "/upload-file",
+router.put(
+  "/update-password",
   protect,
-  uploadFile,
-  handleFileUpload,
-  uploadUserFile
+
+  validate(updatePasswordSchema),
+  updatePassword,
 );
-router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
-router.post("/reset-password/:token", validate(resetPasswordSchema), resetPassword); // ✅
-///
-router.put("/update-profile", protect, validate(updateProfileSchema), updateProfile);
+
+router.post("/upload-file", protect, uploadFile, uploadUserFile);
+
+router.put("/subscription", protect, userUpdateSubscription);
+router.post("/pay", protect, payWithPaymob);
+router.post("/webhook", paymobWebhook);
+
 export default router;

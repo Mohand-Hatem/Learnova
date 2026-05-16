@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
+import Env from "../config/handelEnv.js";
 
 export const protect = async (req, res, next) => {
   try {
@@ -12,7 +13,7 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, Env.JWT_SECRET);
 
     const user = await User.findById(decoded.id).select("-password");
 

@@ -1,12 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-
-
-const planConfig = {
-  Free: 1000,
-  Pro: 2000,
-  Enterprise: 4000,
-};
+import { PLANS } from "../config/helpers.config.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -50,8 +44,8 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["student", "admin"],
-      default: "student",
+      enum: ["company", "user", "admin"],
+      default: "user",
     },
 
     avatar: {
@@ -63,37 +57,31 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-
-   
     isBlocked: {
       type: Boolean,
       default: false,
     },
-
-   
-    resetPasswordToken: {
+    resetOtp: {
       type: String,
       default: null,
+      select: false,
     },
-
-    resetPasswordExpire: {
+    resetOtpExpires: {
       type: Date,
       default: null,
+      select: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-
 userSchema.pre("save", async function () {
-
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
 
- 
   if (this.isModified("plan")) {
-    this.maxToken = planConfig[this.plan];
+    this.maxToken = PLANS[this.plan].maxToken;
   }
 });
 

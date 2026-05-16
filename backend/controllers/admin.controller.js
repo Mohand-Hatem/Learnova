@@ -1,118 +1,117 @@
 import User from "../models/User.model.js";
-import PLANS from "../config/plan.config.js";
+import { PLANS } from "../config/helpers.config.js";
+import asyncHandler from "express-async-handler";
+import CV from "../models/Cv.model.js";
 
-// GET /api/admin/users
-export const getAllUsers = async (req, res, next) => {
-  try {
-    const users = await User.find().select("-password");
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find().select("-password").lean();
 
-    res.status(200).json({
-      success: true,
-      count: users.length,
-      data: users,
+  const userIds = users.map((user) => user._id);
+
+  const cvs = await CV.find({
+    userId: { $in: userIds },
+  })
+    .select("userId atsScore processingStatus originalFile createdAt")
+    .lean();
+
+  const usersWithCVs = users.map((user) => ({
+    ...user,
+
+    cvs: cvs.filter((cv) => cv.userId.toString() === user._id.toString()),
+  }));
+
+  res.status(200).json({
+    success: true,
+    count: usersWithCVs.length,
+    data: usersWithCVs,
+  });
+});
+
+export const getOneUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findById(id).select("-password").lean();
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
     });
-  } catch (error) {
-    next(error);
   }
-};
-export const deleteUser = async (req, res, next) => {
-  try {
-    const { id } = req.params;
 
-    const user = await User.findByIdAndDelete(id);
+  const cvs = await CV.find({ userId: id }).lean();
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+  res.status(200).json({
+    success: true,
+    data: {
+      ...user,
+      cvs,
+    },
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      message: "User deleted successfully",
+export const deleteUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const user = await User.findByIdAndDelete(id);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
     });
-  } catch (error) {
-    next(error);
   }
-};
-export const updateUserRole = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { role } = req.body;
 
-    const user = await User.findByIdAndUpdate(
-      id,
-      { role },
-      { new: true }
-    ).select("-password");
+  res.status(200).json({
+    success: true,
+    message: "User deleted successfully",
+  });
+});
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+export const updateUserRole = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const { role } = req.body;
 
-    res.status(200).json({
-      success: true,
-      message: "Role updated successfully",
-      data: user,
+  const user = await User.findByIdAndUpdate(id, { role }, { new: true }).select(
+    "-password",
+  );
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
     });
-  } catch (error) {
-    next(error);
   }
-};
-export const updateUserPlan = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { plan } = req.body;
 
-    const validPlans = ["Free", "Pro", "Enterprise"];
+  res.status(200).json({
+    success: true,
+    message: "Role updated successfully",
+    data: user,
+  });
+});
 
-    if (!validPlans.includes(plan)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid plan",
-      });
-    }
+export const updateUserPlan = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const { plan } = req.body;
 
-    let maxToken;
+  const maxToken = PLANS[plan].maxToken;
 
-    switch (plan) {
-      case "Free":
-        maxToken = 1000;
-        break;
-      case "Pro":
-        maxToken = 2000;
-        break;
-      case "Enterprise":
-        maxToken = 4000;
-        break;
-    }
+  const user = await User.findByIdAndUpdate(
+    id,
+    { plan, maxToken },
+    { new: true },
+  ).select("-password");
 
-    const user = await User.findByIdAndUpdate(
-      id,
-      {
-        plan,
-        maxToken,
-      },
-      { new: true }
-    ).select("-password");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Plan updated successfully",
-      data: user,
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
     });
-  } catch (error) {
-    next(error);
   }
-};
+
+  res.status(200).json({
+    success: true,
+    message: "Plan updated successfully",
+    data: user,
+  });
+});

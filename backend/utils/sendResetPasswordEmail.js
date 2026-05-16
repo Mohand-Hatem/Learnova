@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import Env from "../config/handelEnv.js";
 
-export const sendWelcomeEmail = async (to, name) => {
+const sendResetPasswordEmail = async (to, name, otp) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -17,7 +17,7 @@ export const sendWelcomeEmail = async (to, name) => {
       
       <!-- Header -->
       <div style="background:linear-gradient(135deg,#2563eb,#1e40af); padding:25px; text-align:center;">
-        <h1 style="color:white; margin:0; font-size:26px;">Learnova</h1>
+        <h1 style="color:white; margin:0; font-size:26px;">Aventra</h1>
         <p style="color:#dbeafe; margin-top:8px;">Learn. Build. Grow.</p>
       </div>
 
@@ -25,32 +25,23 @@ export const sendWelcomeEmail = async (to, name) => {
       <div style="padding:35px; text-align:center;">
         
         <h2 style="color:#111827; margin-bottom:10px;">
-          Welcome, ${name} 👋
+          Password Reset Request 🔐
         </h2>
 
         <p style="color:#6b7280; font-size:15px; line-height:1.6;">
-          We’re excited to have you at <b>Learnova</b> 🚀<br/>
-          Start your journey of learning and building amazing projects with us.
+          Hi <b>${name}</b>, we received a request to reset your password.<br/>
+          Use the OTP code below to proceed. It expires in <b>10 minutes</b>.
         </p>
 
-        <!-- CTA Button -->
-        <div style="margin:30px 0;">
-          <a href="https://learnova.com"
-            style="
-              background:#2563eb;
-              color:white;
-              padding:12px 25px;
-              text-decoration:none;
-              border-radius:8px;
-              font-weight:bold;
-              display:inline-block;
-            ">
-            Start Learning
-          </a>
+        <!-- OTP Box -->
+        <div style="margin:30px auto; display:inline-block; background:#eff6ff; border:2px dashed #2563eb; border-radius:12px; padding:20px 40px;">
+          <p style="margin:0; font-size:13px; color:#6b7280; letter-spacing:1px; text-transform:uppercase;">Your OTP Code</p>
+          <p style="margin:10px 0 0; font-size:38px; font-weight:bold; color:#1e40af; letter-spacing:8px;">${otp}</p>
         </div>
 
-        <p style="color:#9ca3af; font-size:13px;">
-          If you have any questions, feel free to contact our support team.
+        <p style="color:#9ca3af; font-size:13px; margin-top:20px;">
+          If you did not request a password reset, please ignore this email.<br/>
+          Your account remains secure.
         </p>
 
       </div>
@@ -58,7 +49,7 @@ export const sendWelcomeEmail = async (to, name) => {
       <!-- Footer -->
       <div style="background:#f9fafb; padding:15px; text-align:center;">
         <p style="margin:0; font-size:12px; color:#9ca3af;">
-          © ${new Date().getFullYear()} Learnova. All rights reserved.
+          © ${new Date().getFullYear()} Aventra. All rights reserved.
         </p>
       </div>
 
@@ -68,9 +59,11 @@ export const sendWelcomeEmail = async (to, name) => {
   `;
 
   await transporter.sendMail({
-    from: `"Learnova" <${Env.EMAIL}>`,
+    from: `"Aventra" <${Env.EMAIL}>`,
     to,
-    subject: "Welcome to Learnova 🚀",
+    subject: "Reset Your Aventra Password 🔐",
     html: htmlTemplate,
   });
 };
+
+export default sendResetPasswordEmail;

@@ -2,13 +2,14 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import crypto from "crypto";
 import User from "../models/User.model.js";
+import Env from "../config/handelEnv.js";
 
 passport.use(
   new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_ID,
-      clientSecret: process.env.GOOGLE_SECRET,
-      callbackURL: "/api/auth/google/callback",
+      clientID: Env.GOOGLE_ID,
+      clientSecret: Env.GOOGLE_SECRET,
+      callbackURL: "/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -34,7 +35,7 @@ passport.use(
               profile.photos?.[0]?.value ||
               "https://cdn-icons-png.flaticon.com/512/149/149071.png",
             googleId: profile.id,
-            role: "student",
+            role: "user",
           });
         }
 
@@ -42,8 +43,8 @@ passport.use(
       } catch (error) {
         return done(error, null);
       }
-    }
-  )
+    },
+  ),
 );
 
 export default passport;
