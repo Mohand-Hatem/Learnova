@@ -6,6 +6,7 @@ import {
   getMyCVs,
   getCVById,
   deleteCV,
+  updateCV,
 } from "../controllers/cv.controller.js";
 
 const router = Router();
@@ -19,5 +20,7 @@ router.get("/my-cvs", getMyCVs);
 router.get("/:id", getCVById);
 
 router.delete("/:id", deleteCV);
+
+router.put("/:id", uploadFile, updateCV);
 
 export default router;

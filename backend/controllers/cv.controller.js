@@ -1,6 +1,7 @@
 import CV from "../models/Cv.model.js";
 import { MIME_TO_FILETYPE } from "../config/helpers.config.js";
 import asyncHandler from "express-async-handler";
+import cloudinary from "../config/cloudinary.js";
 
 export const uploadCV = asyncHandler(async (req, res, next) => {
   if (!req.file) {
@@ -89,5 +90,68 @@ export const deleteCV = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "CV deleted successfully",
+  });
+});
+
+export const updateCV = asyncHandler(async (req, res, next) => {
+  const cv = await CV.findOne({ _id: req.params.id, userId: req.user._id });
+
+  if (!cv) {
+    return res.status(404).json({ success: false, message: "CV not found" });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: "No file uploaded. Please attach a PDF, DOC, or DOCX file.",
+    });
+  }
+
+  const fileType = MIME_TO_FILETYPE[req.file.mimetype] ?? null;
+  if (!fileType) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid file type. Allowed: PDF, DOC, DOCX.",
+    });
+  }
+
+  // Attempt to remove previous file from Cloudinary (ignore errors)
+  try {
+    if (cv.originalFile && cv.originalFile.publicId) {
+      await cloudinary.uploader.destroy(cv.originalFile.publicId, {
+        resource_type: "raw",
+      });
+    }
+  } catch (err) {
+    // Log but don't block update
+    console.error(
+      "Failed to delete old CV from Cloudinary:",
+      err.message || err,
+    );
+  }
+
+  cv.originalFile = {
+    url: req.file.path,
+    publicId: req.file.filename,
+    fileType,
+    fileName: req.file.originalname,
+    fileSize: req.file.size,
+  };
+  cv.processingStatus = "uploaded";
+
+  await cv.save();
+
+  res.status(200).json({
+    success: true,
+    message: "CV updated successfully",
+    data: {
+      id: cv._id,
+      url: cv.originalFile.url,
+      fileType: cv.originalFile.fileType,
+      fileName: cv.originalFile.fileName,
+      fileSize: cv.originalFile.fileSize,
+      status: cv.processingStatus,
+      updatedAt: cv.updatedAt,
+    },
   });
 });

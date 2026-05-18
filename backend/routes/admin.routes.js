@@ -21,10 +21,10 @@ router.use(roleMiddleware("admin"));
 router.get("/all", getAllUsers);
 router.get("/:id", getOneUser);
 
-router.delete("/users/:id", deleteUser);
+router.delete("/user/:id", deleteUser);
 
-router.put("/users/:id/role", validate(updateRoleSchema), updateUserRole);
+router.put("/user/:id/role", validate(updateRoleSchema), updateUserRole);
 
-router.put("/users/:id/plan", validate(updatePlanSchema), updateUserPlan);
+router.put("/user/:id/plan", validate(updatePlanSchema), updateUserPlan);
 
 export default router;

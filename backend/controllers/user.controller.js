@@ -11,9 +11,15 @@ import {
 import asyncHandler from "express-async-handler";
 
 export const getProfile = asyncHandler(async (req, res) => {
+  const cvsRelated = await CV.find({ userId: req.user._id });
+
+  const data = {
+    ...req.user.toObject(),
+    cvs: cvsRelated,
+  };
   res.status(200).json({
     success: true,
-    data: req.user,
+    data,
   });
 });
 

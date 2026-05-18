@@ -33,7 +33,7 @@ const documentStorage = new CloudinaryStorage({
     return {
       folder: isPDF || isDoc ? "learnova/docs" : "learnova/images",
       resource_type: isPDF || isDoc ? "raw" : "image",
-      allowed_formats: DOCUMENT_FORMATS,
+      // allowed_formats: DOCUMENT_FORMATS,
       public_id: `file_${Date.now()}`,
     };
   },
