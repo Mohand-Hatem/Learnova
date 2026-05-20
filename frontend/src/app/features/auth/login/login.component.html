@@ -1,0 +1,103 @@
+<div class="login-wrapper">
+  <!-- Left Side -->
+  <div class="login-left">
+    <div class="brand">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">Aventra</span>
+      </div>
+      <div class="tagline">
+        <h1>Hire Smarter.<br />with <span class="gradient-text">AI Intelligence.</span></h1>
+        <p>The next-generation recruitment platform powered by semantic search, RAG, and autonomous AI agents.</p>
+      </div>
+      <div class="features">
+        <div class="feature-item">
+          <span class="feature-icon">◈</span>
+          <span>Semantic CV Analysis</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">◈</span>
+          <span>ATS Score Intelligence</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">◈</span>
+          <span>AI-Powered Matching</span>
+        </div>
+      </div>
+    </div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+  </div>
+
+  <!-- Right Side -->
+  <div class="login-right">
+    <div class="login-card">
+      <div class="card-header">
+        <h2>Welcome back</h2>
+        <p>Sign in to continue managing your AI recruitment platform.</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Email</label>
+          <div class="input-wrapper" [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+            <span class="input-icon">✉</span>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="Enter your email"
+            />
+          </div>
+          @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+            <span class="error-text">Please enter a valid email</span>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper" [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+            <span class="input-icon">🔒</span>
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Enter your password"
+            />
+            <button type="button" class="toggle-password" (click)="togglePassword()">
+              {{ showPassword() ? '🙈' : '👁' }}
+            </button>
+          </div>
+          @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+            <span class="error-text">Password must be at least 6 characters</span>
+          }
+        </div>
+
+        <!-- Error Message -->
+        @if (errorMessage()) {
+          <div class="error-alert">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <!-- Submit -->
+        <button type="submit" class="btn-login" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span class="spinner"></span>
+            <span>Signing in...</span>
+          } @else {
+            <span>Sign In</span>
+          }
+        </button>
+      </form>
+
+      <div class="card-footer">
+        <span>⬡</span>
+        <span>Aventra AI Recruitment Platform</span>
+      </div>
+    </div>
+  </div>
+</div>
