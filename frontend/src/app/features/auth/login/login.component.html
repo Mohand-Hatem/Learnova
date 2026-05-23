@@ -1,11 +1,16 @@
-<div class="login-wrapper">
+<div class="theme-toggle">
+  <button [class.active]="!isDark()" (click)="setTheme(false)">☀️</button>
+  <button [class.active]="isDark()" (click)="setTheme(true)">🌙</button>
+</div>
+<div class="login-wrapper" [class.dark]="isDark()"ٍ>
   <!-- Left Side -->
   <div class="login-left">
     <div class="brand">
+    
       <div class="logo">
-        <span class="logo-icon">⬡</span>
-        <span class="logo-text">Aventra</span>
-      </div>
+  <!-- <img src="https://res.cloudinary.com/dxu0jxeek/image/upload/v1779186375/Aventra-logo_lw0rlt.png" alt="Aventra Logo" /> -->
+   <img src="Aventra 2-logo_lw0rlt.png" alt="Aventra Logo">
+</div>
       <div class="tagline">
         <h1>Hire Smarter.<br />with <span class="gradient-text">AI Intelligence.</span></h1>
         <p>The next-generation recruitment platform powered by semantic search, RAG, and autonomous AI agents.</p>

@@ -19,6 +19,11 @@ export class LoginComponent {
   showPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal('');
+  isDark = signal(false); 
+
+  setTheme(dark: boolean) {
+  this.isDark.set(dark);
+}
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
