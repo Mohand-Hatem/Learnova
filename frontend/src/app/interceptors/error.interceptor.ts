@@ -14,10 +14,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           catchError(() => {
             authService.logout().subscribe();
             return throwError(() => error);
-          })
+          }),
         );
       }
       return throwError(() => error);
-    })
+    }),
   );
 };

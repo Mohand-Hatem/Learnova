@@ -1,0 +1,73 @@
+<nav class="sidebar rounded-lg">
+  <div
+    class="user flex flex-col items-center mb-6 w-full text-center rounded-lg p-4 bg-bg-secondary"
+  >
+    <img
+      [src]="user()?.avatar"
+      alt="Admin Avatar"
+      class="w-20 h-20 rounded-full border-2 border-border-theme object-cover"
+    />
+    <div class="flex flex-col items-center space-y-1 mt-3">
+      <p class="text-xl font-bold FontChange text-text-primary">{{ userName() }}</p>
+      <p class="text-sm text-text-secondary">Administrator</p>
+    </div>
+  </div>
+  <ul class="space-y-2 px-4 tracking-wider">
+    <li
+      routerLinkActive=" bg-gray-300/50 rounded-xl  shadow-md"
+      class="hover:bg-bg-secondary hover:shadow-2xl transition-all duration-200"
+    >
+      <a
+        routerLink="/dashboard/overview"
+        routerLinkActive="font-semibold text-brand"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-text-primary"
+      >
+        <lucide-angular [img]="icons.Target" size="20" color="#6366f1"></lucide-angular>
+        <span>Overview</span>
+      </a>
+    </li>
+    <li
+      routerLinkActive=" bg-gray-300/50 rounded-xl shadow-md "
+      class="hover:bg-bg-secondary transition-all duration-200"
+    >
+      <a
+        routerLink="/dashboard/users"
+        routerLinkActive="font-semibold text-brand"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-text-primary"
+      >
+        <lucide-angular [img]="icons.UsersRound" size="20" color="#6366f1"></lucide-angular>
+        <span>Users</span>
+      </a>
+    </li>
+    <li
+      routerLinkActive=" bg-gray-300/50 rounded-xl shadow-md "
+      class="hover:bg-bg-secondary transition-all duration-200"
+    >
+      <a
+        routerLink="/dashboard/companies"
+        routerLinkActive="font-semibold text-brand"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-text-primary"
+      >
+        <lucide-angular [img]="icons.Building2" size="20" color="#6366f1"></lucide-angular>
+        <span>Companies</span>
+      </a>
+    </li>
+    <li
+      routerLinkActive=" bg-gray-300/50 rounded-xl shadow-md "
+      class="hover:bg-bg-secondary transition-all duration-200"
+    >
+      <a
+        routerLink="/dashboard/analysis"
+        routerLinkActive="font-semibold text-brand"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-text-primary"
+      >
+        <lucide-angular [img]="icons.BotMessageSquare" size="20" color="#6366f1"></lucide-angular>
+        <span>Ai Analysis</span>
+      </a>
+    </li>
+  </ul>
+</nav>

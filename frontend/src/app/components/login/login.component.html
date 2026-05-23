@@ -1,0 +1,182 @@
+<div class="min-h-screen flex flex-col md:flex-row bg-bg-secondary text-text-primary">
+  <section
+    class="hidden md:flex flex-1 relative items-center justify-center p-16 overflow-hidden"
+    [ngClass]="
+      themeService.isDark()
+        ? 'bg-linear-to-br from-(--color-brand) via-[rgba(255,255,255,0.02)] to-(--color-grad-end)'
+        : 'bg-linear-to-br from-slate-50 via-white to-slate-200'
+    "
+  >
+    <div class="relative z-10 max-w-xl">
+      <div class="flex items-center gap-3 w-fit">
+        <img src="Aventra-logo.png" alt="Aventra Logo" class="w-full h-20 object-cover" />
+      </div>
+      <div class="space-y-6">
+        <h1 class="text-5xl font-extrabold leading-tight text-slate-950">
+          Hire smarter.<br />with
+          <span
+            class="bg-linear-to-r from-indigo-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent"
+            >AI intelligence</span
+          >.
+        </h1>
+        <p class="max-w-xl text-slate-600 leading-relaxed">
+          The next-generation recruitment platform powered by semantic search, RAG, and autonomous
+          AI agents.
+        </p>
+      </div>
+      <div class="mt-12 space-y-5 text-slate-700">
+        <div class="flex items-center gap-3 text-base">
+          <lucide-angular [img]="icons.User" size="20" color="#3b82f6"> </lucide-angular>
+          <p>Semantic CV Analysis</p>
+        </div>
+        <div class="flex items-center gap-3 text-base">
+          <lucide-angular [img]="icons.Search" size="20" color="#3b82f6"> </lucide-angular>
+          <p>ATS Score Intelligence</p>
+        </div>
+        <div class="flex items-center gap-3 text-base">
+          <lucide-angular [img]="icons.Bot" size="20" color="#3b82f6"> </lucide-angular>
+          <p>AI-Powered Matching</p>
+        </div>
+      </div>
+    </div>
+    <div
+      class="absolute rounded-full blur-3xl opacity-20 bg-indigo-300 w-md h-112 -top-24 -right-32"
+    ></div>
+    <div
+      class="absolute rounded-full blur-3xl opacity-20 bg-cyan-300 w-[20rem] h-80 -bottom-24 -left-24"
+    ></div>
+  </section>
+
+  <section
+    class="flex shadow-2xl w-full max-w-full md:w-120 items-center justify-center p-8 bg-bg-card"
+  >
+    <button
+      type="button"
+      aria-label="Toggle theme"
+      (click)="themeService.toggle()"
+      class="absolute top-5 w-25 h-10 rounded-full cursor-pointer transition-colors duration-300 focus:outline-none"
+      [ngClass]="themeService.isDark() ? 'bg-brand' : 'bg-gray-200'"
+    >
+      <span class="sr-only">Toggle theme</span>
+      <span
+        class="absolute left-1 top-1 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center transition-transform duration-300"
+        [style.transform]="themeService.isDark() ? 'translateX(60px)' : 'translateX(0)'"
+      >
+        @if (themeService.isDark()) {
+          <lucide-angular [img]="icons.Sun" size="15" class="text-yellow-600"></lucide-angular>
+        } @else {
+          <lucide-angular [img]="icons.Moon" size="15" class="text-indigo-950"></lucide-angular>
+        }
+      </span>
+    </button>
+    <div class="w-full max-w-md space-y-8 rounded-3xl border border-theme bg-bg-card p-8 shadow-xl">
+      <div class="space-y-3">
+        <h2 class="text-4xl font-semibold text-text-primary">Welcome Admin</h2>
+        <p class="text-sm text-text-secondary">
+          Sign in to continue managing your AI recruitment platform.
+        </p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <div class="space-y-2">
+          <label for="email" class="block text-sm font-medium text-text-secondary">Email</label>
+          <div
+            class="flex items-center gap-3 rounded-2xl border border-theme bg-bg-card px-4 py-3 shadow-sm transition duration-200 focus-within:border-brand focus-within:ring-2"
+            [ngClass]="{
+              'border-rose-500 ring-rose-500/20':
+                loginForm.get('email')?.invalid && loginForm.get('email')?.touched,
+            }"
+          >
+            <lucide-angular [img]="icons.AtSign" size="20" color="#3b82f6"> </lucide-angular>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="Enter your email"
+              class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none"
+            />
+          </div>
+          <p
+            *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+            class="text-xs text-rose-500"
+          >
+            Please enter a valid email
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label for="password" class="block text-sm font-medium text-text-secondary"
+            >Password</label
+          >
+          <div
+            class="flex items-center gap-3 rounded-2xl border border-theme bg-bg-card px-4 py-3 shadow-sm transition duration-200 focus-within:border-brand focus-within:ring-2"
+            [ngClass]="{
+              'border-rose-500 ring-rose-500/20':
+                loginForm.get('password')?.invalid && loginForm.get('password')?.touched,
+            }"
+          >
+            <lucide-angular [img]="icons.KeyRound" size="20" color="#3b82f6"> </lucide-angular>
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Enter your password"
+              class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none"
+            />
+            <button
+              type="button"
+              class="text-slate-500 transition hover:text-slate-900"
+              (click)="togglePassword()"
+            >
+              @if (showPassword()) {
+                <lucide-angular
+                  [img]="icons.EyeClosed"
+                  size="20"
+                  class="text-gray-400"
+                ></lucide-angular>
+              } @else {
+                <lucide-angular [img]="icons.Eye" size="20" class="text-gray-400"></lucide-angular>
+              }
+            </button>
+            <!-- {{ showPassword() ? "<lucide-angular [img]="icons.EyeClosed" size="20" color="#3b82f6"> </lucide-angular>" : <lucide-angular [img]="icons.Show" size="20" color="#3b82f6"> </lucide-angular> }} -->
+          </div>
+          <p
+            *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+            class="text-xs text-rose-500"
+          >
+            Password must be at least 6 characters
+          </p>
+        </div>
+
+        <div
+          *ngIf="errorMessage()"
+          class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+        >
+          {{ errorMessage() }}
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="isLoading()"
+          class="flex w-full cursor-pointer text-base items-center justify-center gap-2 rounded-2xl px-5 py-2 text-white transition duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+          [ngStyle]="{
+            background: 'linear-gradient(90deg, var(--color-grad-start), var(--color-grad-end))',
+          }"
+        >
+          <span
+            *ngIf="isLoading()"
+            class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+          ></span>
+          <span>{{ isLoading() ? 'Signing in...' : 'Sign In' }}</span>
+        </button>
+      </form>
+
+      <div
+        class="mt-8 flex items-center justify-center gap-2 border-t border-slate-200 pt-5 text-xs text-slate-500"
+      >
+        <i data-lucide="info" class="text-slate-400 text-base"></i>
+        <span>Aventra AI Recruitment Platform</span>
+      </div>
+    </div>
+  </section>
+</div>

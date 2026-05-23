@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: { en: string; ar: string } | string;
   email: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'company';
   avatar?: string;
   plan: string;
   maxToken: number;
@@ -11,8 +11,13 @@ export interface User {
   updatedAt: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse {
   success: boolean;
   message: string;
-  data: T;
+  data: any;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
 }

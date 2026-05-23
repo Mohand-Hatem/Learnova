@@ -15,7 +15,13 @@ const avatarStorage = new CloudinaryStorage({
     resource_type: "image",
     allowed_formats: IMAGE_FORMATS,
     transformation: [
-      { width: 300, height: 300, crop: "fill", quality: "auto" },
+      {
+        width: 350,
+        height: 350,
+        crop: "fill",
+        gravity: "center",
+        quality: "auto",
+      },
     ],
     public_id: `avatar_${req.user?._id ?? Date.now()}`,
   }),

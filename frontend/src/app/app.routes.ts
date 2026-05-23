@@ -1,26 +1,36 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
-import { roleGuard } from './core/guards/role.guard';
+import { LoginComponent } from './components/login/login.component';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { roleGuard } from './guards/role.guard';
+import { OverviewComponent } from './components/dashboard/overview/overview.component';
+import { UsersComponent } from './components/dashboard/users/users.component';
+import { CompaniesComponent } from './components/dashboard/companies/companies.component';
+import { AiAnalysisComponent } from './components/dashboard/ai-analysis/ai-analysis.component';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'login',
-    pathMatch: 'full'
+    redirectTo: 'dashboard',
+    pathMatch: 'full',
   },
   {
     path: 'login',
-    loadComponent: () =>
-      import('./features/auth/login/login.component').then(m => m.LoginComponent)
+    component: LoginComponent,
   },
   {
     path: 'dashboard',
-    loadChildren: () =>
-      import('./features/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES),
-    canActivate: [authGuard, roleGuard]
+    component: DashboardComponent,
+    canActivate: [roleGuard],
+    children: [
+      { path: '', redirectTo: 'overview', pathMatch: 'full' },
+      { path: 'overview', component: OverviewComponent },
+      { path: 'users', component: UsersComponent },
+      { path: 'companies', component: CompaniesComponent },
+      { path: 'analysis', component: AiAnalysisComponent },
+    ],
   },
   {
     path: '**',
-    redirectTo: 'login'
-  }
+    redirectTo: 'dashboard',
+  },
 ];
