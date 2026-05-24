@@ -1,13 +1,14 @@
 import { Component, input, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { NAV_ITEMS } from '../../features/dashboard/dashboard.models';
+import { NAV_ITEMS } from '../overview/dashboard.models';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.scss',
+  styleUrls: ['./sidebar.scss'],
   host: {
     class: 'app-sidebar',
     '[class.app-sidebar--open]': 'open()',

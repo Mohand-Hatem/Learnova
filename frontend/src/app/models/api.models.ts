@@ -4,7 +4,7 @@ import type {
   RecentCv,
   SkillItem,
   StatCard,
-} from '../../features/dashboard/dashboard.models';
+} from '../components/dashboard/overview/dashboard.models';
 
 export interface ApiResponse<T> {
   success: boolean;

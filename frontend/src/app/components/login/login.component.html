@@ -128,15 +128,16 @@
               class="text-slate-500 transition hover:text-slate-900"
               (click)="togglePassword()"
             >
-              @if (showPassword()) {
+              <ng-container *ngIf="showPassword(); else showEye">
                 <lucide-angular
                   [img]="icons.EyeClosed"
                   size="20"
                   class="text-gray-400"
                 ></lucide-angular>
-              } @else {
+              </ng-container>
+              <ng-template #showEye>
                 <lucide-angular [img]="icons.Eye" size="20" class="text-gray-400"></lucide-angular>
-              }
+              </ng-template>
             </button>
             <!-- {{ showPassword() ? "<lucide-angular [img]="icons.EyeClosed" size="20" color="#3b82f6"> </lucide-angular>" : <lucide-angular [img]="icons.Show" size="20" color="#3b82f6"> </lucide-angular> }} -->
           </div>

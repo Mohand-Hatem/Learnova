@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import type { ApexOptions } from 'ng-apexcharts';
 import type { PlatformActivity } from '../../dashboard.models';
@@ -7,9 +8,9 @@ import { PLATFORM_ACTIVITY } from '../../dashboard.models';
 @Component({
   selector: 'app-platform-activity-chart',
   standalone: true,
-  imports: [NgApexchartsModule],
+  imports: [CommonModule, NgApexchartsModule],
   templateUrl: './platform-activity-chart.html',
-  styleUrl: './platform-activity-chart.scss',
+  styleUrls: ['./platform-activity-chart.scss'],
 })
 export class PlatformActivityChart {
   readonly activity = input<PlatformActivity>(PLATFORM_ACTIVITY);

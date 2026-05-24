@@ -18,12 +18,7 @@ import "./utils/cron.js";
 const app = express();
 app.use(helmet());
 app.use(morgan("dev"));
-app.use(
-  cors({
-    origin: ["http://localhost:4200", "*"],
-    credentials: true,
-  }),
-);
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
@@ -37,7 +32,7 @@ app.use(errorMiddleware);
 connectDB();
 
 app.listen(Env.PORT || 5000, () => {
-  console.log(`Server running on port ${Env.PORT || 5000}`);
+  console.log(`Server running on port ${Env.PORT || 5000 },${Env.MONGO_URI}`);
 });
 
 export default app;

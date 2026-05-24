@@ -20,7 +20,7 @@
   </div>
 
   <nav class="app-sidebar__nav flex h-full flex-col gap-2 overflow-y-auto p-3">
-    @for (item of navItems; track item.route) {
+    <ng-container *ngFor="let item of navItems; let i = index">
       <a
         [routerLink]="item.route"
         routerLinkActive="bg-violet-950/50 text-violet-300 border border-violet-500/40"
@@ -31,7 +31,7 @@
         <i class="bi {{ iconClass(item.route) }} transition-transform duration-300"></i>
         <span class="text-sm">{{ item.label }}</span>
       </a>
-    }
+    </ng-container>
   </nav>
 
   <div class="app-sidebar__footer p-3">

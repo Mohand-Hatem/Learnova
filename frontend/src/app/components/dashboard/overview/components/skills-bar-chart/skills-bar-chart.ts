@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import type { ApexOptions } from 'ng-apexcharts';
 import type { SkillItem } from '../../dashboard.models';
@@ -7,9 +8,9 @@ import { TOP_SKILLS } from '../../dashboard.models';
 @Component({
   selector: 'app-skills-bar-chart',
   standalone: true,
-  imports: [NgApexchartsModule],
+  imports: [CommonModule, NgApexchartsModule],
   templateUrl: './skills-bar-chart.html',
-  styleUrl: './skills-bar-chart.scss',
+  styleUrls: ['./skills-bar-chart.scss'],
 })
 export class SkillsBarChart {
   readonly skills = input<SkillItem[]>(TOP_SKILLS);

@@ -2,15 +2,13 @@
   <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
     <h6 class="text-sm font-semibold text-white">Recent CVs</h6>
     <div class="flex items-center gap-2">
-      @if (!isLive()) {
-        <span class="rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-amber-300">Demo</span>
-      }
+      <span *ngIf="!isLive()" class="rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-amber-300">Demo</span>
       <a href="#" class="text-sm font-medium text-cyan-300 transition hover:text-cyan-200">View all</a>
     </div>
   </div>
 
   <div class="grid gap-3 lg:hidden">
-    @for (cv of cvs(); track cv.name; let i = $index) {
+    <ng-container *ngFor="let cv of cvs(); let i = index">
       <article class="transition-smooth rounded-3xl border border-slate-800 bg-[#11131b] p-4 hover:border-slate-700 hover:shadow-md hover:shadow-slate-950">
         <div class="mb-4 flex items-center gap-3">
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-slate-100">{{ cv.avatar }}</div>
@@ -29,7 +27,7 @@
           <span class="inline-flex items-center rounded-full bg-slate-900/80 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] transition-all duration-300 {{ statusClass(cv.status) }}">{{ cv.status }}</span>
         </div>
       </article>
-    }
+    </ng-container>
   </div>
 
   <div class="hidden lg:block">
@@ -44,7 +42,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (cv of cvs(); track cv.name) {
+          <ng-container *ngFor="let cv of cvs()">
             <tr class="transition-colors border-t border-slate-800 last:border-b-0 hover:bg-slate-950/50">
               <td class="px-4 py-4">
                 <div class="flex items-center gap-3">
@@ -65,7 +63,7 @@
                 <span class="inline-flex items-center rounded-full px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] transition-all duration-300 {{ statusClass(cv.status) }}">{{ cv.status }}</span>
               </td>
             </tr>
-          }
+          </ng-container>
         </tbody>
       </table>
     </div>

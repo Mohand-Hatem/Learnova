@@ -1,12 +1,14 @@
 import { Component, input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import type { AiHealthItem } from '../../dashboard.models';
 import { AI_HEALTH } from '../../dashboard.models';
 
 @Component({
   selector: 'app-ai-health-panel',
   standalone: true,
+  imports: [CommonModule],
   templateUrl: './ai-health-panel.html',
-  styleUrl: './ai-health-panel.scss',
+  styleUrls: ['./ai-health-panel.scss'],
 })
 export class AiHealthPanel {
   readonly items = input<AiHealthItem[]>(AI_HEALTH);

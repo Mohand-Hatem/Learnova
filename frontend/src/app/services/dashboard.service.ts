@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { catchError, firstValueFrom, map, of } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../environments/environment';
 import type { ApiDashboardPayload, ApiResponse, DashboardViewModel } from '../models/api.models';
 import {
   AI_HEALTH,
@@ -14,7 +14,7 @@ import {
   type RecentCv,
   type SkillItem,
   type StatCard,
-} from '../../features/dashboard/dashboard.models';
+} from '../components/dashboard/overview/dashboard.models';
 
 interface AuthMeUser {
   name?: { en?: string; ar?: string };
@@ -119,12 +119,9 @@ export class DashboardService {
         ? data.recentCvs.map(({ source: _s, ...cv }) => cv)
         : RECENT_CVS;
 
-    const topSkills =
-      data.topSkills && data.topSkills.length > 0
-        ? data.topSkills.map(({ source: _s, ...skill }) => skill)
-        : TOP_SKILLS;
-
+    const topSkills = this.mapTopSkills(data);
     const platformActivity = data.platformActivity ?? PLATFORM_ACTIVITY;
+    const aiHealth = this.mapAiHealth(data);
 
     return {
       stats,
@@ -135,17 +132,42 @@ export class DashboardService {
         activeUsers: platformActivity.activeUsers,
         aiAnalyses: platformActivity.aiAnalyses,
       },
-      aiHealth: data.aiHealth?.items?.length ? data.aiHealth.items : AI_HEALTH,
+      aiHealth,
       userName: 'Admin',
       isLive: true,
       sources: {
         stats: true,
         recentCvs: data.recentCvs.length > 0,
-        topSkills: Boolean(data.topSkills?.length),
+        topSkills: topSkills !== TOP_SKILLS,
         platformActivity: data.platformActivity?.source === 'dynamic',
-        aiHealth: data.aiHealth?.source === 'dynamic',
+        aiHealth: aiHealth !== AI_HEALTH,
       },
     };
+  }
+
+  private mapTopSkills(data: ApiDashboardPayload): SkillItem[] {
+    if (Array.isArray(data.topSkills) && data.topSkills.length > 0) {
+      return data.topSkills.map(({ source: _s, ...skill }) => skill);
+    }
+
+    const fallback = (data as any).topSkills;
+    if (Array.isArray(fallback?.items) && fallback.items.length > 0) {
+      return fallback.items.map(({ source: _s, ...skill }: any) => skill);
+    }
+
+    return TOP_SKILLS;
+  }
+
+  private mapAiHealth(data: ApiDashboardPayload): AiHealthItem[] {
+    if (Array.isArray((data as any).aiHealth)) {
+      return (data as any).aiHealth.map(({ source: _s, ...item }: any) => item);
+    }
+
+    if (Array.isArray(data.aiHealth?.items) && data.aiHealth.items.length > 0) {
+      return data.aiHealth.items.map(({ source: _s, ...item }: any) => item);
+    }
+
+    return AI_HEALTH;
   }
 
   private fallbackViewModel(): DashboardViewModel {

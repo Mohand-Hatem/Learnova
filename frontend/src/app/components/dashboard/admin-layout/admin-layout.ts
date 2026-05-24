@@ -1,21 +1,25 @@
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { Component, DestroyRef, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { AuthService } from '../../../services/auth.service';
+import { ThemeService } from '../../../services/theme.service';
 import { Sidebar } from '../sidebar/sidebar';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [RouterOutlet, Sidebar],
+  imports: [CommonModule, RouterOutlet, Sidebar],
   templateUrl: './admin-layout.html',
-  styleUrl: './admin-layout.scss',
+  styleUrls: ['./admin-layout.scss'],
 })
 export class AdminLayout {
-  private readonly router = inject(Router);
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly router: Router = inject(Router);
+  private readonly platformId: Object = inject(PLATFORM_ID);
+  private readonly destroyRef: DestroyRef = inject(DestroyRef);
+  readonly themeService: ThemeService = inject(ThemeService);
+  private readonly authService: AuthService = inject(AuthService);
 
   readonly userName = 'Alex Ionescu';
   readonly userRole = 'Super Admin';
@@ -48,5 +52,11 @@ export class AdminLayout {
 
   closeSidebar(): void {
     this.sidebarOpen.set(false);
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe({
+      complete: () => this.router.navigate(['/login']),
+    });
   }
 }

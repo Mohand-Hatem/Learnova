@@ -1,11 +1,13 @@
 import { Component, input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import type { RecentCv } from '../../dashboard.models';
 
 @Component({
   selector: 'app-recent-cvs-table',
   standalone: true,
+  imports: [CommonModule],
   templateUrl: './recent-cvs-table.html',
-  styleUrl: './recent-cvs-table.scss',
+  styleUrls: ['./recent-cvs-table.scss'],
 })
 export class RecentCvsTable {
   readonly cvs = input.required<RecentCv[]>();

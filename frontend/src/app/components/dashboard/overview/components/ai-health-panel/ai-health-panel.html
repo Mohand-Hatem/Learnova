@@ -4,13 +4,10 @@
       <h6 class="text-sm font-semibold text-white">AI System Health</h6>
       <p class="mt-1 text-sm text-slate-400">Real-time service status</p>
     </div>
-    @if (!isLive()) {
-      <span class="rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-amber-300">Demo</span>
-    }
   </div>
 
   <div class="grid gap-3 flex-1 min-w-0">
-    @for (item of items(); track item.label; let i = $index) {
+    <ng-container *ngFor="let item of items(); let i = index">
       <div class="min-w-0 transition-all duration-300 [&:hover]:opacity-100 opacity-90">
         <div class="mb-2 flex items-center justify-between gap-3 text-sm text-slate-100">
           <span class="truncate">{{ item.label }}</span>
@@ -20,14 +17,14 @@
           <div class="h-full rounded-full transition-all duration-500" [style.width.%]="item.value" [style.background]="barColor(item.value)"></div>
         </div>
       </div>
-    }
+    </ng-container>
   </div>
 
   <div class="transition-all mt-4 flex items-start gap-3 rounded-2xl border border-slate-800 bg-[#0b0e14] p-4 hover:border-cyan-500/30 hover:bg-cyan-950/20">
     <i class="bi bi-lightbulb text-cyan-300"></i>
     <p class="text-sm leading-6 text-slate-300">
       <strong class="text-white">AI Insight:</strong>
-      Semantic Search latency increased 12% — consider scaling embedding cache.
+      CV uploads spiked 23% — consider scaling the embedding workers in us-east-2.
     </p>
   </div>
 </div>

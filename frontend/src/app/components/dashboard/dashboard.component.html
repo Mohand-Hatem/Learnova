@@ -1,58 +1,15 @@
-<div class="min-h-screen bg-bg-secondary">
-  <div class="grid grid-cols-12">
-    <aside class="col-span-12 bg-white sticky top-0 md:col-span-2 h-[99vh] sidebar shadow-lg">
+<div class="min-h-screen bg-[#090c16] text-slate-100">
+  <div class="grid min-h-screen grid-cols-12 gap-4">
+    <aside class="col-span-12 md:col-span-2 bg-[#0b1224] border-r border-slate-800/70 shadow-[0_30px_80px_-70px_rgba(15,23,42,0.9)]">
       <app-sidebar></app-sidebar>
     </aside>
 
-    <main class="col-span-12 md:col-span-10 p-3">
-      <div class="card flex items-center justify-between p-6">
-        <div class="logo flex items-center gap-4">
-          <img src="Aventra-logo.png" alt="Aventra Logo" class="w-30 h-auto object-cover" />
-        </div>
-        <div class="flex justify-center items-center gap-4">
-          <p class="text-sm self-center-safe text-text-secondary">Welcome back, Admin!</p>
-        </div>
-        <div class="flex items-center gap-4">
-          <button
-            type="button"
-            aria-label="Toggle theme"
-            (click)="themeService.toggle()"
-            class="relative w-14 h-8 rounded-full cursor-pointer transition-colors duration-300 focus:outline-none"
-            [ngClass]="themeService.isDark() ? 'bg-indigo-900' : 'bg-gray-200'"
-          >
-            <span class="sr-only">Toggle theme</span>
-            <span
-              class="absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center transition-transform duration-300"
-              [style.transform]="themeService.isDark() ? 'translateX(24px)' : 'translateX(0)'"
-            >
-              @if (themeService.isDark()) {
-                <lucide-angular
-                  [img]="icons.Sun"
-                  size="12"
-                  class="text-yellow-600"
-                ></lucide-angular>
-              } @else {
-                <lucide-angular
-                  [img]="icons.Moon"
-                  size="12"
-                  class="text-indigo-950"
-                ></lucide-angular>
-              }
-            </span>
-          </button>
-          <button
-            type="button"
-            (click)="logout()"
-            class="btn-primary cursor-pointer px-4 py-2 text-sm font-semibold rounded-lg transition hover:opacity-90"
-          >
-            Logout
-          </button>
-        </div>
+    <main class="col-span-12 md:col-span-10 p-4 lg:p-6">
+      <div class="grid gap-4">
+        <section class="rounded-[2rem] border border-slate-800/70 bg-[#0f1832]/95 p-5 shadow-[0_25px_60px_-35px_rgba(15,23,42,0.7)]">
+          <router-outlet></router-outlet>
+        </section>
       </div>
-
-      <section class="card border-2 border-t border-theme shadow-lg p-4">
-        <router-outlet></router-outlet>
-      </section>
     </main>
   </div>
 </div>

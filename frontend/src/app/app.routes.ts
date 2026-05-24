@@ -1,8 +1,9 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { AdminLayout } from './components/dashboard/admin-layout/admin-layout';
 import { roleGuard } from './guards/role.guard';
-import { OverviewComponent } from './components/dashboard/overview/overview.component';
+import { Dashboard as OverviewComponent } from './components/dashboard/overview/dashboard';
 import { UsersComponent } from './components/dashboard/users/users.component';
 import { CompaniesComponent } from './components/dashboard/companies/companies.component';
 import { AiAnalysisComponent } from './components/dashboard/ai-analysis/ai-analysis.component';
@@ -19,14 +20,14 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    component: DashboardComponent,
+    component: AdminLayout,
     canActivate: [roleGuard],
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: OverviewComponent },
       { path: 'users', component: UsersComponent },
       { path: 'companies', component: CompaniesComponent },
-      { path: 'analysis', component: AiAnalysisComponent },
+      { path: 'ai-monitoring', component: AiAnalysisComponent },
     ],
   },
   {

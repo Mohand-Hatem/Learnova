@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import type { ApexOptions } from 'ng-apexcharts';
 import type { StatCard } from '../../dashboard.models';
@@ -9,9 +10,9 @@ const SPARKLINE_GRADIENT_TO = '#6366f1';
 @Component({
   selector: 'app-stat-card',
   standalone: true,
-  imports: [NgApexchartsModule],
+  imports: [CommonModule, NgApexchartsModule],
   templateUrl: './stat-card.html',
-  styleUrl: './stat-card.scss',
+  styleUrls: ['./stat-card.scss'],
 })
 export class StatCardComponent {
   readonly stat = input.required<StatCard>();

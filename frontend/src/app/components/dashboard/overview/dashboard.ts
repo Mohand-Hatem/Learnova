@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { StatCardComponent } from './components/stat-card/stat-card';
 import { PlatformActivityChart } from './components/platform-activity-chart/platform-activity-chart';
 import { SkillsBarChart } from './components/skills-bar-chart/skills-bar-chart';
@@ -11,12 +12,13 @@ import {
   type SkillItem,
   type StatCard,
 } from './dashboard.models';
-import { DashboardService } from '../../core/services/dashboard.service';
+import { DashboardService } from '../../../services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
+    CommonModule,
     StatCardComponent,
     PlatformActivityChart,
     SkillsBarChart,
@@ -24,7 +26,7 @@ import { DashboardService } from '../../core/services/dashboard.service';
     AiHealthPanel,
   ],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss',
+  styleUrls: ['./dashboard.scss'],
 })
 export class Dashboard implements OnInit {
   private readonly dashboardService = inject(DashboardService);
