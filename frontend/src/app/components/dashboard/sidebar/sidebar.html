@@ -1,73 +1,46 @@
-<nav class="sidebar rounded-lg">
-  <div
-    class="user flex flex-col items-center mb-6 w-full text-center rounded-lg p-4 bg-bg-secondary"
-  >
-    <img
-      [src]="user()?.avatar"
-      alt="Admin Avatar"
-      class="w-20 h-20 rounded-full border-2 border-border-theme object-cover"
-    />
-    <div class="flex flex-col items-center space-y-1 mt-3">
-      <p class="text-xl font-bold FontChange text-text-primary">{{ userName() }}</p>
-      <p class="text-sm text-text-secondary">Administrator</p>
+<aside class="app-sidebar__inner flex h-full w-full flex-col bg-[#0d0f18] border-r border-slate-800">
+  <div class="app-sidebar__brand flex items-center justify-between gap-2 border-b border-slate-800 p-4">
+    <div class="flex min-w-0 items-center gap-2">
+      <div class="app-sidebar__logo flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-violet-500 text-white transition-transform duration-300 hover:scale-110">
+        <i class="bi bi-cpu"></i>
+      </div>
+      <div class="app-sidebar__brand-text min-w-0">
+        <div class="truncate text-sm font-semibold leading-snug">CV Intelligence</div>
+        <div class="text-[0.65rem] uppercase tracking-[0.08em] text-slate-400">AI PLATFORM</div>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="app-sidebar__close inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-transparent text-slate-400 transition-all duration-200 hover:border-violet-400/40 hover:bg-violet-950/10 hover:text-white"
+      aria-label="Close sidebar"
+      (click)="closeRequested.emit()"
+    >
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <nav class="app-sidebar__nav flex h-full flex-col gap-2 overflow-y-auto p-3">
+    @for (item of navItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="bg-violet-950/50 text-violet-300 border border-violet-500/40"
+        [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+        class="transition-smooth flex items-center gap-3 rounded-2xl px-3 py-2 text-slate-400 hover:bg-violet-950/30 hover:text-slate-100 no-underline"
+        (click)="onNavClick()"
+      >
+        <i class="bi {{ iconClass(item.route) }} transition-transform duration-300"></i>
+        <span class="text-sm">{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <div class="app-sidebar__footer p-3">
+    <div class="transition-all flex items-center gap-2 rounded-2xl border border-slate-800 bg-[#151724] p-3 hover:border-emerald-500/40 hover:bg-emerald-950/20">
+      <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+      <div>
+        <div class="text-sm font-semibold text-slate-100">AI Engine Online</div>
+        <div class="text-[0.65rem] text-slate-400">All systems operational</div>
+      </div>
     </div>
   </div>
-  <ul class="space-y-2 px-4 tracking-wider">
-    <li
-      routerLinkActive=" bg-gray-300/50 rounded-xl  shadow-md"
-      class="hover:bg-bg-secondary hover:shadow-2xl transition-all duration-200"
-    >
-      <a
-        routerLink="/dashboard/overview"
-        routerLinkActive="font-semibold text-brand"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-text-primary"
-      >
-        <lucide-angular [img]="icons.Target" size="20" color="#6366f1"></lucide-angular>
-        <span>Overview</span>
-      </a>
-    </li>
-    <li
-      routerLinkActive=" bg-gray-300/50 rounded-xl shadow-md "
-      class="hover:bg-bg-secondary transition-all duration-200"
-    >
-      <a
-        routerLink="/dashboard/users"
-        routerLinkActive="font-semibold text-brand"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-text-primary"
-      >
-        <lucide-angular [img]="icons.UsersRound" size="20" color="#6366f1"></lucide-angular>
-        <span>Users</span>
-      </a>
-    </li>
-    <li
-      routerLinkActive=" bg-gray-300/50 rounded-xl shadow-md "
-      class="hover:bg-bg-secondary transition-all duration-200"
-    >
-      <a
-        routerLink="/dashboard/companies"
-        routerLinkActive="font-semibold text-brand"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-text-primary"
-      >
-        <lucide-angular [img]="icons.Building2" size="20" color="#6366f1"></lucide-angular>
-        <span>Companies</span>
-      </a>
-    </li>
-    <li
-      routerLinkActive=" bg-gray-300/50 rounded-xl shadow-md "
-      class="hover:bg-bg-secondary transition-all duration-200"
-    >
-      <a
-        routerLink="/dashboard/analysis"
-        routerLinkActive="font-semibold text-brand"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-text-primary"
-      >
-        <lucide-angular [img]="icons.BotMessageSquare" size="20" color="#6366f1"></lucide-angular>
-        <span>Ai Analysis</span>
-      </a>
-    </li>
-  </ul>
-</nav>
+</aside>

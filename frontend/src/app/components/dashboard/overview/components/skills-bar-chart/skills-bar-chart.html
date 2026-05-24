@@ -1,0 +1,26 @@
+<div class="transition-smooth flex h-full min-h-[320px] min-w-0 flex-col rounded-[2rem] border border-slate-700/60 bg-gradient-to-br from-[#10121a] via-[#141720] to-[#151724] p-5 shadow-[0_30px_90px_-50px_rgba(99,102,241,0.45)] hover:border-slate-500">
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <h6 class="text-sm font-semibold text-white">Top Skills Detected</h6>
+      <p class="mt-1 text-sm text-slate-400">Most frequent skills in CVs</p>
+    </div>
+    @if (!isLive()) {
+      <span class="rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-amber-300">Demo</span>
+    }
+  </div>
+  @let opts = chartOptions();
+  <div class="mt-6 flex-1 min-h-0 rounded-[1.75rem] bg-slate-950/65 p-3 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)]">
+    <apx-chart
+      class="h-full w-full"
+      [series]="opts.series!"
+      [chart]="opts.chart!"
+      [plotOptions]="opts.plotOptions!"
+      [colors]="opts.colors!"
+      [dataLabels]="opts.dataLabels!"
+      [xaxis]="opts.xaxis!"
+      [yaxis]="opts.yaxis!"
+      [grid]="opts.grid!"
+      [tooltip]="opts.tooltip!"
+    ></apx-chart>
+  </div>
+</div>

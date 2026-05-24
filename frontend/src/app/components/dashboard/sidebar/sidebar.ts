@@ -1,42 +1,39 @@
-import {
-  Component,
-  computed,
-  inject,
-  OnChanges,
-  OnInit,
-  signal,
-  SimpleChanges,
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { AuthService } from '../../../services/auth.service';
-import {
-  LucideAngularModule,
-  UsersRound,
-  Target,
-  Building2,
-  Brain,
-  BotMessageSquare,
-} from 'lucide-angular';
+import { Component, input, output } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { NAV_ITEMS } from '../../features/dashboard/dashboard.models';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
-  styleUrls: ['./sidebar.css'],
+  styleUrl: './sidebar.scss',
+  host: {
+    class: 'app-sidebar',
+    '[class.app-sidebar--open]': 'open()',
+  },
 })
-export class Sidebar implements OnChanges {
-  authService = inject(AuthService);
-  user = this.authService.currentUser;
-  icons = { UsersRound, Target, Building2, Brain, BotMessageSquare };
-  ngOnChanges() {
-    console.log(this.user());
+export class Sidebar {
+  readonly open = input(false);
+  readonly closeRequested = output<void>();
+  readonly navItems = NAV_ITEMS;
+
+  readonly iconMap: Record<string, string> = {
+    'layout-dashboard': 'bi-grid-1x2',
+    users: 'bi-people',
+    'building-2': 'bi-building',
+    'file-text': 'bi-file-earmark-text',
+    'bar-chart-3': 'bi-bar-chart',
+    activity: 'bi-activity',
+    settings: 'bi-gear',
+  };
+
+  iconClass(route: string): string {
+    const item = NAV_ITEMS.find((n) => n.route === route);
+    return this.iconMap[item?.icon ?? 'layout-dashboard'] ?? 'bi-grid-1x2';
   }
-  userName = computed(() => {
-    const name = this.user()?.name;
-    if (!name) return '';
-    if (typeof name === 'string') return name;
-    return name.en;
-  });
+
+  onNavClick(): void {
+    this.closeRequested.emit();
+  }
 }

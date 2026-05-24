@@ -1,0 +1,53 @@
+<div class="dashboard space-y-6">
+  @if (loading()) {
+    <div class="animate-fade-in rounded-3xl border border-slate-800 bg-[#151724] px-4 py-3 text-sm text-slate-400">Loading dashboard…</div>
+  } @else if (loadError()) {
+    <div class="animate-fade-in rounded-3xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">{{ loadError() }}</div>
+  } @else if (isLive()) {
+    <div class="animate-fade-in rounded-3xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">Live data from API</div>
+  }
+
+  <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+    <div class="min-w-0 animate-slide-up">
+      <h1 class="text-2xl font-semibold text-white">Welcome back, {{ userName() }}</h1>
+      <p class="mt-1 text-sm text-slate-400">Here's what's happening with your CV Intelligence platform today.</p>
+    </div>
+    <div class="flex flex-wrap gap-2 animate-slide-up" style="animation-delay: 0.1s">
+      <button type="button" class="inline-flex items-center gap-2 rounded-2xl border border-slate-800 bg-transparent px-3 py-2 text-sm text-slate-100 transition-colors duration-300 hover:border-violet-500/40 hover:bg-violet-950/40">
+        <i class="bi bi-download"></i>
+        <span class="hidden sm:inline">Export</span>
+      </button>
+      <button type="button" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition duration-300 hover:brightness-110 hover:shadow-xl hover:shadow-violet-500/40">
+        <i class="bi bi-plus-lg"></i>
+        <span class="hidden sm:inline">New Analysis</span>
+        <span class="sm:hidden">New</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid gap-4 gap-y-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+    @for (stat of stats(); track stat.title; let i = $index) {
+      <div class="min-h-[150px] w-full animate-slide-up" [style.animation-delay]="i * 0.05 + 's'">
+        <app-stat-card [stat]="stat" />
+      </div>
+    }
+  </div>
+
+  <div class="grid gap-3 lg:grid-cols-[2fr_1fr]">
+    <div class="animate-slide-up" style="animation-delay: 0.3s">
+      <app-platform-activity-chart [activity]="platformActivity()" [isLive]="sources().platformActivity" />
+    </div>
+    <div class="animate-slide-up" style="animation-delay: 0.35s">
+      <app-skills-bar-chart [skills]="topSkills()" [isLive]="sources().topSkills" />
+    </div>
+  </div>
+
+  <div class="grid gap-3 lg:grid-cols-[7fr_5fr]">
+    <div class="animate-slide-up" style="animation-delay: 0.4s">
+      <app-recent-cvs-table [cvs]="recentCvs()" [isLive]="sources().recentCvs" />
+    </div>
+    <div class="animate-slide-up" style="animation-delay: 0.45s">
+      <app-ai-health-panel [items]="aiHealth()" [isLive]="sources().aiHealth" />
+    </div>
+  </div>
+</div>
