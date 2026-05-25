@@ -1,31 +1,29 @@
-<div class="dashboard mx-auto grid max-w-[1600px] gap-6 px-0 sm:px-2">
-  <div *ngIf="loading()" class="rounded-[2rem] border border-slate-800 bg-[#111827] px-4 py-3 text-sm text-slate-400 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.7)]">
+<div class="dashboard mx-auto grid max-w-[1600px] gap-6 px-2 sm:px-4">
+  <div *ngIf="loading()" class="rounded-[2rem] border border-theme bg-white dark:bg-bg-card px-4 py-3 text-sm text-text-secondary shadow-sm">
     Loading dashboard…
   </div>
 
-
-
-  <div class="rounded-[2rem] border border-slate-800/70 bg-[#0c1426]/90 p-6 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.7)]">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  <div class="rounded-[2rem] border border-theme bg-white dark:bg-bg-card p-4 sm:p-6 shadow-sm">
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div class="space-y-2">
-        <div class="text-xs uppercase tracking-[0.32em] text-slate-400">Dashboard</div>
-        <h1 class="text-3xl font-semibold text-white">Welcome back, {{ userName() }}</h1>
-        <p class="max-w-3xl text-sm text-slate-400">Here's what's happening with your CV Intelligence platform today.</p>
+        <div class="text-xs uppercase tracking-[0.32em] text-text-muted">Dashboard</div>
+        <h1 class="text-2xl sm:text-3xl font-semibold text-text-primary">Welcome back, {{ userName() }}</h1>
+        <p class="max-w-3xl text-sm text-text-secondary">Here's what's happening with your CV Intelligence platform today.</p>
       </div>
       <div class="flex flex-wrap items-center gap-3">
-        <button type="button" class="inline-flex items-center gap-2 rounded-2xl border border-slate-700/60 bg-[#111827] px-4 py-2 text-sm text-slate-200 transition hover:border-violet-500/40 hover:bg-violet-950/40">
-          <i class="bi bi-download"></i>
+        <button type="button" class="inline-flex items-center gap-2 rounded-2xl border border-theme bg-bg-primary px-3 sm:px-4 py-2 text-sm text-text-primary transition hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40">
+          <lucide-angular [img]="icons.Download" size="18"></lucide-angular>
           <span class="hidden sm:inline">Export</span>
         </button>
-        <button type="button" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition hover:brightness-110 hover:shadow-xl">
-          <i class="bi bi-plus-lg"></i>
+        <button type="button" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-3 sm:px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition hover:brightness-110 hover:shadow-xl">
+          <lucide-angular [img]="icons.Plus" size="18"></lucide-angular>
           <span class="hidden sm:inline">New Analysis</span>
         </button>
       </div>
     </div>
   </div>
 
-  <div class="grid gap-4 xl:grid-cols-3">
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <ng-container *ngFor="let stat of stats(); let i = index">
       <div class="min-h-[150px] w-full animate-slide-up" [style.animation-delay]="i * 0.05 + 's'">
         <app-stat-card [stat]="stat" />
@@ -33,7 +31,7 @@
     </ng-container>
   </div>
 
-  <div class="grid gap-4 lg:grid-cols-[2fr_1fr]">
+  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-[2fr_1fr]">
     <div class="animate-slide-up" style="animation-delay: 0.3s">
       <app-platform-activity-chart [activity]="platformActivity()" [isLive]="sources().platformActivity" />
     </div>
@@ -42,7 +40,7 @@
     </div>
   </div>
 
-  <div class="grid gap-4 lg:grid-cols-[7fr_5fr]">
+  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-[7fr_5fr]">
     <div class="animate-slide-up" style="animation-delay: 0.4s">
       <app-recent-cvs-table [cvs]="recentCvs()" [isLive]="sources().recentCvs" />
     </div>

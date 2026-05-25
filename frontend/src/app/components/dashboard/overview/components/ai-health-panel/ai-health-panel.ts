@@ -1,17 +1,20 @@
 import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule, Lightbulb } from 'lucide-angular';
 import type { AiHealthItem } from '../../dashboard.models';
 import { AI_HEALTH } from '../../dashboard.models';
 
 @Component({
   selector: 'app-ai-health-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './ai-health-panel.html',
   styleUrls: ['./ai-health-panel.scss'],
 })
 export class AiHealthPanel {
   readonly items = input<AiHealthItem[]>(AI_HEALTH);
+
+  readonly icons = { Lightbulb };
   readonly isLive = input(false);
 
   barColor(value: number): string {

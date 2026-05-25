@@ -1,16 +1,25 @@
 import { isPlatformBrowser, CommonModule } from '@angular/common';
-import { Component, DestroyRef, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { ThemeService } from '../../../services/theme.service';
 import { Sidebar } from '../sidebar/sidebar';
+import { LucideAngularModule, Menu, X, Search, Moon, Sun, Bell } from 'lucide-angular';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, Sidebar],
+  imports: [CommonModule, RouterOutlet, Sidebar, LucideAngularModule],
   templateUrl: './admin-layout.html',
   styleUrls: ['./admin-layout.scss'],
 })
@@ -21,10 +30,24 @@ export class AdminLayout {
   readonly themeService: ThemeService = inject(ThemeService);
   private readonly authService: AuthService = inject(AuthService);
 
-  readonly userName = 'Alex Ionescu';
-  readonly userRole = 'Super Admin';
-  readonly userInitials = 'AI';
-  /** Sidebar closed by default on all screen sizes */
+  readonly icons = { Menu, X, Search, Moon, Sun, Bell };
+
+  readonly user = this.authService.currentUser;
+
+  readonly userName = computed(() => {
+    const u = this.user();
+    if (!u) return 'Admin';
+    const name = u.name;
+    if (typeof name === 'string') return name;
+    return name?.en ?? 'Admin';
+  });
+
+  readonly userRole = computed(() => {
+    const u = this.user();
+    if (!u) return 'Admin';
+    return u.role.charAt(0).toUpperCase() + u.role.slice(1);
+  });
+
   readonly sidebarOpen = signal(false);
 
   constructor() {

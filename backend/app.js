@@ -32,7 +32,7 @@ app.use(errorMiddleware);
 connectDB();
 
 app.listen(Env.PORT || 5000, () => {
-  console.log(`Server running on port ${Env.PORT || 5000 },${Env.MONGO_URI}`);
+  console.log(`Server running on port ${Env.PORT || 5000}`);
 });
 
 export default app;

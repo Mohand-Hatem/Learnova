@@ -1,29 +1,42 @@
-<div class="admin-layout min-h-screen w-full overflow-hidden relative">
+<div class="admin-layout min-h-screen w-full overflow-x-hidden relative">
   <button
     *ngIf="sidebarOpen()"
     type="button"
-    class="fixed inset-0 z-[1035] bg-slate-950/60 backdrop-blur-sm"
+    class="fixed inset-0 z-[1035] bg-slate-950/60 backdrop-blur-sm lg:hidden"
     aria-label="Close menu"
     (click)="closeSidebar()"
   ></button>
 
   <app-sidebar [open]="sidebarOpen()" (closeRequested)="closeSidebar()" />
 
-  <div class="admin-layout__main flex min-h-screen flex-col bg-bg-secondary">
-    <header class="admin-layout__header sticky top-0 z-[1020] flex flex-col gap-3 border-b border-theme bg-bg-secondary p-4 md:flex-row md:items-center md:justify-between md:p-5">
-      <div class="admin-layout__header-start flex min-w-0 items-center gap-3">
+  <div class="admin-layout__main flex min-h-screen flex-col bg-bg-secondary lg:ml-[280px]">
+    <header
+      class="admin-layout__header sticky top-0 z-[1020] flex items-center justify-between gap-3 border-b border-theme bg-bg-secondary p-4 md:p-5"
+    >
+      <div class="admin-layout__header-start flex items-center gap-3">
         <button
           type="button"
-          class="admin-layout__menu-btn inline-flex h-10 w-10 items-center justify-center rounded-xl border border-theme bg-bg-card text-text-primary transition-colors duration-200 hover:bg-slate-900/70 hover:text-white focus:outline-none"
+          class="admin-layout__menu-btn inline-flex h-10 w-10 items-center justify-center rounded-xl border border-theme bg-bg-card text-text-primary transition-colors duration-200 hover:bg-slate-100 dark:hover:bg-slate-900/70 hover:text-violet-600 dark:hover:text-white focus:outline-none lg:hidden"
           [attr.aria-expanded]="sidebarOpen()"
           [attr.aria-label]="sidebarOpen() ? 'Close sidebar' : 'Open sidebar'"
           (click)="toggleSidebar()"
         >
-          <i class="bi" [class.bi-list]="!sidebarOpen()" [class.bi-x-lg]="sidebarOpen()"></i>
+          <lucide-angular
+            *ngIf="!sidebarOpen(); else closeIcon"
+            [img]="icons.Menu"
+            size="20"
+          ></lucide-angular>
+          <ng-template #closeIcon>
+            <lucide-angular [img]="icons.X" size="20"></lucide-angular>
+          </ng-template>
         </button>
 
-        <div class="relative hidden md:block flex-1 max-w-[520px] min-w-0">
-          <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+        <div class="relative hidden md:block flex-1 min-w-[360px] lg:min-w-[600px]">
+          <lucide-angular
+            [img]="icons.Search"
+            size="18"
+            class="absolute left-1.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+          ></lucide-angular>
           <input
             type="search"
             class="admin-layout__search-input w-full rounded-[1rem] border-0 bg-bg-card py-2 pl-10 pr-4 text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-violet-500"
@@ -35,40 +48,48 @@
       <div class="admin-layout__header-actions flex items-center gap-2">
         <button
           type="button"
-          class="inline-flex items-center justify-center rounded-xl p-2 text-text-secondary transition-colors duration-300 hover:text-white hover:bg-slate-900/50 focus:outline-none md:hidden"
+          class="inline-flex items-center justify-center rounded-xl p-2 text-text-secondary transition-colors duration-300 hover:text-violet-600 hover:bg-violet-100 dark:hover:text-white dark:hover:bg-slate-900/50 focus:outline-none md:hidden"
           aria-label="Search"
         >
-          <i class="bi bi-search text-xl"></i>
+          <lucide-angular [img]="icons.Search" size="20"></lucide-angular>
         </button>
         <button
           type="button"
-          class="relative inline-flex items-center justify-center rounded-xl p-2 text-text-secondary transition-all duration-300 hover:text-white hover:bg-slate-900/50 focus:outline-none"
           aria-label="Toggle theme"
           (click)="themeService.toggle()"
+          class="relative w-20 h-10 rounded-full cursor-pointer transition-colors duration-300 focus:outline-none flex items-center"
+          [ngClass]="themeService.isDark() ? 'bg-brand' : 'bg-gray-200'"
         >
-          <i class="bi text-xl" [class.bi-moon-stars]="!themeService.isDark()" [class.bi-sun]="themeService.isDark()"></i>
+          <span class="sr-only">Toggle theme</span>
+          <span
+            class="relative left-1 top-0 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center transition-transform duration-300"
+            [style.transform]="themeService.isDark() ? 'translateX(2.50rem)' : 'translateX(0)'"
+          >
+            <ng-container *ngIf="themeService.isDark(); else showMoon">
+              <lucide-angular [img]="icons.Sun" size="15" class="text-yellow-600"></lucide-angular>
+            </ng-container>
+            <ng-template #showMoon>
+              <lucide-angular [img]="icons.Moon" size="15" class="text-indigo-950"></lucide-angular>
+            </ng-template>
+          </span>
         </button>
+
         <button
           type="button"
-          class="relative inline-flex items-center justify-center rounded-xl p-2 text-text-secondary transition-all duration-300 hover:text-white hover:bg-slate-900/50 focus:outline-none"
-        >
-          <i class="bi bi-bell text-xl"></i>
-          <span class="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></span>
-        </button>
-        <button
-          type="button"
-          class="inline-flex items-center justify-center rounded-xl border border-theme bg-bg-card px-4 py-2 text-sm font-medium text-text-primary transition-colors duration-300 hover:bg-slate-900 hover:text-white focus:outline-none"
+          class="inline-flex cursor-pointer items-center justify-center rounded-xl border border-theme bg-bg-card px-4 py-2 text-sm font-medium text-text-primary transition-colors duration-300 hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-slate-900 dark:hover:text-white focus:outline-none"
           (click)="logout()"
         >
           Logout
         </button>
         <div class="flex items-center gap-2">
-          <div class="admin-layout__avatar flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-sm font-semibold text-white transition-transform duration-300 hover:scale-110">
-            {{ userInitials }}
-          </div>
+          <img
+            [src]="user()?.avatar"
+            class="admin-layout__avatar flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-sm font-semibold text-white transition-transform duration-300 hover:scale-110"
+          />
+
           <div class="hidden md:block">
-            <div class="text-sm font-semibold">{{ userName }}</div>
-            <div class="text-slate-400 text-xs">{{ userRole }}</div>
+            <div class="text-sm font-semibold">{{ userName() }}</div>
+            <div class="text-text-muted text-xs">{{ userRole() }}</div>
           </div>
         </div>
       </div>

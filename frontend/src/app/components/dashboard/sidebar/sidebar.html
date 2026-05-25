@@ -1,21 +1,17 @@
-<aside class="app-sidebar__inner flex h-full w-full flex-col bg-[#0d0f18] border-r border-slate-800">
-  <div class="app-sidebar__brand flex items-center justify-between gap-2 border-b border-slate-800 p-4">
-    <div class="flex min-w-0 items-center gap-2">
-      <div class="app-sidebar__logo flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-violet-500 text-white transition-transform duration-300 hover:scale-110">
-        <i class="bi bi-cpu"></i>
-      </div>
-      <div class="app-sidebar__brand-text min-w-0">
-        <div class="truncate text-sm font-semibold leading-snug">CV Intelligence</div>
-        <div class="text-[0.65rem] uppercase tracking-[0.08em] text-slate-400">AI PLATFORM</div>
-      </div>
+<aside class="flex h-full w-full flex-col bg-white dark:bg-[#0d0f18] border-r border-theme">
+  <div
+    class="app-sidebar__brand flex items-center justify-between gap-2 border-b border-theme px-4 py-2.5"
+  >
+    <div class="flex min-w-0 items-center gap-3">
+      <img src="/Aventra-logo.png" alt="Learnova" class="h-15 w-full object-cover" />
     </div>
     <button
       type="button"
-      class="app-sidebar__close inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-transparent text-slate-400 transition-all duration-200 hover:border-violet-400/40 hover:bg-violet-950/10 hover:text-white"
+      class="app-sidebar__close inline-flex h-8 w-8 items-center justify-center rounded-lg border border-theme bg-transparent text-text-secondary transition-all duration-200 hover:border-violet-400 hover:bg-violet-100 dark:hover:border-violet-400/40 dark:hover:bg-violet-950/10 dark:hover:text-white lg:hidden"
       aria-label="Close sidebar"
       (click)="closeRequested.emit()"
     >
-      <i class="bi bi-x-lg"></i>
+      <lucide-angular [img]="icons.X" size="18"></lucide-angular>
     </button>
   </div>
 
@@ -23,23 +19,29 @@
     <ng-container *ngFor="let item of navItems; let i = index">
       <a
         [routerLink]="item.route"
-        routerLinkActive="bg-violet-950/50 text-violet-300 border border-violet-500/40"
-        [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-        class="transition-smooth flex items-center gap-3 rounded-2xl px-3 py-2 text-slate-400 hover:bg-violet-950/30 hover:text-slate-100 no-underline"
+        routerLinkActive="bg-violet-100 text-violet-700 border border-violet-300 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-500/40"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="transition-smooth flex items-center gap-3 rounded-2xl px-3 py-2 text-text-secondary hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-violet-950/30 dark:hover:text-slate-100 no-underline"
         (click)="onNavClick()"
       >
-        <i class="bi {{ iconClass(item.route) }} transition-transform duration-300"></i>
+        <lucide-angular
+          [img]="iconClass(item.route)"
+          size="20"
+          class="transition-transform duration-300"
+        ></lucide-angular>
         <span class="text-sm">{{ item.label }}</span>
       </a>
     </ng-container>
   </nav>
 
   <div class="app-sidebar__footer p-3">
-    <div class="transition-all flex items-center gap-2 rounded-2xl border border-slate-800 bg-[#151724] p-3 hover:border-emerald-500/40 hover:bg-emerald-950/20">
+    <div
+      class="transition-all flex items-center gap-2 rounded-2xl border border-theme bg-white dark:bg-[#151724] p-3 hover:border-emerald-400 dark:hover:border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+    >
       <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
       <div>
-        <div class="text-sm font-semibold text-slate-100">AI Engine Online</div>
-        <div class="text-[0.65rem] text-slate-400">All systems operational</div>
+        <div class="text-sm font-semibold text-text-primary">AI Engine Online</div>
+        <div class="text-[0.65rem] text-text-secondary">All systems operational</div>
       </div>
     </div>
   </div>

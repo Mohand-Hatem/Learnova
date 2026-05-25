@@ -8,6 +8,7 @@
   transform: translateX(-105%);
   transition: transform 0.25s ease;
   pointer-events: none;
+  display: block;
 }
 
 :host(.app-sidebar--open) {
@@ -16,6 +17,10 @@
   pointer-events: auto;
 }
 
-:host {
-  display: block;
+@media (min-width: 1024px) {
+  :host {
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+    box-shadow: none !important;
+  }
 }

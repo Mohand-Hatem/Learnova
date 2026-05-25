@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule, Download, Plus } from 'lucide-angular';
 import { StatCardComponent } from './components/stat-card/stat-card';
 import { PlatformActivityChart } from './components/platform-activity-chart/platform-activity-chart';
 import { SkillsBarChart } from './components/skills-bar-chart/skills-bar-chart';
@@ -19,6 +20,7 @@ import { DashboardService } from '../../../services/dashboard.service';
   standalone: true,
   imports: [
     CommonModule,
+    LucideAngularModule,
     StatCardComponent,
     PlatformActivityChart,
     SkillsBarChart,
@@ -30,6 +32,8 @@ import { DashboardService } from '../../../services/dashboard.service';
 })
 export class Dashboard implements OnInit {
   private readonly dashboardService = inject(DashboardService);
+
+  readonly icons = { Download, Plus };
 
   readonly stats = this.dashboardService.stats;
   readonly recentCvs = this.dashboardService.recentCvs;

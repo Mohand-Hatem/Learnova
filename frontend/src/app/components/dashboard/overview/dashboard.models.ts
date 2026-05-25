@@ -40,7 +40,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', icon: 'layout-dashboard', route: '/dashboard', active: true },
+  { label: 'Overview', icon: 'layout-dashboard', route: '/dashboard/overview' },
   { label: 'Users', icon: 'users', route: '/dashboard/users' },
   { label: 'Companies', icon: 'building-2', route: '/dashboard/companies' },
   { label: 'AI Monitoring', icon: 'activity', route: '/dashboard/ai-monitoring' },
@@ -54,7 +54,7 @@ export const STATS: StatCard[] = [
     trendLabel: 'vs last week',
     trendUp: true,
     sparkline: [28, 42, 35, 52, 44, 58, 48, 62, 55, 68, 60, 72, 65, 78],
-    icon: 'bi-people',
+    icon: 'people',
   },
   {
     title: 'COMPANIES',
@@ -63,7 +63,7 @@ export const STATS: StatCard[] = [
     trendLabel: 'vs last week',
     trendUp: true,
     sparkline: [14, 19, 17, 25, 22, 29, 26, 33, 30, 36, 34, 40, 38, 44],
-    icon: 'bi-building',
+    icon: 'building',
   },
   {
     title: 'CVs ANALYZED',
@@ -72,7 +72,7 @@ export const STATS: StatCard[] = [
     trendLabel: 'vs last week',
     trendUp: true,
     sparkline: [30, 45, 42, 52, 49, 61, 57, 68, 65, 78, 74, 86, 81, 92],
-    icon: 'bi-file-earmark-text',
+    icon: 'file-text',
   },
   {
     title: 'AI ANALYSES',
@@ -81,7 +81,7 @@ export const STATS: StatCard[] = [
     trendLabel: 'vs last week',
     trendUp: true,
     sparkline: [24, 38, 34, 50, 46, 58, 54, 68, 63, 77, 72, 86, 80, 95],
-    icon: 'bi-brain',
+    icon: 'brain',
   },
   {
     title: 'TOKENS USED',
@@ -90,7 +90,7 @@ export const STATS: StatCard[] = [
     trendLabel: 'vs last week',
     trendUp: false,
     sparkline: [60, 62, 61, 59, 58, 57, 56, 55, 54, 54, 53, 52, 52, 51],
-    icon: 'bi-currency-dollar',
+    icon: 'dollar-sign',
   },
   {
     title: 'ACTIVE NOW',
@@ -99,7 +99,7 @@ export const STATS: StatCard[] = [
     trendLabel: 'vs last week',
     trendUp: true,
     sparkline: [18, 20, 22, 24, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45],
-    icon: 'bi-people-fill',
+    icon: 'people-fill',
   },
 ];
 

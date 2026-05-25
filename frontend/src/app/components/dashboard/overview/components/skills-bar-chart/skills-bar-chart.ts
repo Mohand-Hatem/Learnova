@@ -1,9 +1,10 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import type { ApexOptions } from 'ng-apexcharts';
 import type { SkillItem } from '../../dashboard.models';
 import { TOP_SKILLS } from '../../dashboard.models';
+import { ThemeService } from '../../../../../services/theme.service';
 
 @Component({
   selector: 'app-skills-bar-chart',
@@ -15,9 +16,14 @@ import { TOP_SKILLS } from '../../dashboard.models';
 export class SkillsBarChart {
   readonly skills = input<SkillItem[]>(TOP_SKILLS);
   readonly isLive = input(false);
+  private readonly themeService = inject(ThemeService);
 
   readonly chartOptions = computed((): ApexOptions => {
     const items = this.skills();
+    const dark = this.themeService.isDark();
+    const labelColor = dark ? '#64748b' : '#475569';
+    const yLabelColor = dark ? '#94a3b8' : '#334155';
+    const gridColor = dark ? '#1e2430' : '#e2e8f0';
 
     return {
       series: [{ name: 'Detections', data: items.map((s) => s.count) }],
@@ -38,18 +44,18 @@ export class SkillsBarChart {
       dataLabels: { enabled: false },
       xaxis: {
         categories: items.map((s) => s.skill),
-        labels: { style: { colors: '#64748b', fontSize: '11px' } },
+        labels: { style: { colors: labelColor, fontSize: '11px' } },
         axisBorder: { show: false },
       },
       yaxis: {
-        labels: { style: { colors: '#94a3b8', fontSize: '12px' } },
+        labels: { style: { colors: yLabelColor, fontSize: '12px' } },
       },
       grid: {
-        borderColor: '#1e2430',
+        borderColor: gridColor,
         xaxis: { lines: { show: true } },
         yaxis: { lines: { show: false } },
       },
-      tooltip: { theme: 'dark' },
+      tooltip: { theme: dark ? 'dark' : 'light' },
     };
   });
 }

@@ -15,6 +15,7 @@ import {
   EyeClosed,
   Moon,
   Sun,
+  Info,
 } from 'lucide-angular';
 import { ThemeService } from '../../services/theme.service';
 
@@ -29,7 +30,7 @@ export class LoginComponent {
   themeService = inject(ThemeService);
   private authService = inject(AuthService);
   private router = inject(Router);
-  readonly icons = { User, Bot, Search, AtSign, KeyRound, Eye, EyeClosed, Moon, Sun };
+  readonly icons = { User, Bot, Search, AtSign, KeyRound, Eye, EyeClosed, Moon, Sun, Info };
 
   showPassword = signal(false);
   isLoading = signal(false);

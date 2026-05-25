@@ -1,9 +1,10 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import type { ApexOptions } from 'ng-apexcharts';
 import type { PlatformActivity } from '../../dashboard.models';
 import { PLATFORM_ACTIVITY } from '../../dashboard.models';
+import { ThemeService } from '../../../../../services/theme.service';
 
 @Component({
   selector: 'app-platform-activity-chart',
@@ -15,10 +16,15 @@ import { PLATFORM_ACTIVITY } from '../../dashboard.models';
 export class PlatformActivityChart {
   readonly activity = input<PlatformActivity>(PLATFORM_ACTIVITY);
   readonly isLive = input(false);
+  private readonly themeService = inject(ThemeService);
 
   readonly chartOptions = computed((): ApexOptions => {
     const data = this.activity();
     const maxVal = Math.max(...data.activeUsers, ...data.aiAnalyses, 10);
+    const dark = this.themeService.isDark();
+    const textColor = dark ? '#94a3b8' : '#475569';
+    const gridColor = dark ? '#1e2430' : '#e2e8f0';
+    const legendColor = dark ? '#94a3b8' : '#64748b';
 
     return {
       series: [
@@ -46,26 +52,26 @@ export class PlatformActivityChart {
       },
       xaxis: {
         categories: data.labels,
-        labels: { style: { colors: '#64748b', fontSize: '11px' } },
+        labels: { style: { colors: textColor, fontSize: '11px' } },
         axisBorder: { show: false },
         axisTicks: { show: false },
       },
       yaxis: {
         max: Math.ceil(maxVal * 1.15),
-        labels: { style: { colors: '#64748b', fontSize: '11px' } },
+        labels: { style: { colors: textColor, fontSize: '11px' } },
       },
       grid: {
-        borderColor: '#1e2430',
+        borderColor: gridColor,
         strokeDashArray: 4,
       },
       legend: {
         position: 'top',
         horizontalAlign: 'left',
-        labels: { colors: '#94a3b8' },
+        labels: { colors: legendColor },
         markers: { shape: 'circle' },
       },
       tooltip: {
-        theme: 'dark',
+        theme: dark ? 'dark' : 'light',
       },
     };
   });

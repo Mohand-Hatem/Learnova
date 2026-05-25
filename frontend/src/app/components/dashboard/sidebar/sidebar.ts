@@ -1,12 +1,23 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import {
+  LucideAngularModule,
+  LayoutDashboard,
+  Users,
+  Building2,
+  FileText,
+  BarChart3,
+  Activity,
+  Settings,
+  X,
+} from 'lucide-angular';
 import { NAV_ITEMS } from '../overview/dashboard.models';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, LucideAngularModule],
   templateUrl: './sidebar.html',
   styleUrls: ['./sidebar.scss'],
   host: {
@@ -18,20 +29,21 @@ export class Sidebar {
   readonly open = input(false);
   readonly closeRequested = output<void>();
   readonly navItems = NAV_ITEMS;
+  readonly icons = { X, LayoutDashboard, Users, Building2, FileText, BarChart3, Activity, Settings };
 
-  readonly iconMap: Record<string, string> = {
-    'layout-dashboard': 'bi-grid-1x2',
-    users: 'bi-people',
-    'building-2': 'bi-building',
-    'file-text': 'bi-file-earmark-text',
-    'bar-chart-3': 'bi-bar-chart',
-    activity: 'bi-activity',
-    settings: 'bi-gear',
+  readonly iconMap: Record<string, any> = {
+    'layout-dashboard': LayoutDashboard,
+    users: Users,
+    'building-2': Building2,
+    'file-text': FileText,
+    'bar-chart-3': BarChart3,
+    activity: Activity,
+    settings: Settings,
   };
 
-  iconClass(route: string): string {
+  iconClass(route: string): any {
     const item = NAV_ITEMS.find((n) => n.route === route);
-    return this.iconMap[item?.icon ?? 'layout-dashboard'] ?? 'bi-grid-1x2';
+    return this.iconMap[item?.icon ?? 'layout-dashboard'] ?? LayoutDashboard;
   }
 
   onNavClick(): void {
