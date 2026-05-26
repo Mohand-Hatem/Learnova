@@ -7,6 +7,7 @@ import { Dashboard as OverviewComponent } from './components/dashboard/overview/
 import { UsersComponent } from './components/dashboard/users/users.component';
 import { CompaniesComponent } from './components/dashboard/companies/companies.component';
 import { AiAnalysisComponent } from './components/dashboard/ai-analysis/ai-analysis.component';
+import { CompanyDetailsComponent } from './components/dashboard/company-details/company-details.component';
 
 export const routes: Routes = [
   {
@@ -27,6 +28,7 @@ export const routes: Routes = [
       { path: 'overview', component: OverviewComponent },
       { path: 'users', component: UsersComponent },
       { path: 'companies', component: CompaniesComponent },
+      { path: 'company-details/:id', component: CompanyDetailsComponent },
       { path: 'ai-monitoring', component: AiAnalysisComponent },
     ],
   },
