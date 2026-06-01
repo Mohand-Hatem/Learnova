@@ -7,8 +7,11 @@ import { UsersComponent } from './components/dashboard/users/users.component';
 import { CompaniesComponent } from './components/dashboard/companies/companies.component';
 import { AiAnalysisComponent } from './components/dashboard/ai-analysis/ai-analysis.component';
 import { UserDetailComponent } from './components/dashboard/users/user-detail/user-detail.component';
+<<<<<<< Updated upstream
 
 
+=======
+>>>>>>> Stashed changes
 
 export const routes: Routes = [
   {
@@ -28,7 +31,11 @@ export const routes: Routes = [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: OverviewComponent },
       { path: 'users', component: UsersComponent },
+<<<<<<< Updated upstream
       { path: 'users/:id', component: UserDetailComponent },
+=======
+       { path: 'users/:id', component: UserDetailComponent },
+>>>>>>> Stashed changes
       { path: 'companies', component: CompaniesComponent },
       { path: 'analysis', component: AiAnalysisComponent },
     ],

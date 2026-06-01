@@ -15,7 +15,11 @@ import adminRoutes from "./routes/admin.routes.js";
 import cvRoutes from "./routes/cv.routes.js";
 import "./utils/cron.js";
 import dns from "dns";
+<<<<<<< Updated upstream
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
+=======
+dns.setServers(["8.8.8.8","8.8.4.4"])
+>>>>>>> Stashed changes
 const app = express();
 app.use(helmet());
 app.use(morgan("dev"));
