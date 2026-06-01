@@ -1,4 +1,350 @@
-<div class="h-screen">
-  <h2 class="text-2xl font-semibold text-text-blue">Users</h2>
-  <p class="mt-3 text-slate-400">User management area.</p>
+<div class="relative">
+
+  <!-- Filters Row -->
+  <div class="flex flex-wrap items-center gap-3 mb-5">
+    <!-- Search -->
+    <div class="flex items-center gap-2 bg-bg-secondary border border-border-theme rounded-xl px-3 py-2 flex-1 min-w-[200px]">
+      <lucide-angular [img]="icons.Search" size="15" class="text-text-secondary shrink-0"></lucide-angular>
+      <input
+        type="text"
+        placeholder="Search by name or email..."
+        class="bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none flex-1"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+
+    <!-- Plan Filter -->
+    <div class="relative">
+      <select
+        class="appearance-none bg-bg-secondary border border-border-theme rounded-xl pl-3 pr-8 py-2 text-sm text-text-secondary cursor-pointer outline-none"
+        [ngModel]="planFilter()"
+        (ngModelChange)="planFilter.set($event)"
+      >
+        <option value="">All plans</option>
+        <option value="Free">Free</option>
+        <option value="Pro">Pro</option>
+        <option value="Enterprise">Enterprise</option>
+      </select>
+      <lucide-angular [img]="icons.ChevronDown" size="13" class="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
+    </div>
+
+    <!-- ATS Filter -->
+    <div class="relative">
+      <select
+        class="appearance-none bg-bg-secondary border border-border-theme rounded-xl pl-3 pr-8 py-2 text-sm text-text-secondary cursor-pointer outline-none"
+        [ngModel]="atsFilter()"
+        (ngModelChange)="atsFilter.set($event)"
+      >
+        <option value="">All ATS scores</option>
+        <option value="high">High (80+)</option>
+        <option value="mid">Mid (60–79)</option>
+        <option value="low">Low (&lt;60)</option>
+      </select>
+      <lucide-angular [img]="icons.ChevronDown" size="13" class="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
+    </div>
+
+    <!-- Type Filter -->
+    <div class="relative">
+      <select
+        class="appearance-none bg-bg-secondary border border-border-theme rounded-xl pl-3 pr-8 py-2 text-sm text-text-secondary cursor-pointer outline-none"
+        [ngModel]="typeFilter()"
+        (ngModelChange)="typeFilter.set($event)"
+      >
+        <option value="">All accounts</option>
+        <option value="user">Candidate</option>
+        <option value="company">Recruiter</option>
+        <option value="admin">Admin</option>
+      </select>
+      <lucide-angular [img]="icons.ChevronDown" size="13" class="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card overflow-hidden">
+    @if (loading()) {
+      <div class="flex items-center justify-center py-16 text-text-muted text-sm">Loading users...</div>
+    } @else if (filteredUsers().length === 0) {
+      <div class="flex items-center justify-center py-16 text-text-muted text-sm">No users found</div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm border-collapse">
+          <thead>
+            <tr class="bg-bg-secondary border-b border-border-theme">
+              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[28%]">User</th>
+              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[12%]">Type</th>
+              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[11%]">Plan</th>
+              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[9%]">ATS</th>
+              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[22%]">Tokens</th>
+              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[13%]">Joined</th>
+              <th class="w-[5%]"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of filteredUsers(); track u._id; let i = $index) {
+              <tr class="border-b border-border-theme hover:bg-bg-secondary transition-colors">
+
+                <!-- User cell -->
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0"
+                      [ngClass]="[getAvatarColor(i).bg, getAvatarColor(i).text]"
+                    >{{ getInitials(u) }}</div>
+                    <div>
+                      <p class="font-medium text-text-primary text-[13px]">{{ getName(u) }}</p>
+                      <p class="text-[11px] text-text-muted">{{ u.email }}</p>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Type -->
+                <td class="px-4 py-3 text-text-secondary capitalize">{{ u.role }}</td>
+
+                <!-- Plan -->
+                <td class="px-4 py-3">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    [ngClass]="{
+                      'bg-indigo-100 text-indigo-700': u.plan === 'Pro',
+                      'bg-purple-100 text-purple-700': u.plan === 'Enterprise',
+                      'bg-bg-secondary text-text-secondary border border-border-theme': u.plan === 'Free'
+                    }"
+                  >{{ u.plan }}</span>
+                </td>
+
+                <!-- ATS -->
+                <td class="px-4 py-3">
+                  @if (getAts(u) > 0) {
+                    <span class="font-medium text-[13px]" [ngClass]="getAtsClass(getAts(u))">{{ getAts(u) }}</span>
+                  } @else {
+                    <span class="text-text-muted">—</span>
+                  }
+                </td>
+
+                <!-- Tokens -->
+                <td class="px-4 py-3">
+                  <p class="text-[11px] text-text-secondary mb-1">{{ formatTokens(u.tokenUsage) }} / {{ formatTokens(u.maxToken) }}</p>
+                  <div class="h-1 bg-bg-secondary rounded-full overflow-hidden w-20">
+                    <div
+                      class="h-full rounded-full transition-all"
+                      [ngClass]="u.plan === 'Free' ? 'bg-text-muted' : 'bg-brand'"
+                      [style.width]="getTokenPct(u) + '%'"
+                    ></div>
+                  </div>
+                </td>
+
+                <!-- Joined -->
+                <td class="px-4 py-3 text-[12px] text-text-muted">{{ u.createdAt | date: 'yyyy-MM-dd' }}</td>
+
+                <!-- Actions menu -->
+                <td class="px-2 py-3 relative">
+                  <button
+                    class="w-7 h-7 rounded-lg flex items-center justify-center text-text-muted hover:bg-bg-secondary hover:text-text-primary transition-colors"
+                    (click)="toggleMenu(u._id); $event.stopPropagation()"
+                    aria-label="User actions"
+                  >
+                    <lucide-angular [img]="icons.MoreVertical" size="16"></lucide-angular>
+                  </button>
+
+                  @if (openMenuId() === u._id) {
+                    <div
+                      class="absolute right-0 top-9 z-10 bg-bg-primary border border-border-theme rounded-xl shadow-lg py-1 min-w-[148px]"
+                      (click)="$event.stopPropagation()"
+                    >
+                      <button class="dd-item" [routerLink]="['/dashboard/users', u._id]">
+                        <lucide-angular [img]="icons.Eye" size="14"></lucide-angular> View profile
+                      </button>
+                      <button class="dd-item">
+                        <lucide-angular [img]="icons.FileText" size="14"></lucide-angular> View CV
+                      </button>
+                      @if (u.plan !== 'Enterprise') {
+                        <button class="dd-item" (click)="upgradePlan(u)">
+                          <lucide-angular [img]="icons.ArrowUp" size="14"></lucide-angular> Upgrade plan
+                        </button>
+                      }
+                      <hr class="border-border-theme my-1" />
+                      <button class="dd-item text-warning hover:bg-amber-50" (click)="closeMenu()">
+                        <lucide-angular [img]="icons.Ban" size="14"></lucide-angular> Ban user
+                      </button>
+                      <button class="dd-item text-error hover:bg-red-50" (click)="deleteUser(u._id)">
+                        <lucide-angular [img]="icons.Trash2" size="14"></lucide-angular> Delete user
+                      </button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Click outside to close menu -->
+  @if (openMenuId()) {
+    <div class="fixed inset-0 z-[5]" (click)="closeMenu()"></div>
+  }
+
+  <!-- User Detail Panel Overlay -->
+  @if (selectedUser()) {
+    <div
+      class="fixed inset-0 z-20 bg-black/30 flex items-center justify-center"
+      (click)="closeDetail()"
+    >
+      <div
+        class="bg-bg-primary border border-border-theme rounded-2xl w-[380px] overflow-hidden"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Panel Header -->
+        <div class="flex items-center justify-between px-5 py-4 border-b border-border-theme">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-medium"
+              [ngClass]="[getAvatarColor(0).bg, getAvatarColor(0).text]"
+            >{{ getInitials(selectedUser()!) }}</div>
+            <div>
+              <p class="font-medium text-text-primary text-[14px]">{{ getName(selectedUser()!) }}</p>
+              <p class="text-[12px] text-text-secondary">{{ selectedUser()!.email }}</p>
+            </div>
+          </div>
+          <button
+            class="w-7 h-7 rounded-lg flex items-center justify-center text-text-muted hover:bg-bg-secondary transition-colors"
+            (click)="closeDetail()"
+            aria-label="Close"
+          >
+            <lucide-angular [img]="icons.X" size="16"></lucide-angular>
+          </button>
+        </div>
+
+        <!-- Panel Body -->
+        <div class="px-5 py-4 space-y-5">
+
+          <!-- ATS Score -->
+          <div>
+            <p class="text-[11px] text-text-muted uppercase tracking-wider mb-2">ATS Score</p>
+            <p class="text-3xl font-medium mb-1" [ngClass]="getAtsClass(getAts(selectedUser()!))">
+              {{ getAts(selectedUser()!) > 0 ? getAts(selectedUser()!) : '—' }}
+            </p>
+            @if (getAts(selectedUser()!) > 0) {
+              <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden mb-1.5">
+                <div
+                  class="h-full rounded-full transition-all"
+                  [ngClass]="getAtsBarColor(getAts(selectedUser()!))"
+                  [style.width]="getAts(selectedUser()!) + '%'"
+                ></div>
+              </div>
+            }
+            <p class="text-[11px] text-text-muted">{{ getAtsLabel(getAts(selectedUser()!)) }}</p>
+          </div>
+
+          <!-- Account Info -->
+          <div>
+            <p class="text-[11px] text-text-muted uppercase tracking-wider mb-2">Account info</p>
+            <div class="space-y-0 divide-y divide-border-theme">
+              <div class="flex justify-between items-center py-2">
+                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
+                  <lucide-angular [img]="icons.User" size="13"></lucide-angular> Type
+                </span>
+                <span class="text-[12px] font-medium text-text-primary capitalize">{{ selectedUser()!.role }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
+                  <lucide-angular [img]="icons.CreditCard" size="13"></lucide-angular> Plan
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  [ngClass]="{
+                    'bg-indigo-100 text-indigo-700': selectedUser()!.plan === 'Pro',
+                    'bg-purple-100 text-purple-700': selectedUser()!.plan === 'Enterprise',
+                    'bg-bg-secondary text-text-secondary border border-border-theme': selectedUser()!.plan === 'Free'
+                  }"
+                >{{ selectedUser()!.plan }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
+                  <lucide-angular [img]="icons.Calendar" size="13"></lucide-angular> Joined
+                </span>
+                <span class="text-[12px] font-medium text-text-primary">{{ selectedUser()!.createdAt | date: 'yyyy-MM-dd' }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
+                  <lucide-angular [img]="icons.Activity" size="13"></lucide-angular> Status
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  [ngClass]="selectedUser()!.isBanned ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'"
+                >{{ selectedUser()!.isBanned ? 'Banned' : 'Active' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Token Usage -->
+          <div>
+            <p class="text-[11px] text-text-muted uppercase tracking-wider mb-2">Token usage</p>
+            <div class="space-y-0 divide-y divide-border-theme">
+              <div class="flex justify-between items-center py-2">
+                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
+                  <lucide-angular [img]="icons.Zap" size="13"></lucide-angular> Used
+                </span>
+                <span class="text-[12px] font-medium text-text-primary">{{ formatTokens(selectedUser()!.tokenUsage) }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="text-[12px] text-text-secondary pl-5">Limit</span>
+                <span class="text-[12px] font-medium text-text-primary">{{ formatTokens(selectedUser()!.maxToken) }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="text-[12px] text-text-secondary pl-5">Usage %</span>
+                <span class="text-[12px] font-medium text-text-primary">{{ getTokenPct(selectedUser()!) }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Actions -->
+        <div class="flex gap-2 px-5 py-3 border-t border-border-theme">
+          @if (selectedUser()!.plan !== 'Enterprise') {
+            <button
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-border-theme text-text-secondary hover:bg-bg-secondary transition-colors"
+              (click)="upgradePlan(selectedUser()!)"
+            >
+              <lucide-angular [img]="icons.ArrowUp" size="12"></lucide-angular> Upgrade plan
+            </button>
+          }
+          <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-amber-200 text-warning hover:bg-amber-50 transition-colors">
+            <lucide-angular [img]="icons.Ban" size="12"></lucide-angular> Ban user
+          </button>
+          <button
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-red-200 text-error hover:bg-red-50 transition-colors"
+            (click)="deleteUser(selectedUser()!._id)"
+          >
+            <lucide-angular [img]="icons.Trash2" size="12"></lucide-angular> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
 </div>
+
+<style>
+.dd-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  width: 100%;
+  text-align: left;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.dd-item:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+</style>
