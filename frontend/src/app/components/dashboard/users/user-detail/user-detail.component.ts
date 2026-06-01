@@ -7,8 +7,10 @@ import {
   ChevronLeft, Download, ArrowUp, Ban,
   Mail, MapPin, Calendar, CheckCircle, AlertTriangle,
   Sparkles, FileText, ExternalLink,
+  Trash2,
 } from 'lucide-angular';
 import { environment } from '../../../../../environments/environment';
+import { AdminService } from '../../../../services/admin.service';
 
 interface CV {
   _id: string;
@@ -52,11 +54,12 @@ interface UserDetail {
 })
 export class UserDetailComponent implements OnInit {
     Math = Math;
-  private http = inject(HttpClient);
+  // private http = inject(HttpClient);
+  private adminService = inject(AdminService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  icons = { ChevronLeft, Download, ArrowUp, Ban, Mail, MapPin, Calendar, CheckCircle, AlertTriangle, Sparkles, FileText, ExternalLink };
+  icons = { ChevronLeft, Download, ArrowUp, Ban, Mail, MapPin, Calendar, CheckCircle, AlertTriangle, Sparkles, FileText, ExternalLink , Trash2};
 
   user = signal<UserDetail | null>(null);
   loading = signal(true);
@@ -72,12 +75,11 @@ export class UserDetailComponent implements OnInit {
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    this.http
-      .get<{ success: boolean; data: UserDetail }>(
-        `${environment.apiUrl}/admin/${id}`,
-        { withCredentials: true }
-      )
-      .subscribe({
+    if (!id) {
+      this.loading.set(false);
+      return;
+    }
+    this.adminService.getUserById(id).subscribe({
         next: (res) => { this.user.set(res.data); this.loading.set(false); },
         error: () => this.loading.set(false),
       });
@@ -88,6 +90,28 @@ export class UserDetailComponent implements OnInit {
     if (typeof u.name === 'string') return u.name;
     return u.name.en || u.name.ar || '—';
   }
+
+  deleteUser() {
+  if (!confirm('Are you sure you want to delete this user?')) return;
+  const id = this.user()?._id;
+  if (!id) return;
+  this.adminService.deleteUser(id).subscribe({
+    next: () => this.router.navigate(['/dashboard/users'])
+  });
+}
+
+showPlanDropdown = signal(false);
+
+selectPlan(plan: string) {
+  const u = this.user();
+  if (!u) return;
+  this.adminService.updatePlan(u._id, plan).subscribe({
+    next: () => {
+      this.user.update(s => s ? { ...s, plan } : s);
+      this.showPlanDropdown.set(false);
+    }
+  });
+}
 
   getInitials(u: UserDetail): string {
     return this.getName(u).split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -189,8 +213,9 @@ export class UserDetailComponent implements OnInit {
     const idx = this.plans.indexOf(u.plan);
     const next = this.plans[idx + 1];
     if (!next) return;
-    this.http.put(`${environment.apiUrl}/admin/user/${u._id}/plan`, { plan: next }, { withCredentials: true })
-      .subscribe({ next: () => this.user.update(s => s ? { ...s, plan: next } : s) });
+    this.adminService.updatePlan(u._id, next).subscribe({
+      next: () => this.user.update(s => s ? { ...s, plan: next } : s)
+    });
   }
 getSkillCount(skills: string[]): number {
   return Math.min(skills?.length || 0, 6);

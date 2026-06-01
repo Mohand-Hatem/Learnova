@@ -21,6 +21,7 @@ import {
   Zap,
 } from 'lucide-angular';
 import { environment } from '../../../../environments/environment';
+import { AdminService } from '../../../services/admin.service';
 interface UserItem {
   _id: string;
   name: { en: string; ar: string } | string;
@@ -41,7 +42,8 @@ interface UserItem {
   templateUrl: './users.component.html',
 })
 export class UsersComponent implements OnInit {
-  private http = inject(HttpClient);
+  // private http = inject(HttpClient);
+  private adminService = inject(AdminService);
 
   icons = {
     Search, ChevronDown, MoreVertical, Eye, FileText,
@@ -81,18 +83,13 @@ export class UsersComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.http
-      .get<{ success: boolean; data: UserItem[] }>(
-        `${environment.apiUrl}/admin/all`,
-        { withCredentials: true }
-      )
-      .subscribe({
-        next: (res) => {
-          this.users.set(res.data);
-          this.loading.set(false);
-        },
-        error: () => this.loading.set(false),
-      });
+   this.adminService.getAllUsers().subscribe({
+      next: (res) => {
+        this.users.set(res.data);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
   }
 
   getName(u: UserItem): string {
@@ -177,30 +174,22 @@ export class UsersComponent implements OnInit {
 
   deleteUser(id: string) {
     if (!confirm('Are you sure you want to delete this user?')) return;
-    this.http
-      .delete(`${environment.apiUrl}/admin/user/${id}`, { withCredentials: true })
-      .subscribe({
-        next: () => {
-          this.users.update((list) => list.filter((u) => u._id !== id));
-          this.closeDetail();
-        },
-      });
+    this.adminService.deleteUser(id).subscribe({
+      next: () => {
+        this.users.update((list) => list.filter((u) => u._id !== id));
+        this.closeDetail();
+      },
+    });
   }
 
   upgradePlan(u: UserItem) {
     const idx = this.plans.indexOf(u.plan);
     const next = this.plans[idx + 1];
     if (!next) return;
-    this.http
-      .put(
-        `${environment.apiUrl}/admin/user/${u._id}/plan`,
-        { plan: next },
-        { withCredentials: true }
-      )
-      .subscribe({
-        next: () => {
-          this.users.update((list) =>
-            list.map((x) => (x._id === u._id ? { ...x, plan: next } : x))
+    this.adminService.updatePlan(u._id, next).subscribe({
+      next: () => {
+        this.users.update((list) =>
+          list.map((x) => (x._id === u._id ? { ...x, plan: next } : x))
           );
           if (this.selectedUser()?._id === u._id) {
             this.selectedUser.update((s) => (s ? { ...s, plan: next } : s));

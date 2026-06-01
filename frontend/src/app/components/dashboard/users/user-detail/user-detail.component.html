@@ -22,15 +22,34 @@
         <lucide-angular [img]="icons.Download" size="14"></lucide-angular> Download CV
       </a>
     }
-    @if (user()!.plan !== 'Enterprise') {
-      <button (click)="upgradePlan()"
-              class="flex items-center gap-2 px-4 py-2 rounded-xl border border-theme text-sm text-text-secondary hover:bg-bg-secondary transition-colors">
-        <lucide-angular [img]="icons.ArrowUp" size="14"></lucide-angular> Upgrade
-      </button>
-    }
-    <button class="flex items-center gap-2 px-4 py-2 rounded-xl bg-error text-white text-sm hover:opacity-90 transition-opacity">
-      <lucide-angular [img]="icons.Ban" size="14"></lucide-angular> Ban user
-    </button>
+  
+     <div class="relative">
+  <button
+    (click)="showPlanDropdown.set(!showPlanDropdown())"
+    class="flex items-center gap-2 px-4 py-2 rounded-xl border border-theme text-sm text-text-secondary hover:bg-bg-secondary transition-colors">
+    <lucide-angular [img]="icons.ArrowUp" size="14"></lucide-angular> Upgrade
+  </button>
+
+  @if (showPlanDropdown()) {
+    <div class="absolute top-10 right-0 z-10 bg-bg-primary border border-theme rounded-xl shadow-lg py-1 min-w-[130px]">
+      @for (plan of plans; track plan) {
+        <button
+          class="w-full text-left px-4 py-2 text-sm hover:bg-bg-secondary transition-colors"
+          [ngClass]="plan === user()!.plan ? 'text-brand font-medium' : 'text-text-secondary'"
+          (click)="selectPlan(plan)">
+          {{ plan }}
+        </button>
+      }
+    </div>
+    <div class="fixed inset-0 z-[5]" (click)="showPlanDropdown.set(false)"></div>
+  }
+</div>
+
+    <button
+  (click)="deleteUser()"
+  class="flex items-center gap-2 px-4 py-2 rounded-xl bg-error text-white text-sm hover:opacity-90 transition-opacity">
+  <lucide-angular [img]="icons.Trash2" size="14"></lucide-angular> Delete user
+</button>
   </div>
 </div>
 
