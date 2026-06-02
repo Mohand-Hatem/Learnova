@@ -1,350 +1,281 @@
-<div class="relative">
+<div class="relative text-text-primary">
 
-  <!-- Filters Row -->
-  <div class="flex flex-wrap items-center gap-3 mb-5">
-    <!-- Search -->
-    <div class="flex items-center gap-2 bg-bg-secondary border border-border-theme rounded-xl px-3 py-2 flex-1 min-w-[200px]">
-      <lucide-angular [img]="icons.Search" size="15" class="text-text-secondary shrink-0"></lucide-angular>
+  <div class="flex flex-wrap items-center gap-3 mb-6 px-1">
+    <div
+      class="flex items-center gap-2 flex-1 min-w-[240px] px-4 py-2.5 shadow-sm"
+      [class]="ui.input"
+    >
+      <lucide-angular [img]="icons.Search" size="16" class="text-text-muted shrink-0"></lucide-angular>
       <input
         type="text"
         placeholder="Search by name or email..."
-        class="bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none flex-1"
+        class="bg-transparent flex-1 outline-none"
         [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event)"
       />
     </div>
 
-    <!-- Plan Filter -->
     <div class="relative">
-      <select
-        class="appearance-none bg-bg-secondary border border-border-theme rounded-xl pl-3 pr-8 py-2 text-sm text-text-secondary cursor-pointer outline-none"
-        [ngModel]="planFilter()"
-        (ngModelChange)="planFilter.set($event)"
-      >
+      <select class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm" [class]="ui.input" [ngModel]="planFilter()" (ngModelChange)="planFilter.set($event)">
         <option value="">All plans</option>
         <option value="Free">Free</option>
         <option value="Pro">Pro</option>
         <option value="Enterprise">Enterprise</option>
       </select>
-      <lucide-angular [img]="icons.ChevronDown" size="13" class="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
+      <lucide-angular [img]="icons.ChevronDown" size="14" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
     </div>
 
-    <!-- ATS Filter -->
     <div class="relative">
-      <select
-        class="appearance-none bg-bg-secondary border border-border-theme rounded-xl pl-3 pr-8 py-2 text-sm text-text-secondary cursor-pointer outline-none"
-        [ngModel]="atsFilter()"
-        (ngModelChange)="atsFilter.set($event)"
-      >
+      <select class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm" [class]="ui.input" [ngModel]="atsFilter()" (ngModelChange)="atsFilter.set($event)">
         <option value="">All ATS scores</option>
         <option value="high">High (80+)</option>
         <option value="mid">Mid (60–79)</option>
         <option value="low">Low (&lt;60)</option>
       </select>
-      <lucide-angular [img]="icons.ChevronDown" size="13" class="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
+      <lucide-angular [img]="icons.ChevronDown" size="14" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
     </div>
 
-    <!-- Type Filter -->
     <div class="relative">
-      <select
-        class="appearance-none bg-bg-secondary border border-border-theme rounded-xl pl-3 pr-8 py-2 text-sm text-text-secondary cursor-pointer outline-none"
-        [ngModel]="typeFilter()"
-        (ngModelChange)="typeFilter.set($event)"
-      >
+      <select class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm" [class]="ui.input" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event)">
         <option value="">All accounts</option>
         <option value="user">Candidate</option>
-        <option value="company">Recruiter</option>
-        <option value="admin">Admin</option>
       </select>
-      <lucide-angular [img]="icons.ChevronDown" size="13" class="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
+      <lucide-angular [img]="icons.ChevronDown" size="14" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="card overflow-hidden">
+  <div [class]="ui.card">
     @if (loading()) {
-      <div class="flex items-center justify-center py-16 text-text-muted text-sm">Loading users...</div>
+      <div class="flex items-center justify-center py-20 text-text-secondary text-sm font-medium">
+        <div class="flex flex-col items-center">
+          <div
+            class="w-8 h-8 border-3 border-violet-200 dark:border-violet-500/30 border-t-brand rounded-full animate-spin mb-3"
+          ></div>
+          Loading users...
+        </div>
+      </div>
     } @else if (filteredUsers().length === 0) {
-      <div class="flex items-center justify-center py-16 text-text-muted text-sm">No users found</div>
+      <div class="flex items-center justify-center py-20 text-text-secondary text-sm">
+        <div class="text-center">
+          <lucide-angular [img]="icons.User" size="32" class="text-text-muted mx-auto mb-3"></lucide-angular>
+          <p class="font-medium text-text-primary">No users found</p>
+          <p class="text-xs text-text-muted mt-1">Try adjusting your filters</p>
+        </div>
+      </div>
     } @else {
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+      <div class="overflow-x-auto overflow-y-visible">
+        <table class="w-full text-sm">
           <thead>
-            <tr class="bg-bg-secondary border-b border-border-theme">
-              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[28%]">User</th>
-              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[12%]">Type</th>
-              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[11%]">Plan</th>
-              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[9%]">ATS</th>
-              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[22%]">Tokens</th>
-              <th class="text-left text-xs text-text-muted font-medium px-4 py-3 w-[13%]">Joined</th>
+            <tr class="bg-bg-secondary border-b border-theme">
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[28%]">User</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[12%]">Type</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[11%]">Plan</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[9%]">ATS</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[22%]">Tokens</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[13%]">Joined</th>
               <th class="w-[5%]"></th>
             </tr>
           </thead>
           <tbody>
-            @for (u of filteredUsers(); track u._id; let i = $index) {
-              <tr class="border-b border-border-theme hover:bg-bg-secondary transition-colors">
-
-                <!-- User cell -->
-                <td class="px-4 py-3">
+            @for (u of paginatedUsers(); track u._id; let i = $index) {
+              <tr
+                class="border-b border-theme transition-colors duration-200 hover:bg-violet-50/50 dark:hover:bg-slate-800/50"
+              >
+                <td class="px-5 py-4">
                   <div class="flex items-center gap-3">
                     <div
-                      class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0"
+                      class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm"
                       [ngClass]="[getAvatarColor(i).bg, getAvatarColor(i).text]"
                     >{{ getInitials(u) }}</div>
                     <div>
-                      <p class="font-medium text-text-primary text-[13px]">{{ getName(u) }}</p>
+                      <p class="font-semibold text-text-primary text-[13px]">{{ getName(u) }}</p>
                       <p class="text-[11px] text-text-muted">{{ u.email }}</p>
                     </div>
                   </div>
                 </td>
 
-                <!-- Type -->
-                <td class="px-4 py-3 text-text-secondary capitalize">{{ u.role }}</td>
+                <td class="px-5 py-4 text-text-secondary capitalize font-medium text-[13px]">{{ u.role }}</td>
 
-                <!-- Plan -->
-                <td class="px-4 py-3">
+                <td class="px-5 py-4">
                   <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    [ngClass]="{
-                      'bg-indigo-100 text-indigo-700': u.plan === 'Pro',
-                      'bg-purple-100 text-purple-700': u.plan === 'Enterprise',
-                      'bg-bg-secondary text-text-secondary border border-border-theme': u.plan === 'Free'
-                    }"
+                    class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold"
+                    [ngClass]="planBadgeClass(u.plan)"
                   >{{ u.plan }}</span>
                 </td>
 
-                <!-- ATS -->
-                <td class="px-4 py-3">
+                <td class="px-5 py-4">
                   @if (getAts(u) > 0) {
-                    <span class="font-medium text-[13px]" [ngClass]="getAtsClass(getAts(u))">{{ getAts(u) }}</span>
+                    <span
+                      class="font-bold text-[13px] px-2.5 py-1 rounded-lg"
+                      [ngClass]="atsBadgeClass(getAts(u))"
+                    >{{ getAts(u) }}</span>
                   } @else {
-                    <span class="text-text-muted">—</span>
+                    <span class="text-text-muted italic">No CV</span>
                   }
                 </td>
 
-                <!-- Tokens -->
-                <td class="px-4 py-3">
-                  <p class="text-[11px] text-text-secondary mb-1">{{ formatTokens(u.tokenUsage) }} / {{ formatTokens(u.maxToken) }}</p>
-                  <div class="h-1 bg-bg-secondary rounded-full overflow-hidden w-20">
+                <td class="px-5 py-4">
+                  <p class="text-[11px] text-text-secondary mb-2 font-medium">
+                    {{ formatTokens(u.tokenUsage) }} / {{ formatTokens(u.maxToken) }}
+                  </p>
+                  <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden w-24">
                     <div
-                      class="h-full rounded-full transition-all"
-                      [ngClass]="u.plan === 'Free' ? 'bg-text-muted' : 'bg-brand'"
+                      class="h-full rounded-full transition-all duration-300"
+                      [ngClass]="
+                        u.plan === 'Free'
+                          ? 'bg-slate-400 dark:bg-slate-500'
+                          : 'bg-gradient-to-r from-brand to-info'
+                      "
                       [style.width]="getTokenPct(u) + '%'"
                     ></div>
                   </div>
                 </td>
 
-                <!-- Joined -->
-                <td class="px-4 py-3 text-[12px] text-text-muted">{{ u.createdAt | date: 'yyyy-MM-dd' }}</td>
+                <td class="px-5 py-4 text-[12px] text-text-muted font-medium">
+                  {{ u.createdAt | date: 'MMM dd, yyyy' }}
+                </td>
 
-                <!-- Actions menu -->
-                <td class="px-2 py-3 relative">
+                <td class="px-4 py-4">
                   <button
-                    class="w-7 h-7 rounded-lg flex items-center justify-center text-text-muted hover:bg-bg-secondary hover:text-text-primary transition-colors"
-                    (click)="toggleMenu(u._id); $event.stopPropagation()"
+                    type="button"
+                    data-users-menu-trigger
+                    class="w-8 h-8 rounded-lg flex items-center justify-center text-text-secondary hover:bg-violet-100 hover:text-violet-600 dark:hover:bg-violet-950/40 dark:hover:text-violet-300 transition-colors"
+                    (click)="toggleMenu(u._id, $event)"
+                    [attr.aria-expanded]="openMenuId() === u._id"
                     aria-label="User actions"
                   >
                     <lucide-angular [img]="icons.MoreVertical" size="16"></lucide-angular>
                   </button>
-
-                  @if (openMenuId() === u._id) {
-                    <div
-                      class="absolute right-0 top-9 z-10 bg-bg-primary border border-border-theme rounded-xl shadow-lg py-1 min-w-[148px]"
-                      (click)="$event.stopPropagation()"
-                    >
-                      <button class="dd-item" [routerLink]="['/dashboard/users', u._id]">
-                        <lucide-angular [img]="icons.Eye" size="14"></lucide-angular> View profile
-                      </button>
-                      <button class="dd-item">
-                        <lucide-angular [img]="icons.FileText" size="14"></lucide-angular> View CV
-                      </button>
-                      @if (u.plan !== 'Enterprise') {
-                        <button class="dd-item" (click)="upgradePlan(u)">
-                          <lucide-angular [img]="icons.ArrowUp" size="14"></lucide-angular> Upgrade plan
-                        </button>
-                      }
-                      <hr class="border-border-theme my-1" />
-                      <button class="dd-item text-warning hover:bg-amber-50" (click)="closeMenu()">
-                        <lucide-angular [img]="icons.Ban" size="14"></lucide-angular> Ban user
-                      </button>
-                      <button class="dd-item text-error hover:bg-red-50" (click)="deleteUser(u._id)">
-                        <lucide-angular [img]="icons.Trash2" size="14"></lucide-angular> Delete user
-                      </button>
-                    </div>
-                  }
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-    }
-  </div>
 
-  <!-- Click outside to close menu -->
-  @if (openMenuId()) {
-    <div class="fixed inset-0 z-[5]" (click)="closeMenu()"></div>
-  }
-
-  <!-- User Detail Panel Overlay -->
-  @if (selectedUser()) {
-    <div
-      class="fixed inset-0 z-20 bg-black/30 flex items-center justify-center"
-      (click)="closeDetail()"
-    >
       <div
-        class="bg-bg-primary border border-border-theme rounded-2xl w-[380px] overflow-hidden"
-        (click)="$event.stopPropagation()"
+        class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 bg-bg-secondary border-t border-theme"
       >
-        <!-- Panel Header -->
-        <div class="flex items-center justify-between px-5 py-4 border-b border-border-theme">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-medium"
-              [ngClass]="[getAvatarColor(0).bg, getAvatarColor(0).text]"
-            >{{ getInitials(selectedUser()!) }}</div>
-            <div>
-              <p class="font-medium text-text-primary text-[14px]">{{ getName(selectedUser()!) }}</p>
-              <p class="text-[12px] text-text-secondary">{{ selectedUser()!.email }}</p>
-            </div>
-          </div>
-          <button
-            class="w-7 h-7 rounded-lg flex items-center justify-center text-text-muted hover:bg-bg-secondary transition-colors"
-            (click)="closeDetail()"
-            aria-label="Close"
-          >
-            <lucide-angular [img]="icons.X" size="16"></lucide-angular>
-          </button>
+        <div class="text-sm text-text-secondary font-medium">
+          Showing <span class="font-bold text-text-primary">{{ ((currentPage() - 1) * pageSize() + 1) }}</span> to
+          <span class="font-bold text-text-primary">{{ Math.min(currentPage() * pageSize(), filteredUsers().length) }}</span>
+          of <span class="font-bold text-text-primary">{{ filteredUsers().length }}</span> users
         </div>
 
-        <!-- Panel Body -->
-        <div class="px-5 py-4 space-y-5">
+        <div class="flex items-center gap-2">
+          <button
+            (click)="prevPage()"
+            [disabled]="currentPage() === 1"
+            class="flex items-center gap-1 px-3 py-2 rounded-lg border border-theme text-sm font-medium text-text-secondary hover:bg-violet-50 hover:border-violet-400 dark:hover:bg-violet-950/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <lucide-angular [img]="icons.ChevronLeft" size="14"></lucide-angular>
+            <span class="hidden sm:inline">Previous</span>
+          </button>
 
-          <!-- ATS Score -->
-          <div>
-            <p class="text-[11px] text-text-muted uppercase tracking-wider mb-2">ATS Score</p>
-            <p class="text-3xl font-medium mb-1" [ngClass]="getAtsClass(getAts(selectedUser()!))">
-              {{ getAts(selectedUser()!) > 0 ? getAts(selectedUser()!) : '—' }}
-            </p>
-            @if (getAts(selectedUser()!) > 0) {
-              <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden mb-1.5">
-                <div
-                  class="h-full rounded-full transition-all"
-                  [ngClass]="getAtsBarColor(getAts(selectedUser()!))"
-                  [style.width]="getAts(selectedUser()!) + '%'"
-                ></div>
-              </div>
+          <div class="flex items-center gap-1">
+            @for (p of pageNumbers(); track p) {
+              @if (p === 1 || p === totalPages() || Math.abs(p - currentPage()) <= 1) {
+                <button
+                  (click)="goToPage(p)"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg border text-sm font-medium transition-colors"
+                  [ngClass]="
+                    currentPage() === p
+                      ? 'bg-brand text-white border-brand'
+                      : 'border-theme bg-bg-primary text-text-secondary hover:border-violet-400'
+                  "
+                >
+                  {{ p }}
+                </button>
+              } @else if (p === 2 || p === totalPages() - 1) {
+                <span class="text-text-muted">...</span>
+              }
             }
-            <p class="text-[11px] text-text-muted">{{ getAtsLabel(getAts(selectedUser()!)) }}</p>
           </div>
 
-          <!-- Account Info -->
-          <div>
-            <p class="text-[11px] text-text-muted uppercase tracking-wider mb-2">Account info</p>
-            <div class="space-y-0 divide-y divide-border-theme">
-              <div class="flex justify-between items-center py-2">
-                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
-                  <lucide-angular [img]="icons.User" size="13"></lucide-angular> Type
-                </span>
-                <span class="text-[12px] font-medium text-text-primary capitalize">{{ selectedUser()!.role }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2">
-                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
-                  <lucide-angular [img]="icons.CreditCard" size="13"></lucide-angular> Plan
-                </span>
-                <span
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  [ngClass]="{
-                    'bg-indigo-100 text-indigo-700': selectedUser()!.plan === 'Pro',
-                    'bg-purple-100 text-purple-700': selectedUser()!.plan === 'Enterprise',
-                    'bg-bg-secondary text-text-secondary border border-border-theme': selectedUser()!.plan === 'Free'
-                  }"
-                >{{ selectedUser()!.plan }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2">
-                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
-                  <lucide-angular [img]="icons.Calendar" size="13"></lucide-angular> Joined
-                </span>
-                <span class="text-[12px] font-medium text-text-primary">{{ selectedUser()!.createdAt | date: 'yyyy-MM-dd' }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2">
-                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
-                  <lucide-angular [img]="icons.Activity" size="13"></lucide-angular> Status
-                </span>
-                <span
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  [ngClass]="selectedUser()!.isBanned ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'"
-                >{{ selectedUser()!.isBanned ? 'Banned' : 'Active' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Token Usage -->
-          <div>
-            <p class="text-[11px] text-text-muted uppercase tracking-wider mb-2">Token usage</p>
-            <div class="space-y-0 divide-y divide-border-theme">
-              <div class="flex justify-between items-center py-2">
-                <span class="flex items-center gap-2 text-[12px] text-text-secondary">
-                  <lucide-angular [img]="icons.Zap" size="13"></lucide-angular> Used
-                </span>
-                <span class="text-[12px] font-medium text-text-primary">{{ formatTokens(selectedUser()!.tokenUsage) }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2">
-                <span class="text-[12px] text-text-secondary pl-5">Limit</span>
-                <span class="text-[12px] font-medium text-text-primary">{{ formatTokens(selectedUser()!.maxToken) }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2">
-                <span class="text-[12px] text-text-secondary pl-5">Usage %</span>
-                <span class="text-[12px] font-medium text-text-primary">{{ getTokenPct(selectedUser()!) }}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel Actions -->
-        <div class="flex gap-2 px-5 py-3 border-t border-border-theme">
-          @if (selectedUser()!.plan !== 'Enterprise') {
-            <button
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-border-theme text-text-secondary hover:bg-bg-secondary transition-colors"
-              (click)="upgradePlan(selectedUser()!)"
-            >
-              <lucide-angular [img]="icons.ArrowUp" size="12"></lucide-angular> Upgrade plan
-            </button>
-          }
-          <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-amber-200 text-warning hover:bg-amber-50 transition-colors">
-            <lucide-angular [img]="icons.Ban" size="12"></lucide-angular> Ban user
-          </button>
           <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-red-200 text-error hover:bg-red-50 transition-colors"
-            (click)="deleteUser(selectedUser()!._id)"
+            (click)="nextPage()"
+            [disabled]="currentPage() === totalPages()"
+            class="flex items-center gap-1 px-3 py-2 rounded-lg border border-theme text-sm font-medium text-text-secondary hover:bg-violet-50 hover:border-violet-400 dark:hover:bg-violet-950/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <lucide-angular [img]="icons.Trash2" size="12"></lucide-angular> Delete
+            <span class="hidden sm:inline">Next</span>
+            <lucide-angular [img]="icons.ChevronRight" size="14"></lucide-angular>
           </button>
         </div>
       </div>
-    </div>
+    }
+  </div>
+
+  @if (openMenuUser(); as u) {
+    @if (menuAnchor(); as anchor) {
+      <div
+        data-users-menu
+        role="menu"
+        [class]="ui.menu"
+        [class.-translate-y-full]="anchor.flipAbove"
+        [style.top.px]="anchor.top"
+        [style.left.px]="anchor.left"
+        (click)="$event.stopPropagation()"
+      >
+        <button type="button" [class]="ui.menuItem" [routerLink]="['/dashboard/users', u._id]" (click)="closeMenu()">
+          <lucide-angular [img]="icons.Eye" size="14"></lucide-angular> View profile
+        </button>
+        <button type="button" [class]="ui.menuItem">
+          <lucide-angular [img]="icons.FileText" size="14"></lucide-angular> View CV
+        </button>
+        <button
+          type="button"
+          [class]="ui.menuItem + ' justify-between'"
+          (click)="togglePlanSubmenu(u._id, $event)"
+        >
+          <span class="flex items-center gap-2">
+            <lucide-angular [img]="icons.ArrowUp" size="14"></lucide-angular>
+            Change plan
+          </span>
+          <lucide-angular
+            [img]="icons.ChevronDown"
+            size="14"
+            class="text-text-muted transition-transform shrink-0"
+            [class.rotate-180]="planSubmenuUserId() === u._id"
+          ></lucide-angular>
+        </button>
+        @if (planSubmenuUserId() === u._id) {
+          <div [class]="ui.planSubmenu">
+            @for (plan of plans; track plan) {
+              <button
+                type="button"
+                class="w-full text-left pl-10 pr-4 py-2 text-sm transition-colors"
+                [disabled]="plan === u.plan"
+                [ngClass]="
+                  plan === u.plan
+                    ? 'text-text-muted cursor-not-allowed'
+                    : 'text-text-secondary hover:bg-violet-50 hover:text-violet-700 dark:hover:bg-violet-950/30 dark:hover:text-violet-200'
+                "
+                (click)="requestPlanChange(u, plan, $event)"
+              >
+                {{ plan }}
+                @if (plan === u.plan) {
+                  <span class="text-[10px] ml-1">(current)</span>
+                }
+              </button>
+            }
+          </div>
+        }
+        <hr class="border-theme my-1" />
+        <button
+          type="button"
+          [class]="ui.menuItem + ' text-warning hover:bg-amber-50 dark:hover:bg-amber-500/10'"
+          (click)="closeMenu()"
+        >
+          <lucide-angular [img]="icons.Ban" size="14"></lucide-angular> Ban user
+        </button>
+        <button
+          type="button"
+          [class]="ui.menuItem + ' text-error hover:bg-red-50 dark:hover:bg-red-500/10'"
+          (click)="deleteUser(u._id)"
+        >
+          <lucide-angular [img]="icons.Trash2" size="14"></lucide-angular> Delete
+        </button>
+      </div>
+    }
   }
-
 </div>
-
-<style>
-.dd-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 12px;
-  width: 100%;
-  text-align: left;
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: background 0.15s;
-}
-.dd-item:hover {
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-}
-</style>
