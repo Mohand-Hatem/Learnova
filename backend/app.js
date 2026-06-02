@@ -14,7 +14,9 @@ import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import cvRoutes from "./routes/cv.routes.js";
 import "./utils/cron.js";
+import dns from "dns";
 
+dns.setServers(["8.8.8.8","8.8.4.4"])
 const app = express();
 app.use(helmet());
 app.use(morgan("dev"));

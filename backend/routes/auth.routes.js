@@ -1,5 +1,6 @@
 import express from "express";
 import passport from "../config/passport.js";
+import { isGoogleAuthEnabled } from "../config/passport.js";
 import {
   register,
   login,
@@ -20,6 +21,12 @@ import { registerSchema, loginSchema } from "../schemas/auth.schema.js";
 
 const router = express.Router();
 
+const googleAuthUnavailable = (_req, res) =>
+  res.status(503).json({
+    success: false,
+    message: "Google sign-in is not configured on this server",
+  });
+
 router.post("/register", validate(registerSchema), register);
 
 router.post("/login", validate(loginSchema), login);
@@ -33,21 +40,26 @@ router.get("/me", protect, getMe);
 router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
 router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
 
-router.get(
-  "/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-  }),
-);
+if (isGoogleAuthEnabled) {
+  router.get(
+    "/google",
+    passport.authenticate("google", {
+      scope: ["profile", "email"],
+    }),
+  );
 
-router.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: "/auth/google/failure",
-  }),
-  googleAuthCallback,
-);
+  router.get(
+    "/google/callback",
+    passport.authenticate("google", {
+      session: false,
+      failureRedirect: "/auth/google/failure",
+    }),
+    googleAuthCallback,
+  );
+} else {
+  router.get("/google", googleAuthUnavailable);
+  router.get("/google/callback", googleAuthUnavailable);
+}
 
 router.get("/google/failure", (req, res) => {
   return res.status(401).json({

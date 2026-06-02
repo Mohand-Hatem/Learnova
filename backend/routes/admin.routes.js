@@ -7,6 +7,7 @@ import {
   updateUserPlan,
   getOneUser,
 } from "../controllers/admin.controller.js";
+import { getDashboard } from "../controllers/admin.dashboard.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
@@ -18,6 +19,7 @@ const router = express.Router();
 router.use(protect);
 router.use(roleMiddleware("admin"));
 
+router.get("/dashboard", getDashboard);
 router.get("/all", getAllUsers);
 router.get("/:id", getOneUser);
 

@@ -1,0 +1,418 @@
+@if (loading()) {
+  <div class="flex items-center justify-center py-32 text-text-secondary">
+    <div class="flex flex-col items-center">
+      <div
+        class="w-10 h-10 border-4 border-violet-200 dark:border-violet-500/30 border-t-brand rounded-full animate-spin mb-4"
+      ></div>
+      <p class="font-medium text-text-primary">Loading user details...</p>
+    </div>
+  </div>
+} @else if (!user()) {
+  <div class="flex items-center justify-center py-32 text-text-secondary">
+    <div class="text-center">
+      <p class="text-lg font-semibold text-text-primary">User not found</p>
+      <p class="text-sm text-text-muted mt-2">The user you're looking for doesn't exist.</p>
+    </div>
+  </div>
+} @else {
+  <!-- Back Button -->
+  <button
+    (click)="goBack()"
+    class="flex items-center gap-2 text-sm font-medium text-violet-600 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/30 px-3 py-2 rounded-lg transition-colors mb-6"
+  >
+    <lucide-angular [img]="icons.ChevronLeft" size="16"></lucide-angular>
+    <span>Back to users</span>
+  </button>
+
+  <!-- Header Section -->
+  <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-text-primary">{{ getName(user()!) }}</h1>
+      <p class="text-text-secondary mt-1">{{ user()!.email }}</p>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      @if (latestCv()?.originalFile?.url; as cvUrl) {
+        <a
+          [href]="cvUrl"
+          target="_blank"
+          class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-theme text-violet-600 dark:text-violet-300 text-sm font-medium hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-colors"
+        >
+          <lucide-angular [img]="icons.Download" size="14"></lucide-angular> Download CV
+        </a>
+      }
+
+      <button
+        type="button"
+        data-plan-menu-trigger
+        (click)="togglePlanDropdown($event)"
+        [attr.aria-expanded]="showPlanDropdown()"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-violet-300 dark:border-violet-500/40 text-violet-600 dark:text-violet-300 text-sm font-medium hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-colors"
+      >
+        <lucide-angular [img]="icons.ArrowUp" size="14"></lucide-angular> Change Plan
+      </button>
+
+      @if (showPlanDropdown() && planMenuAnchor(); as anchor) {
+        <div
+          data-plan-menu
+          role="menu"
+          [class]="ui.menu + ' min-w-[140px]'"
+          [class.-translate-y-full]="anchor.flipAbove"
+          [style.top.px]="anchor.top"
+          [style.left.px]="anchor.left"
+          (click)="$event.stopPropagation()"
+        >
+          @for (plan of plans; track plan) {
+            <button
+              type="button"
+              class="w-full text-left px-4 py-2.5 text-sm font-medium transition-colors"
+              [disabled]="plan === user()!.plan"
+              [ngClass]="
+                plan === user()!.plan
+                  ? 'text-violet-600 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/40 cursor-default'
+                  : 'text-text-secondary hover:bg-violet-50 dark:hover:bg-violet-950/30'
+              "
+              (click)="selectPlan(plan)"
+            >
+              {{ plan }}
+              @if (plan === user()!.plan) {
+                <span class="text-[10px] ml-1 opacity-70">(current)</span>
+              }
+            </button>
+          }
+        </div>
+      }
+
+      <button
+        (click)="deleteUser()"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-error text-white text-sm font-medium hover:opacity-90 transition-colors"
+      >
+        <lucide-angular [img]="icons.Trash2" size="14"></lucide-angular> Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- ROW 1: Profile + ATS + AI Summary -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Profile Card -->
+    <div
+      [class]="ui.card + ' p-6 flex flex-col items-center text-center'"
+    >
+      <div
+        class="w-24 h-24 rounded-full bg-gradient-to-br from-brand to-info text-white flex items-center justify-center text-3xl font-bold mb-4 shadow-md"
+      >
+        {{ getInitials(user()!) }}
+      </div>
+      <p class="font-bold text-text-primary text-lg">{{ getName(user()!) }}</p>
+      <p class="text-sm text-text-secondary capitalize mb-3">{{ user()!.role }}</p>
+      <span
+        class="px-4 py-1.5 rounded-full text-xs font-bold mb-6"
+        [ngClass]="planBadgeClass(user()!.plan)"
+        >{{ user()!.plan }} Plan</span
+      >
+      <div class="w-full space-y-3 text-left border-t border-theme pt-5">
+        <div class="flex items-center gap-2 text-sm text-text-secondary">
+          <lucide-angular
+            [img]="icons.Mail"
+            size="14"
+            class="text-text-muted shrink-0"
+          ></lucide-angular>
+          <span class="truncate">{{ user()!.email }}</span>
+        </div>
+        @if (user()!.location) {
+          <div class="flex items-center gap-2 text-sm text-text-secondary">
+            <lucide-angular
+              [img]="icons.MapPin"
+              size="14"
+              class="text-text-muted shrink-0"
+            ></lucide-angular>
+            {{ user()!.location }}
+          </div>
+        }
+        <div class="flex items-center gap-2 text-sm text-text-secondary">
+          <lucide-angular
+            [img]="icons.Calendar"
+            size="14"
+            class="text-text-muted shrink-0"
+          ></lucide-angular>
+          {{ user()!.createdAt | date: 'MMM dd, yyyy' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- ATS Score Card -->
+    <div [class]="ui.card + ' p-6'">
+      <div class="flex items-center gap-2 mb-4">
+        <lucide-angular [img]="icons.CheckCircle" size="16" class="text-success"></lucide-angular>
+        <p class="text-xs text-text-secondary uppercase font-bold tracking-wider">ATS Score</p>
+      </div>
+      @if (getLatestCV(); as cv) {
+        <div class="flex items-end gap-2 mb-4">
+          <span class="text-5xl font-bold" [ngClass]="getAtsColor(cv.atsScore)">{{
+            cv.atsScore
+          }}</span>
+          <span class="text-lg text-text-muted mb-1">/ 100</span>
+        </div>
+        <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-3">
+          <div
+            class="h-full rounded-full transition-all duration-700"
+            [ngClass]="getAtsBarColor(cv.atsScore)"
+            [style.width]="cv.atsScore + '%'"
+          ></div>
+        </div>
+        <p class="text-xs font-semibold" [ngClass]="getAtsColor(cv.atsScore)">{{ getAtsLabel(cv.atsScore) }}</p>
+      } @else {
+        <p class="text-sm text-text-muted italic">No CV uploaded yet</p>
+      }
+    </div>
+
+    <!-- AI Summary Card -->
+    <div [class]="ui.card + ' p-6'">
+      <div class="flex items-center gap-2 mb-4">
+        <lucide-angular [img]="icons.Sparkles" size="16" class="text-info"></lucide-angular>
+        <p class="text-xs text-text-secondary uppercase font-bold tracking-wider">AI Summary</p>
+      </div>
+      @if (latestCv()?.aiAnalysis?.summary; as summary) {
+        <p class="text-sm text-text-secondary leading-relaxed">{{ summary }}</p>
+      } @else {
+        <p class="text-sm text-text-muted italic">No AI analysis available yet.</p>
+      }
+    </div>
+  </div>
+
+  <!-- ROW 2: Strengths + Weaknesses + Skills -->
+  @if (getLatestCV(); as cv) {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <!-- Strengths -->
+      <div [class]="ui.card + ' p-6'">
+        <div class="flex items-center gap-2 mb-4">
+          <lucide-angular
+            [img]="icons.CheckCircle"
+            size="16"
+            class="text-success"
+          ></lucide-angular>
+          <p class="text-sm font-bold text-text-primary">Strengths</p>
+        </div>
+        @if (cvStrengths(cv).length) {
+          <ul class="space-y-2.5">
+            @for (s of cvStrengths(cv); track s) {
+              <li class="flex items-start gap-3 text-sm text-text-secondary">
+                <span class="mt-1.5 w-2 h-2 rounded-full bg-success shrink-0"></span>
+                <span>{{ s }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="text-sm text-text-muted italic">No strengths identified</p>
+        }
+      </div>
+
+      <!-- Weaknesses -->
+      <div [class]="ui.card + ' p-6'">
+        <div class="flex items-center gap-2 mb-4">
+          <lucide-angular
+            [img]="icons.AlertTriangle"
+            size="16"
+            class="text-warning"
+          ></lucide-angular>
+          <p class="text-sm font-bold text-text-primary">Weaknesses</p>
+        </div>
+        @if (cvWeaknesses(cv).length) {
+          <ul class="space-y-2.5">
+            @for (w of cvWeaknesses(cv); track w) {
+              <li class="flex items-start gap-3 text-sm text-text-secondary">
+                <span class="mt-1.5 w-2 h-2 rounded-full bg-warning shrink-0"></span>
+                <span>{{ w }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="text-sm text-text-muted italic">No weaknesses identified</p>
+        }
+      </div>
+
+      <!-- Key Skills -->
+      <div [class]="ui.card + ' p-6'">
+        <div class="flex items-center gap-2 mb-4">
+          <lucide-angular [img]="icons.Zap" size="16" class="text-info"></lucide-angular>
+          <p class="text-sm font-bold text-text-primary">Key Skills</p>
+        </div>
+        @if (cvSkills(cv).length) {
+          <div class="flex flex-wrap gap-2">
+            @for (skill of cvSkills(cv).slice(0, 8); track skill) {
+              <span
+                class="px-3 py-1.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 text-xs font-semibold"
+                >{{ skill }}</span
+              >
+            }
+          </div>
+        } @else {
+          <p class="text-sm text-text-muted italic">No skills found</p>
+        }
+      </div>
+    </div>
+
+    <!-- ROW 3: Current Plan + CV Details + AI Suggestions -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <!-- Plan Card -->
+      <div [class]="ui.card + ' p-6'">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <lucide-angular
+              [img]="icons.CreditCard"
+              size="16"
+              class="text-violet-500 dark:text-violet-300"
+            ></lucide-angular>
+            <p class="text-sm font-bold text-text-primary">Current Plan</p>
+          </div>
+          <span class="text-xs font-bold text-success">Active</span>
+        </div>
+        <p class="text-3xl font-bold text-text-primary mb-2">{{ user()!.plan }}</p>
+        <p class="text-xs text-text-muted mb-5">Renews on {{ getRenewDate() }}</p>
+        <div class="space-y-3 pb-5 border-b border-theme">
+          <div class="flex justify-between text-xs">
+            <span class="text-text-secondary">Tokens used</span>
+            <span class="font-bold text-text-primary"
+              >{{ formatTokens(user()!.tokenUsage) }} / {{ formatTokens(user()!.maxToken) }}</span
+            >
+          </div>
+          <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div
+              class="h-full rounded-full bg-gradient-to-r from-brand to-info transition-all duration-700"
+              [style.width]="getTokenPct() + '%'"
+            ></div>
+          </div>
+          <div class="flex justify-between text-xs text-text-secondary">
+            <span>{{ getTokenPct() }}% used</span>
+            <span>{{ formatTokens(user()!.maxToken - user()!.tokenUsage) }} left</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CV Details -->
+      <div [class]="ui.card + ' p-6 flex flex-col'">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <lucide-angular [img]="icons.FileText" size="16" class="text-info"></lucide-angular>
+            <p class="text-sm font-bold text-text-primary">Uploaded CV</p>
+          </div>
+          @if (cv.originalFile?.url) {
+            <a
+              [href]="cv.originalFile!.url"
+              target="_blank"
+              class="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-300 hover:opacity-80 font-medium"
+            >
+              <lucide-angular [img]="icons.ExternalLink" size="12"></lucide-angular> Open
+            </a>
+          }
+        </div>
+        <div
+          class="border border-theme rounded-xl p-6 flex flex-col items-center justify-center text-center bg-bg-secondary flex-1"
+        >
+          <lucide-angular
+            [img]="icons.FileText"
+            size="36"
+            class="text-text-muted mb-3"
+          ></lucide-angular>
+          <p class="font-semibold text-text-primary text-sm">
+            {{ cv.originalFile?.fileName || 'Resume.pdf' }}
+          </p>
+          <p class="text-xs text-text-muted mt-2">
+            {{ formatBytes(cv.originalFile?.fileSize) }}
+            @if (cv.updatedAt) {
+              • Updated {{ timeAgo(cv.updatedAt) }}
+            }
+          </p>
+        </div>
+      </div>
+
+      <!-- AI Suggestions -->
+      <div [class]="ui.card + ' p-6'">
+        <div class="flex items-center gap-2 mb-3">
+          <lucide-angular [img]="icons.Sparkles" size="16" class="text-info"></lucide-angular>
+          <p class="text-sm font-bold text-text-primary">AI Suggestions</p>
+        </div>
+        <p class="text-xs text-text-muted mb-4">Recommendations to improve</p>
+        @if (cvSuggestions(cv).length) {
+          <div class="space-y-2.5">
+            @for (s of cvSuggestions(cv).slice(0, 3); track s; let i = $index) {
+              <div
+                class="flex items-start gap-3 p-3 rounded-lg border border-theme hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/25 transition-colors"
+              >
+                <span
+                  class="w-6 h-6 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5"
+                >
+                  {{ i + 1 }}
+                </span>
+                <p class="text-sm text-text-secondary">{{ s }}</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-sm text-text-muted italic">No suggestions yet</p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Charts: always shown for loaded user (demo data until API history exists) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div [class]="ui.card + ' p-6 min-w-0'">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="text-sm font-bold text-text-primary mb-1">Skills Analytics</p>
+            <p class="text-xs text-text-muted">Detected proficiency levels</p>
+          </div>
+          <span [class]="ui.demoBadge">Demo</span>
+        </div>
+        @if (skillsChartOptions(); as skillOpts) {
+          <div
+            echarts
+            class="block h-[300px] w-full min-h-[300px]"
+            [initOpts]="chartInitOpts"
+            [options]="skillOpts"
+            [autoResize]="true"
+          ></div>
+        } @else {
+          <p class="text-sm text-text-muted italic text-center py-12">No skills data from CV yet</p>
+        }
+      </div>
+
+      <div [class]="ui.card + ' p-6 min-w-0'">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="text-sm font-bold text-text-primary mb-1">Token Usage</p>
+            <p class="text-xs text-text-muted">Last 7 days activity</p>
+          </div>
+          <span [class]="ui.demoBadge">Demo</span>
+        </div>
+        @if (tokenChartOptions(); as tokOpts) {
+          <div
+            echarts
+            class="block h-[300px] w-full min-h-[300px]"
+            [initOpts]="chartInitOpts"
+            [options]="tokOpts"
+            [autoResize]="true"
+          ></div>
+        }
+      </div>
+    </div>
+
+    <div [class]="ui.card + ' p-6 mb-6 min-w-0'">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-sm font-bold text-text-primary mb-1">ATS Performance</p>
+          <p class="text-xs text-text-muted">Score evolution over 12 months</p>
+        </div>
+        <span [class]="ui.demoBadge">Demo</span>
+      </div>
+      @if (atsChartOptions(); as atsOpts) {
+        <div
+          echarts
+          class="block h-[300px] w-full min-h-[300px]"
+          [initOpts]="chartInitOpts"
+          [options]="atsOpts"
+          [autoResize]="true"
+        ></div>
+      }
+    </div>
+}

@@ -1,0 +1,48 @@
+<aside class="flex h-full w-full flex-col bg-white dark:bg-[#0d0f18] border-r border-theme">
+  <div
+    class="app-sidebar__brand flex items-center justify-between gap-2 border-b border-theme px-4 py-2.5"
+  >
+    <div class="flex min-w-0 items-center gap-3">
+      <img src="/Aventra-logo.png" alt="Learnova" class="h-15 w-full object-cover" />
+    </div>
+    <button
+      type="button"
+      class="app-sidebar__close inline-flex h-8 w-8 items-center justify-center rounded-lg border border-theme bg-transparent text-text-secondary transition-all duration-200 hover:border-violet-400 hover:bg-violet-100 dark:hover:border-violet-400/40 dark:hover:bg-violet-950/10 dark:hover:text-white lg:hidden"
+      aria-label="Close sidebar"
+      (click)="closeRequested.emit()"
+    >
+      <lucide-angular [img]="icons.X" size="18"></lucide-angular>
+    </button>
+  </div>
+
+  <nav class="app-sidebar__nav flex h-full flex-col gap-2 overflow-y-auto p-3">
+    <ng-container *ngFor="let item of navItems; let i = index">
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="bg-violet-100 text-violet-700 border border-violet-300 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-500/40"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="transition-smooth flex items-center gap-3 rounded-2xl px-3 py-2 text-text-secondary hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-violet-950/30 dark:hover:text-slate-100 no-underline"
+        (click)="onNavClick()"
+      >
+        <lucide-angular
+          [img]="iconClass(item.route)"
+          size="20"
+          class="transition-transform duration-300"
+        ></lucide-angular>
+        <span class="text-sm">{{ item.label }}</span>
+      </a>
+    </ng-container>
+  </nav>
+
+  <div class="app-sidebar__footer p-3">
+    <div
+      class="transition-all flex items-center gap-2 rounded-2xl border border-theme bg-white dark:bg-[#151724] p-3 hover:border-emerald-400 dark:hover:border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+    >
+      <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+      <div>
+        <div class="text-sm font-semibold text-text-primary">AI Engine Online</div>
+        <div class="text-[0.65rem] text-text-secondary">All systems operational</div>
+      </div>
+    </div>
+  </div>
+</aside>

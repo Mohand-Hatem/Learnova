@@ -1,0 +1,27 @@
+<div class="transition-smooth flex h-full min-h-[320px] min-w-0 flex-col rounded-[2rem] border border-theme bg-white dark:bg-bg-card p-5 shadow-sm">
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <h6 class="text-sm font-semibold text-text-primary">Platform Activity</h6>
+      <p class="mt-1 text-sm text-text-secondary">Active users vs AI analyses — last 14 days</p>
+    </div>
+    <span *ngIf="!isLive()" class="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-amber-600 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300">Demo</span>
+  </div>
+  <ng-container *ngIf="chartOptions() as opts">
+    <div class="mt-6 flex-1 min-h-0 rounded-[1.75rem] bg-white dark:bg-slate-900 p-3 shadow-sm">
+      <apx-chart
+        class="h-full w-full"
+        [series]="opts.series!"
+        [chart]="opts.chart!"
+        [colors]="opts.colors!"
+        [dataLabels]="opts.dataLabels!"
+        [stroke]="opts.stroke!"
+        [fill]="opts.fill!"
+        [xaxis]="opts.xaxis!"
+        [yaxis]="opts.yaxis!"
+        [grid]="opts.grid!"
+        [legend]="opts.legend!"
+        [tooltip]="opts.tooltip!"
+      ></apx-chart>
+    </div>
+  </ng-container>
+</div>

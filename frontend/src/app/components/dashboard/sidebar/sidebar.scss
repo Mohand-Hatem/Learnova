@@ -1,0 +1,26 @@
+:host {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1040;
+  width: min(280px, 85vw);
+  transform: translateX(-105%);
+  transition: transform 0.25s ease;
+  pointer-events: none;
+  display: block;
+}
+
+:host(.app-sidebar--open) {
+  transform: translateX(0);
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+}
+
+@media (min-width: 1024px) {
+  :host {
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+    box-shadow: none !important;
+  }
+}

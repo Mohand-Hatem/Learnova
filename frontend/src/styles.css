@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  min-height: 100%;
+}
+
+@theme {
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f1f5f9; /* slate-100 like login */
+  --color-bg-card: #f8fafc; /* slightly off-white card */
+
+  --color-text-blue: #60a5fa;
+  --color-text-primary: #0f172a; /* slate-900 */
+  --color-text-secondary: #475569; /* slate-600 */
+  --color-text-muted: #94a3b8; /* slate-400 */
+
+  --color-border: #e6e9ef; /* subtle border like slate-200 */
+
+  --color-brand: #4f46e5; /* indigo-600 from login */
+  --color-brand-hover: #6366f1; /* slightly lighter on hover */
+  --color-brand-light: #eef2ff; /* light indigo background */
+
+  --color-grad-start: #4f46e5; /* indigo */
+  --color-grad-end: #06b6d4; /* cyan */
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #06b6d4; /* cyan-500 */
+}
+
+.dark {
+  --color-bg-primary: #071028; /* deep navy for dark mode */
+  --color-bg-secondary: #0b1b2b; /* darker secondary */
+  --color-bg-card: #0f1724; /* card background in dark */
+
+  --color-text-primary: #f8fafc; /* near white */
+  --color-text-blue: #60a5fa;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+
+  --color-border: #1f2a44;
+
+  --color-brand: #818cf8; /* lighter indigo for contrast */
+  --color-brand-hover: #6366f1;
+  --color-brand-light: #0f172a;
+
+  --color-grad-start: #3b82f6; /* blue-ish start in dark */
+  --color-grad-end: #06b6d4; /* cyan end */
+
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+}
+/* Apply theme colors to body */
+body {
+  @apply min-h-screen antialiased;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+/* Utility classes for components */
+.card {
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+
+.sidebar {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+}
+
+.btn-primary {
+  background-color: var(--color-brand);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-brand-hover);
+}
+
+.text-muted {
+  color: var(--color-text-secondary);
+}
+
+.text-muted-2 {
+  color: var(--color-text-muted);
+}
+
+.border-theme {
+  border-color: var(--color-border);
+}
+
+.FontChange {
+  font-family: 'arial', sans-serif;
+}
+
+* {
+  @apply box-border;
+}
+
+/* Material dialogs opened from users admin screens */
+.users-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+}
