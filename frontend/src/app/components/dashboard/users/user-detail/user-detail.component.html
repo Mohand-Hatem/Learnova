@@ -55,7 +55,7 @@
         <div
           data-plan-menu
           role="menu"
-          [class]="ui.menu + ' min-w-[140px]'"
+          [class]="ui.menu + ' min-w-35'"
           [class.-translate-y-full]="anchor.flipAbove"
           [style.top.px]="anchor.top"
           [style.left.px]="anchor.left"
@@ -94,11 +94,9 @@
   <!-- ROW 1: Profile + ATS + AI Summary -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     <!-- Profile Card -->
-    <div
-      [class]="ui.card + ' p-6 flex flex-col items-center text-center'"
-    >
+    <div [class]="ui.card + ' p-6 flex flex-col items-center text-center'">
       <div
-        class="w-24 h-24 rounded-full bg-gradient-to-br from-brand to-info text-white flex items-center justify-center text-3xl font-bold mb-4 shadow-md"
+        class="w-24 h-24 rounded-full bg-linear-to-br from-brand to-info text-white flex items-center justify-center text-3xl font-bold mb-4 shadow-md"
       >
         {{ getInitials(user()!) }}
       </div>
@@ -159,7 +157,9 @@
             [style.width]="cv.atsScore + '%'"
           ></div>
         </div>
-        <p class="text-xs font-semibold" [ngClass]="getAtsColor(cv.atsScore)">{{ getAtsLabel(cv.atsScore) }}</p>
+        <p class="text-xs font-semibold" [ngClass]="getAtsColor(cv.atsScore)">
+          {{ getAtsLabel(cv.atsScore) }}
+        </p>
       } @else {
         <p class="text-sm text-text-muted italic">No CV uploaded yet</p>
       }
@@ -185,11 +185,7 @@
       <!-- Strengths -->
       <div [class]="ui.card + ' p-6'">
         <div class="flex items-center gap-2 mb-4">
-          <lucide-angular
-            [img]="icons.CheckCircle"
-            size="16"
-            class="text-success"
-          ></lucide-angular>
+          <lucide-angular [img]="icons.CheckCircle" size="16" class="text-success"></lucide-angular>
           <p class="text-sm font-bold text-text-primary">Strengths</p>
         </div>
         @if (cvStrengths(cv).length) {
@@ -277,7 +273,7 @@
           </div>
           <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
-              class="h-full rounded-full bg-gradient-to-r from-brand to-info transition-all duration-700"
+              class="h-full rounded-full bg-linear-to-r from-brand to-info transition-all duration-700"
               [style.width]="getTokenPct() + '%'"
             ></div>
           </div>
@@ -356,63 +352,63 @@
 
   <!-- Charts: always shown for loaded user (demo data until API history exists) -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <div [class]="ui.card + ' p-6 min-w-0'">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <p class="text-sm font-bold text-text-primary mb-1">Skills Analytics</p>
-            <p class="text-xs text-text-muted">Detected proficiency levels</p>
-          </div>
-          <span [class]="ui.demoBadge">Demo</span>
-        </div>
-        @if (skillsChartOptions(); as skillOpts) {
-          <div
-            echarts
-            class="block h-[300px] w-full min-h-[300px]"
-            [initOpts]="chartInitOpts"
-            [options]="skillOpts"
-            [autoResize]="true"
-          ></div>
-        } @else {
-          <p class="text-sm text-text-muted italic text-center py-12">No skills data from CV yet</p>
-        }
-      </div>
-
-      <div [class]="ui.card + ' p-6 min-w-0'">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <p class="text-sm font-bold text-text-primary mb-1">Token Usage</p>
-            <p class="text-xs text-text-muted">Last 7 days activity</p>
-          </div>
-          <span [class]="ui.demoBadge">Demo</span>
-        </div>
-        @if (tokenChartOptions(); as tokOpts) {
-          <div
-            echarts
-            class="block h-[300px] w-full min-h-[300px]"
-            [initOpts]="chartInitOpts"
-            [options]="tokOpts"
-            [autoResize]="true"
-          ></div>
-        }
-      </div>
-    </div>
-
-    <div [class]="ui.card + ' p-6 mb-6 min-w-0'">
+    <div [class]="ui.card + ' p-6 min-w-0'">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <p class="text-sm font-bold text-text-primary mb-1">ATS Performance</p>
-          <p class="text-xs text-text-muted">Score evolution over 12 months</p>
+          <p class="text-sm font-bold text-text-primary mb-1">Skills Analytics</p>
+          <p class="text-xs text-text-muted">Detected proficiency levels</p>
         </div>
         <span [class]="ui.demoBadge">Demo</span>
       </div>
-      @if (atsChartOptions(); as atsOpts) {
+      @if (skillsChartOptions(); as skillOpts) {
         <div
           echarts
-          class="block h-[300px] w-full min-h-[300px]"
+          class="block h-75 w-full min-h-75"
           [initOpts]="chartInitOpts"
-          [options]="atsOpts"
+          [options]="skillOpts"
+          [autoResize]="true"
+        ></div>
+      } @else {
+        <p class="text-sm text-text-muted italic text-center py-12">No skills data from CV yet</p>
+      }
+    </div>
+
+    <div [class]="ui.card + ' p-6 min-w-0'">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-sm font-bold text-text-primary mb-1">Token Usage</p>
+          <p class="text-xs text-text-muted">Last 7 days activity</p>
+        </div>
+        <span [class]="ui.demoBadge">Demo</span>
+      </div>
+      @if (tokenChartOptions(); as tokOpts) {
+        <div
+          echarts
+          class="block h-75 w-full min-h-75"
+          [initOpts]="chartInitOpts"
+          [options]="tokOpts"
           [autoResize]="true"
         ></div>
       }
     </div>
+  </div>
+
+  <div [class]="ui.card + ' p-6 mb-6 min-w-0'">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-sm font-bold text-text-primary mb-1">ATS Performance</p>
+        <p class="text-xs text-text-muted">Score evolution over 12 months</p>
+      </div>
+      <span [class]="ui.demoBadge">Demo</span>
+    </div>
+    @if (atsChartOptions(); as atsOpts) {
+      <div
+        echarts
+        class="block h-75 w-full min-h-75"
+        [initOpts]="chartInitOpts"
+        [options]="atsOpts"
+        [autoResize]="true"
+      ></div>
+    }
+  </div>
 }
