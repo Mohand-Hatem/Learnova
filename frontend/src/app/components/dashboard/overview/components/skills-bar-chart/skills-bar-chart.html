@@ -5,20 +5,7 @@
       <p class="mt-1 text-sm text-text-secondary">Most frequent skills in CVs</p>
     </div>
   </div>
-  <ng-container *ngIf="chartOptions() as opts">
-    <div class="mt-6 flex-1 min-h-0 rounded-[1.75rem] bg-white dark:bg-slate-900 p-3 shadow-sm">
-      <apx-chart
-        class="h-full w-full"
-        [series]="opts.series!"
-        [chart]="opts.chart!"
-        [plotOptions]="opts.plotOptions!"
-        [colors]="opts.colors!"
-        [dataLabels]="opts.dataLabels!"
-        [xaxis]="opts.xaxis!"
-        [yaxis]="opts.yaxis!"
-        [grid]="opts.grid!"
-        [tooltip]="opts.tooltip!"
-      ></apx-chart>
-    </div>
-  </ng-container>
+  <div class="mt-6 flex-1 min-h-0 rounded-[1.75rem] bg-white dark:bg-slate-900 p-3 shadow-sm">
+    <div echarts [options]="chartOptions()" class="h-full w-full"></div>
+  </div>
 </div>

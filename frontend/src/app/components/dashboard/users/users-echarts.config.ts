@@ -3,6 +3,7 @@ import { BarChart, LineChart } from 'echarts/charts';
 import {
   AxisPointerComponent,
   GridComponent,
+  LegendComponent,
   TooltipComponent,
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -14,10 +15,11 @@ echarts.use([
   GridComponent,
   TooltipComponent,
   AxisPointerComponent,
+  LegendComponent,
   CanvasRenderer,
 ]);
 
-/** Tree-shaken ECharts core for users dashboard charts. */
+/** Tree-shaken ECharts core for dashboard charts. */
 export const USERS_ECHARTS_PROVIDERS = [
   provideEchartsCore({
     echarts: () => Promise.resolve(echarts),
