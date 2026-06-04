@@ -14,35 +14,41 @@
       class="admin-layout__header sticky top-0 z-[1020] flex items-center justify-between gap-3 border-b border-theme bg-bg-secondary p-4 md:p-5"
     >
       <div class="admin-layout__header-start flex items-center gap-3">
-        <button
-          type="button"
-          class="admin-layout__menu-btn inline-flex h-10 w-10 items-center justify-center rounded-xl border border-theme bg-bg-card text-text-primary transition-colors duration-200 hover:bg-slate-100 dark:hover:bg-slate-900/70 hover:text-violet-600 dark:hover:text-white focus:outline-none lg:hidden"
-          [attr.aria-expanded]="sidebarOpen()"
-          [attr.aria-label]="sidebarOpen() ? 'Close sidebar' : 'Open sidebar'"
-          (click)="toggleSidebar()"
-        >
-          <lucide-angular
-            *ngIf="!sidebarOpen(); else closeIcon"
-            [img]="icons.Menu"
-            size="20"
-          ></lucide-angular>
-          <ng-template #closeIcon>
-            <lucide-angular [img]="icons.X" size="20"></lucide-angular>
-          </ng-template>
-        </button>
+    
 
-        <div class="relative hidden md:block flex-1 min-w-[360px] lg:min-w-[600px]">
-          <lucide-angular
-            [img]="icons.Search"
-            size="18"
-            class="absolute left-1.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-          ></lucide-angular>
-          <input
-            type="search"
-            class="admin-layout__search-input w-full rounded-[1rem] border-0 bg-bg-card py-2 pl-10 pr-4 text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-violet-500"
-            placeholder="Search candidates, companies, or ask AI..."
-          />
-        </div>
+   <div
+  class="hidden md:flex min-w-[340px] lg:min-w-[460px] items-center justify-between rounded-2xl border border-violet-500/15 bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 px-6 py-3 backdrop-blur-xl shadow-[0_8px_32px_rgba(139,92,246,0.12)] transition-all duration-300 hover:shadow-[0_12px_40px_rgba(139,92,246,0.18)] hover:-translate-y-0.5"
+>
+  <div class="flex items-center gap-4">
+    <div
+      class="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white/60 ring-1 ring-violet-500/15"
+    >
+      <span
+        class="absolute h-3 w-3 rounded-full bg-emerald-400 animate-ping"
+      ></span>
+
+      <span class="text-xl relative">✨</span>
+    </div>
+
+    <div>
+      <div
+        class="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500 bg-clip-text text-base font-bold text-transparent"
+      >
+        Aventra AI
+      </div>
+
+      <div class="text-xs text-text-secondary">
+        Intelligent CV Analysis & Recruitment Insights
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 ring-1 ring-emerald-500/15"
+  >
+    ● Online
+  </div>
+</div>
       </div>
 
       <div class="admin-layout__header-actions flex items-center gap-2">
