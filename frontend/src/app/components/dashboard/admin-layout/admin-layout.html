@@ -9,46 +9,31 @@
 
   <app-sidebar [open]="sidebarOpen()" (closeRequested)="closeSidebar()" />
 
-  <div class="admin-layout__main flex min-h-screen flex-col bg-bg-secondary lg:ml-[280px]">
+  <div
+    class="admin-layout__main flex min-h-screen flex-col bg-bg-secondary transition-[margin] duration-300 ease-out"
+    [class.ml-[280px]]="sidebarOpen()"
+  >
     <header
       class="admin-layout__header sticky top-0 z-[1020] flex items-center justify-between gap-3 border-b border-theme bg-bg-secondary p-4 md:p-5"
     >
       <div class="admin-layout__header-start flex items-center gap-3">
-    
-
-   <div
-  class="hidden md:flex min-w-[340px] lg:min-w-[460px] items-center justify-between rounded-2xl border border-violet-500/15 bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 px-6 py-3 backdrop-blur-xl shadow-[0_8px_32px_rgba(139,92,246,0.12)] transition-all duration-300 hover:shadow-[0_12px_40px_rgba(139,92,246,0.18)] hover:-translate-y-0.5"
->
-  <div class="flex items-center gap-4">
-    <div
-      class="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white/60 ring-1 ring-violet-500/15"
-    >
-      <span
-        class="absolute h-3 w-3 rounded-full bg-emerald-400 animate-ping"
-      ></span>
-
-      <span class="text-xl relative">✨</span>
-    </div>
-
-    <div>
-      <div
-        class="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500 bg-clip-text text-base font-bold text-transparent"
-      >
-        Aventra AI
-      </div>
-
-      <div class="text-xs text-text-secondary">
-        Intelligent CV Analysis & Recruitment Insights
-      </div>
-    </div>
-  </div>
-
-  <div
-    class="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 ring-1 ring-emerald-500/15"
-  >
-    ● Online
-  </div>
-</div>
+        <button
+          type="button"
+          class="admin-layout__menu-btn inline-flex h-10 items-center gap-2 rounded-xl border border-theme bg-bg-card px-3 text-sm font-medium text-text-primary transition-colors hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-slate-900/70 dark:hover:text-white focus:outline-none"
+          [attr.aria-expanded]="sidebarOpen()"
+          [attr.aria-label]="sidebarOpen() ? 'Close sidebar' : 'Open sidebar'"
+          (click)="toggleSidebar()"
+        >
+          <lucide-angular
+            *ngIf="!sidebarOpen(); else closeIcon"
+            [img]="icons.Menu"
+            size="20"
+          ></lucide-angular>
+          <ng-template #closeIcon>
+            <lucide-angular [img]="icons.X" size="20"></lucide-angular>
+          </ng-template>
+          <span>Toggle sidebar</span>
+        </button>
       </div>
 
       <div class="admin-layout__header-actions flex items-center gap-2">
