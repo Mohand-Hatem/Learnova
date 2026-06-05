@@ -1,0 +1,272 @@
+
+@if (loading()) {
+  <div class="flex items-center justify-center min-h-[70vh]">
+    <div class="flex flex-col items-center gap-4">
+      <div class="w-10 h-10 rounded-full border-4 border-theme border-t-transparent animate-spin"></div>
+      <p class="text-sm text-text-muted">Loading company details...</p>
+    </div>
+  </div>
+
+} @else if (error()) {
+  <div class="flex items-center justify-center min-h-[60vh]">
+    <div class="text-center">
+      <h2 class="text-2xl font-bold text-text-primary mb-2">Company not found</h2>
+      <p class="text-text-muted">Unable to load company details</p>
+    </div>
+  </div>
+
+} @else if (company(); as c) {
+  <div class="space-y-6">
+
+    <button
+      (click)="goBack()"
+      class="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
+    >
+      <lucide-angular [img]="icons.ChevronLeft" size="16"></lucide-angular>
+      Back to companies
+    </button>
+
+
+    <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+      <div>
+        <h1 class="text-4xl font-bold tracking-tight text-text-primary">{{ getName(c) }}</h1>
+        <p class="text-lg text-text-secondary mt-2">{{ c.email || 'No email available' }}</p>
+      </div>
+
+      <div class="flex items-center gap-3 flex-wrap">
+
+        <div class="relative">
+          <button
+            data-plan-menu-trigger
+            (click)="togglePlanDropdown($event)"
+            class="h-11 px-5 rounded-2xl border border-border bg-bg-card hover:bg-bg-secondary transition-all inline-flex items-center gap-2 font-semibold text-text-primary"
+          >
+            <lucide-angular [img]="icons.ArrowUp" size="16"></lucide-angular>
+            Change Plan
+          </button>
+
+          @if (showPlanDropdown() && planMenuAnchor(); as anchor) {
+            <div
+              data-plan-menu
+              [class]="ui.menu"
+              [style.top.px]="anchor.flipAbove ? anchor.top - 160 : anchor.top"
+              [style.left.px]="anchor.left"
+            >
+              @for (plan of plans; track plan) {
+                <button type="button" [class]="ui.menuItem" (click)="selectPlan(plan)">
+                  <div class="flex items-center justify-between w-full">
+                    <span class="font-semibold">{{ plan }}</span>
+                    @if (plan === c.plan) {
+                      <span class="text-xs text-theme font-bold">Current</span>
+                    }
+                  </div>
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+
+        <button
+          (click)="deleteCompany()"
+          class="h-11 px-5 rounded-2xl bg-red-500 hover:bg-red-600 text-white transition-all inline-flex items-center gap-2 font-semibold"
+        >
+          <lucide-angular [img]="icons.Trash2" size="16"></lucide-angular>
+          Delete company
+        </button>
+      </div>
+    </div>
+
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+
+
+      <div class="flex flex-col gap-6">
+
+
+        <div [class]="ui.card + ' p-6'">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-700 dark:text-violet-300 text-lg font-bold shrink-0">
+              {{ getInitials(c) }}
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-text-primary leading-tight">{{ getName(c) }}</h2>
+
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 text-text-secondary text-sm">
+              <lucide-angular [img]="icons.Mail" size="15" class="shrink-0 text-text-muted"></lucide-angular>
+              <span class="truncate">{{ c.email || 'No email available' }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-text-secondary text-sm">
+              <lucide-angular [img]="icons.Globe" size="15" class="shrink-0 text-text-muted"></lucide-angular>
+              @if (c.website) {
+                <a [href]="c.website" target="_blank" class="hover:text-theme transition-colors truncate">{{ c.website }}</a>
+              } @else {
+                <span>No website available</span>
+              }
+            </div>
+            <div class="flex items-center gap-3 text-text-secondary text-sm">
+              <lucide-angular [img]="icons.MapPin" size="15" class="shrink-0 text-text-muted"></lucide-angular>
+              <span>{{ c.location || 'No location available' }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-text-secondary text-sm">
+              <lucide-angular [img]="icons.Building2" size="15" class="shrink-0 text-text-muted"></lucide-angular>
+              <span>Joined {{ c.createdAt ? (c.createdAt | date: 'MMM d, y') : 'Unknown' }}</span>
+            </div>
+          </div>
+        </div>
+
+        
+        <div [class]="ui.card + ' p-6'">
+          <div class="flex items-center gap-2 mb-4">
+            <lucide-angular [img]="icons.CreditCard" size="15" class="text-theme"></lucide-angular>
+            <p class="text-xs uppercase tracking-widest font-bold text-text-secondary">Current Plan</p>
+          </div>
+          <h2 class="text-4xl font-black text-text-primary mb-1">{{ c.plan || '—' }}</h2>
+          <p class="text-xs text-text-muted mb-5">Renews on {{ renewDate() }}</p>
+          <div class="flex items-center justify-between mb-1.5">
+            <p class="text-sm text-text-secondary">Tokens used</p>
+            <p class="text-sm font-bold text-text-primary">
+              {{ formatTokens(c.tokenUsage || 0) }} / {{ formatTokens(c.maxToken || 0) }}
+            </p>
+          </div>
+          <div class="h-2 rounded-full overflow-hidden bg-bg-secondary mb-2">
+            <div
+              class="h-full rounded-full bg-theme transition-all duration-500"
+              [style.width.%]="getTokenPct()"
+            ></div>
+          </div>
+          <div class="flex items-center justify-between text-xs text-text-muted">
+            <span>{{ getTokenPct() }}% used</span>
+            <span>{{ formatTokens((c.maxToken || 0) - (c.tokenUsage || 0)) }} remaining</span>
+          </div>
+        </div>
+
+
+        <div [class]="ui.card + ' p-6'">
+          <div class="grid grid-cols-2 gap-x-4 gap-y-5">
+            <div>
+              <p class="text-[10px] uppercase tracking-widest font-bold text-text-secondary mb-1">Total Searches</p>
+              <h3 class="text-3xl font-black text-text-primary">{{ c.totalSearches || 0 }}</h3>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase tracking-widest font-bold text-text-secondary mb-1">Recruiters</p>
+              <h3 class="text-3xl font-black text-text-primary">{{ c.recruiters || 0 }}</h3>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase tracking-widest font-bold text-text-secondary mb-1">Open Roles</p>
+              <h3 class="text-3xl font-black text-text-primary">{{ c.openRoles || 0 }}</h3>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase tracking-widest font-bold text-text-secondary mb-1">Hires This Q</p>
+              <h3 class="text-3xl font-black text-text-primary">{{ c.hiresThisQ || 0 }}</h3>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex flex-col gap-6">
+
+
+        <div [class]="ui.card + ' p-6'">
+          <div class="mb-5">
+            <h3 class="text-base font-bold text-text-primary">Most searched roles</h3>
+            <p class="text-xs text-text-secondary mt-0.5">Top role queries this month</p>
+          </div>
+          @if (rolesChartOptions()) {
+            <div
+              echarts
+              [options]="rolesChartOptions()!"
+              [initOpts]="chartInitOpts"
+              class="w-full h-[360px]"
+            ></div>
+          } @else {
+            <div class="flex flex-col items-center justify-center py-14 text-center">
+              <lucide-angular [img]="icons.BarChart2" size="32" class="text-text-muted mb-3"></lucide-angular>
+              <p class="text-sm font-semibold text-text-primary mb-1">No role analytics yet</p>
+              <p class="text-xs text-text-muted">Role data will appear once searches are recorded</p>
+            </div>
+          }
+        </div>
+
+
+        <div [class]="ui.card + ' p-6'">
+          <div class="mb-5">
+            <h3 class="text-base font-bold text-text-primary">Search activity</h3>
+            <p class="text-xs text-text-secondary mt-0.5">Candidate searches per month</p>
+          </div>
+          @if (searchActivityChartOptions()) {
+            <div
+              echarts
+              [options]="searchActivityChartOptions()!"
+              [initOpts]="{ renderer: 'canvas', height: 260 }"
+              class="w-full h-[260px]"
+            ></div>
+          } @else {
+            <div class="flex flex-col items-center justify-center py-14 text-center">
+              <lucide-angular [img]="icons.TrendingUp" size="32" class="text-text-muted mb-3"></lucide-angular>
+              <p class="text-sm font-semibold text-text-primary mb-1">No search activity yet</p>
+              <p class="text-xs text-text-muted leading-relaxed">Monthly search data will appear here once the company starts using the platform</p>
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <div class="flex flex-col gap-6">
+
+
+        <div [class]="ui.card + ' p-6'">
+          <div class="mb-5">
+            <h3 class="text-base font-bold text-text-primary">Most searched skills</h3>
+            <p class="text-xs text-text-secondary mt-0.5">Top skill filters used</p>
+          </div>
+          @if (skillsChartOptions()) {
+            <div
+              echarts
+              [options]="skillsChartOptions()!"
+              [initOpts]="chartInitOpts"
+              class="w-full h-[360px]"
+            ></div>
+          } @else {
+            <div class="flex flex-col items-center justify-center py-14 text-center">
+              <lucide-angular [img]="icons.Sparkles" size="32" class="text-text-muted mb-3"></lucide-angular>
+              <p class="text-sm font-semibold text-text-primary mb-1">No skill analytics yet</p>
+              <p class="text-xs text-text-muted">Skill data will appear once filters are used</p>
+            </div>
+          }
+        </div>
+
+
+        <div [class]="ui.card + ' p-6'">
+          <div class="mb-5">
+            <h3 class="text-base font-bold text-text-primary">Token consumption</h3>
+            <p class="text-xs text-text-secondary mt-0.5">AI tokens spent this week</p>
+          </div>
+          @if (tokenConsumptionChartOptions()) {
+            <div
+              echarts
+              [options]="tokenConsumptionChartOptions()!"
+              [initOpts]="{ renderer: 'canvas', height: 260 }"
+              class="w-full h-[260px]"
+            ></div>
+          } @else {
+            <div class="flex flex-col items-center justify-center py-14 text-center">
+              <lucide-angular [img]="icons.Zap" size="32" class="text-text-muted mb-3"></lucide-angular>
+              <p class="text-sm font-semibold text-text-primary mb-1">No token usage yet</p>
+              <p class="text-xs text-text-muted leading-relaxed">Daily AI token consumption will appear here once the company uses AI features</p>
+            </div>
+          }
+        </div>
+
+      </div>
+
+
+    </div>
+
+
+  </div>
+}

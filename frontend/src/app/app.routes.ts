@@ -8,6 +8,7 @@ import { UsersComponent } from './components/dashboard/users/users.component';
 import { CompaniesComponent } from './components/dashboard/companies/companies.component';
 import { AiAnalysisComponent } from './components/dashboard/ai-analysis/ai-analysis.component';
 import { UserDetailComponent } from './components/dashboard/users/user-detail/user-detail.component';
+import { CompanyDetailComponent } from './components/dashboard/companies/company-detail/company-detail.components';
 
 export const routes: Routes = [
   {
@@ -29,6 +30,7 @@ export const routes: Routes = [
       { path: 'users', component: UsersComponent },
        { path: 'users/:id', component: UserDetailComponent },
       { path: 'companies', component: CompaniesComponent },
+       { path: 'companies/:id', component: CompanyDetailComponent },
       { path: 'ai-monitoring', component: AiAnalysisComponent },
     ],
   },
