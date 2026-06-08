@@ -219,9 +219,13 @@
         <button type="button" [class]="ui.menuItem" [routerLink]="['/dashboard/users', u._id]" (click)="closeMenu()">
           <lucide-angular [img]="icons.Eye" size="14"></lucide-angular> View profile
         </button>
-        <button type="button" [class]="ui.menuItem">
-          <lucide-angular [img]="icons.FileText" size="14"></lucide-angular> View CV
-        </button>
+       <button
+  type="button"
+  [class]="ui.menuItem"
+  (click)="openCV(u); closeMenu()"
+>
+  <lucide-angular [img]="icons.FileText" size="14"></lucide-angular> View CV
+</button>
         <button
           type="button"
           [class]="ui.menuItem + ' justify-between'"

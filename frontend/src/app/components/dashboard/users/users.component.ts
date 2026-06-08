@@ -35,6 +35,7 @@ import { AdminService } from '../../../services/admin.service';
 import { PlanUpdateDialogComponent } from './plan-update-dialog/plan-update-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { USER_PLANS } from './user-plan.util';
+import { NoCvDialogComponent } from './no-cv-dialog/no-cv-dialog.component';
 import {
   atsBadgeClass,
   planBadgeClass,
@@ -55,7 +56,11 @@ interface UserItem {
   tokenUsage: number;
   isBanned?: boolean;
   createdAt: string;
-  cvs?: { atsScore: number }[];
+  cvs?: {
+    atsScore: number;
+    originalFile?: { url: string; fileName: string };
+    processingStatus?: string;
+  }[];
 }
 
 @Component({
@@ -291,6 +296,19 @@ export class UsersComponent implements OnInit {
   closeDetail() {
     this.selectedUser.set(null);
   }
+
+  openCV(u: UserItem) {
+  const cv = u.cvs?.[0];
+  if (cv?.originalFile?.url) {
+    window.open(cv.originalFile.url, '_blank');
+  } else {
+    this.dialog.open(NoCvDialogComponent, {
+      width: '360px',
+      panelClass: USERS_DIALOG_PANEL,
+      data: { userName: this.getName(u) },
+    });
+  }
+}
 
   deleteUser(id: string) {
     const u = this.users().find((x) => x._id === id);
