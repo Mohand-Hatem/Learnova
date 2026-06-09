@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgApexchartsModule } from 'ng-apexcharts';
+import { NgxEchartsDirective } from 'ngx-echarts';
 import {
   LucideAngularModule,
   Users,
@@ -11,7 +11,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from 'lucide-angular';
-import type { ApexOptions } from 'ng-apexcharts';
+import type { EChartsOption } from 'echarts';
 import type { StatCard } from '../../dashboard.models';
 
 const SPARKLINE_COLOR = '#a78bfa';
@@ -20,7 +20,7 @@ const SPARKLINE_GRADIENT_TO = '#6366f1';
 @Component({
   selector: 'app-stat-card',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, LucideAngularModule],
+  imports: [CommonModule, NgxEchartsDirective, LucideAngularModule],
   templateUrl: './stat-card.html',
   styleUrls: ['./stat-card.scss'],
 })
@@ -38,35 +38,59 @@ export class StatCardComponent {
     'people-fill': Users,
   };
 
-  readonly chartOptions = computed((): ApexOptions => {
+  readonly chartOptions = computed((): EChartsOption => {
     const s = this.stat();
     return {
-      series: [{ data: s.sparkline }],
-      chart: {
-        type: 'area',
-        sparkline: { enabled: true },
-        animations: { enabled: false },
+      color: [SPARKLINE_COLOR],
+      backgroundColor: 'transparent',
+      grid: {
+        left: 0,
+        right: 0,
+        top: 5,
+        bottom: 0,
+        containLabel: false,
       },
-      stroke: {
-        curve: 'straight',
-        width: 2,
-        colors: [SPARKLINE_COLOR],
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { show: false },
+        splitLine: { show: false },
       },
-      colors: [SPARKLINE_COLOR],
-      fill: {
-        type: 'gradient',
-        gradient: {
-          type: 'vertical',
-          shadeIntensity: 0,
-          opacityFrom: 0.45,
-          opacityTo: 0,
-          colorStops: [
-            { offset: 0, color: SPARKLINE_COLOR, opacity: 0.5 },
-            { offset: 100, color: SPARKLINE_GRADIENT_TO, opacity: 0 },
-          ],
+      yAxis: {
+        type: 'value',
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { show: false },
+        splitLine: { show: false },
+      },
+      series: [
+        {
+          data: s.sparkline,
+          type: 'line',
+          smooth: true,
+          symbolSize: 0,
+          lineStyle: {
+            width: 2,
+            color: SPARKLINE_COLOR,
+          },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: `rgba(167, 139, 250, 0.5)` },
+                { offset: 1, color: `rgba(99, 102, 241, 0)` },
+              ],
+            },
+          },
         },
-      },
-      tooltip: { enabled: false },
+      ],
+      tooltip: { show: false },
     };
   });
 }

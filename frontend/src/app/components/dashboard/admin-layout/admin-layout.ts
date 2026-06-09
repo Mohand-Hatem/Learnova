@@ -49,6 +49,7 @@ export class AdminLayout {
   });
 
   readonly sidebarOpen = signal(false);
+  private readonly isDesktop = signal(false);
 
   constructor() {
     this.router.events
@@ -56,14 +57,28 @@ export class AdminLayout {
         filter((e): e is NavigationEnd => e instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.closeSidebar());
+      .subscribe(() => {
+        if (!this.isDesktop()) this.closeSidebar();
+      });
 
     if (isPlatformBrowser(this.platformId)) {
+      const syncViewport = () => {
+        this.isDesktop.set(window.innerWidth >= 1024);
+      };
+
+      syncViewport();
+      this.sidebarOpen.set(window.innerWidth >= 1024);
+
+      const onResize = () => syncViewport();
+      window.addEventListener('resize', onResize);
+
       effect(() => {
-        document.body.style.overflow = this.sidebarOpen() ? 'hidden' : '';
+        const lockScroll = this.sidebarOpen() && !this.isDesktop();
+        document.body.style.overflow = lockScroll ? 'hidden' : '';
       });
 
       this.destroyRef.onDestroy(() => {
+        window.removeEventListener('resize', onResize);
         document.body.style.overflow = '';
       });
     }

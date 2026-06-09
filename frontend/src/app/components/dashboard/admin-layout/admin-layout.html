@@ -9,14 +9,17 @@
 
   <app-sidebar [open]="sidebarOpen()" (closeRequested)="closeSidebar()" />
 
-  <div class="admin-layout__main flex min-h-screen flex-col bg-bg-secondary lg:ml-[280px]">
+  <div
+    class="admin-layout__main flex min-h-screen flex-col bg-bg-secondary transition-[margin] duration-300 ease-out"
+    [class.ml-[280px]]="sidebarOpen()"
+  >
     <header
       class="admin-layout__header sticky top-0 z-[1020] flex items-center justify-between gap-3 border-b border-theme bg-bg-secondary p-4 md:p-5"
     >
       <div class="admin-layout__header-start flex items-center gap-3">
         <button
           type="button"
-          class="admin-layout__menu-btn inline-flex h-10 w-10 items-center justify-center rounded-xl border border-theme bg-bg-card text-text-primary transition-colors duration-200 hover:bg-slate-100 dark:hover:bg-slate-900/70 hover:text-violet-600 dark:hover:text-white focus:outline-none lg:hidden"
+          class="admin-layout__menu-btn inline-flex h-10 items-center gap-2 rounded-xl border border-theme bg-bg-card px-3 text-sm font-medium text-text-primary transition-colors hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-slate-900/70 dark:hover:text-white focus:outline-none"
           [attr.aria-expanded]="sidebarOpen()"
           [attr.aria-label]="sidebarOpen() ? 'Close sidebar' : 'Open sidebar'"
           (click)="toggleSidebar()"
@@ -29,20 +32,8 @@
           <ng-template #closeIcon>
             <lucide-angular [img]="icons.X" size="20"></lucide-angular>
           </ng-template>
+          <span>Toggle sidebar</span>
         </button>
-
-        <div class="relative hidden md:block flex-1 min-w-[360px] lg:min-w-[600px]">
-          <lucide-angular
-            [img]="icons.Search"
-            size="18"
-            class="absolute left-1.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-          ></lucide-angular>
-          <input
-            type="search"
-            class="admin-layout__search-input w-full rounded-[1rem] border-0 bg-bg-card py-2 pl-10 pr-4 text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-violet-500"
-            placeholder="Search candidates, companies, or ask AI..."
-          />
-        </div>
       </div>
 
       <div class="admin-layout__header-actions flex items-center gap-2">

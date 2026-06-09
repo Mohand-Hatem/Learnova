@@ -18,9 +18,7 @@
 }
 
 @media (min-width: 1024px) {
-  :host {
-    transform: translateX(0) !important;
-    pointer-events: auto !important;
-    box-shadow: none !important;
+  :host(.app-sidebar--open) {
+    box-shadow: none;
   }
 }

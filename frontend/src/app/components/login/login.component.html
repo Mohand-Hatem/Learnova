@@ -3,8 +3,8 @@
     class="hidden md:flex md:col-span-8 relative items-center justify-center p-16 overflow-hidden"
     [ngClass]="
       themeService.isDark()
-        ? 'bg-gradient-to-br from-[var(--color-brand)] via-[rgba(255,255,255,0.02)] to-[var(--color-grad-end)]'
-        : 'bg-gradient-to-br from-slate-50 via-white to-slate-200'
+        ? 'bg-linear-to-br from-(--color-brand) via-[rgba(255,255,255,0.02)] to-(--color-grad-end)'
+        : 'bg-linear-to-br from-slate-50 via-white to-slate-200'
     "
   >
     <div class="relative z-10 max-w-xl">
@@ -15,7 +15,7 @@
         <h1 class="text-5xl font-extrabold leading-tight text-text-primary">
           Hire smarter.<br />with
           <span
-            class="bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent"
+            class="bg-linear-to-r from-indigo-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent"
             >AI intelligence</span
           >.
         </h1>
@@ -40,7 +40,7 @@
       </div>
     </div>
     <div
-      class="absolute rounded-full blur-3xl opacity-20 bg-indigo-300 w-[20rem] h-[28rem] -top-24 -right-32"
+      class="absolute rounded-full blur-3xl opacity-20 bg-indigo-300 w-[20rem] h-112 -top-24 -right-32"
     ></div>
     <div
       class="absolute rounded-full blur-3xl opacity-20 bg-cyan-300 w-[20rem] h-80 -bottom-24 -left-24"

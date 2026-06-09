@@ -1,57 +1,47 @@
 <ng-container *ngIf="stat() as s">
-  <ng-container *ngIf="chartOptions() as opts">
-    <div
-      class="stat-card hover-lift relative flex min-h-[140px] flex-col gap-2 overflow-hidden rounded-[1.75rem] border border-theme bg-white dark:bg-bg-card p-4 sm:p-5 shadow-sm"
-    >
-      <div class="flex items-start items-center justify-between gap-2">
-        <span class="text-[0.58rem] uppercase tracking-[0.1em] text-text-muted">{{ s.title }}</span>
-        <span
-          class="flex h-9 w-9 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-slate-800 dark:text-violet-300 text-base transition-transform duration-300 hover:scale-110"
+  <div
+    class="stat-card hover-lift relative flex min-h-[140px] flex-col gap-2 overflow-hidden rounded-[1.75rem] border border-theme bg-white dark:bg-bg-card p-4 sm:p-5 shadow-sm"
+  >
+    <div class="flex items-start items-center justify-between gap-2">
+      <span class="text-[0.58rem] uppercase tracking-[0.1em] text-text-muted">{{ s.title }}</span>
+      <span
+        class="flex h-9 w-9 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-slate-800 dark:text-violet-300 text-base transition-transform duration-300 hover:scale-110"
+      >
+        <lucide-angular [img]="iconMap[s.icon] || icons.Users" size="20"></lucide-angular>
+      </span>
+    </div>
+
+    <div class="flex items-end justify-between gap-2">
+      <div class="min-w-0">
+        <div class="text-3xl font-semibold tracking-tight text-text-primary">{{ s.value }}</div>
+        <div
+          class="mt-1.5 flex items-center gap-2 text-xs transition-colors duration-300"
+          [class.text-emerald-600]="s.trendUp"
+          [class.text-rose-600]="!s.trendUp"
         >
-          <lucide-angular [img]="iconMap[s.icon] || icons.Users" size="20"></lucide-angular>
-        </span>
+          <lucide-angular
+            *ngIf="s.trendUp; else downArrow"
+            [img]="icons.ArrowUp"
+            size="16"
+          ></lucide-angular>
+          <ng-template #downArrow>
+            <lucide-angular [img]="icons.ArrowDown" size="16"></lucide-angular>
+          </ng-template>
+          <span class="font-semibold">{{ s.trendPercent }}</span>
+          <span class="text-text-muted">{{ s.trendLabel }}</span>
+        </div>
       </div>
 
-      <div class="flex items-end justify-between gap-2">
-        <div class="min-w-0">
-          <div class="text-3xl font-semibold tracking-tight text-text-primary">{{ s.value }}</div>
-          <div
-            class="mt-1.5 flex items-center gap-2 text-xs transition-colors duration-300"
-            [class.text-emerald-600]="s.trendUp"
-            [class.text-rose-600]="!s.trendUp"
-          >
-            <lucide-angular
-              *ngIf="s.trendUp; else downArrow"
-              [img]="icons.ArrowUp"
-              size="16"
-            ></lucide-angular>
-            <ng-template #downArrow>
-              <lucide-angular [img]="icons.ArrowDown" size="16"></lucide-angular>
-            </ng-template>
-            <span class="font-semibold">{{ s.trendPercent }}</span>
-            <span class="text-text-muted">{{ s.trendLabel }}</span>
-          </div>
-        </div>
-
+      <div
+        class="relative flex h-14 w-20 sm:w-28 items-center justify-center rounded-[1.5rem] bg-white dark:bg-slate-800 p-1.5 shadow-sm"
+      >
         <div
-          class="relative flex h-14 w-20 sm:w-28 items-center justify-center rounded-[1.5rem] bg-white dark:bg-slate-800 p-1.5 shadow-sm"
-        >
-          <div
-            class="absolute inset-0 rounded-[1.5rem] bg-gradient-to-br from-violet-500/5 to-transparent"
-          ></div>
-          <div class="relative h-full w-full overflow-hidden rounded-[1.25rem]">
-            <apx-chart
-              class="h-full w-full"
-              [series]="opts.series!"
-              [chart]="opts.chart!"
-              [stroke]="opts.stroke!"
-              [colors]="opts.colors!"
-              [fill]="opts.fill!"
-              [tooltip]="opts.tooltip!"
-            ></apx-chart>
-          </div>
+          class="absolute inset-0 rounded-[1.5rem] bg-gradient-to-br from-violet-500/5 to-transparent"
+        ></div>
+        <div class="relative h-full w-full overflow-hidden rounded-[1.25rem]">
+          <div echarts [options]="chartOptions()" class="h-full w-full"></div>
         </div>
       </div>
     </div>
-  </ng-container>
+  </div>
 </ng-container>
