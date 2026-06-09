@@ -54,7 +54,8 @@ interface UserItem {
   plan: string;
   maxToken: number;
   tokenUsage: number;
-  isBanned?: boolean;
+  // isBanned?: boolean;
+  isBlocked?: boolean;
   createdAt: string;
   cvs?: {
     atsScore: number;
@@ -308,6 +309,30 @@ export class UsersComponent implements OnInit {
       data: { userName: this.getName(u) },
     });
   }
+}
+
+banUser(u: UserItem) {
+  const action = u.isBlocked ? 'unban' : 'ban';
+  const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    width: '420px',
+    panelClass: USERS_DIALOG_PANEL,
+    data: {
+      title: u.isBlocked ? 'Unban User' : 'Ban User',
+      message: `Are you sure you want to ${action} ${this.getName(u)}?`,
+      confirmLabel: u.isBlocked ? 'Unban' : 'Ban',
+      confirmDanger: !u.isBlocked,
+    },
+  });
+  dialogRef.afterClosed().subscribe((confirmed) => {
+    if (!confirmed) return;
+    this.adminService.toggleBan(u._id).subscribe({
+      next: (res) => {
+        this.users.update(list =>
+          list.map(x => x._id === u._id ? { ...x, isBlocked: res.data.isBlocked } : x)
+        );
+      },
+    });
+  });
 }
 
   deleteUser(id: string) {

@@ -1,11 +1,14 @@
 <div class="relative text-text-primary">
-
   <div class="flex flex-wrap items-center gap-3 mb-6 px-1">
     <div
       class="flex items-center gap-2 flex-1 min-w-[240px] px-4 py-2.5 shadow-sm"
       [class]="ui.input"
     >
-      <lucide-angular [img]="icons.Search" size="16" class="text-text-muted shrink-0"></lucide-angular>
+      <lucide-angular
+        [img]="icons.Search"
+        size="16"
+        class="text-text-muted shrink-0"
+      ></lucide-angular>
       <input
         type="text"
         placeholder="Search by name or email..."
@@ -16,31 +19,58 @@
     </div>
 
     <div class="relative">
-      <select class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm" [class]="ui.input" [ngModel]="planFilter()" (ngModelChange)="planFilter.set($event)">
+      <select
+        class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm"
+        [class]="ui.input"
+        [ngModel]="planFilter()"
+        (ngModelChange)="planFilter.set($event)"
+      >
         <option value="">All plans</option>
         <option value="Free">Free</option>
         <option value="Pro">Pro</option>
         <option value="Enterprise">Enterprise</option>
       </select>
-      <lucide-angular [img]="icons.ChevronDown" size="14" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
+      <lucide-angular
+        [img]="icons.ChevronDown"
+        size="14"
+        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+      ></lucide-angular>
     </div>
 
     <div class="relative">
-      <select class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm" [class]="ui.input" [ngModel]="atsFilter()" (ngModelChange)="atsFilter.set($event)">
+      <select
+        class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm"
+        [class]="ui.input"
+        [ngModel]="atsFilter()"
+        (ngModelChange)="atsFilter.set($event)"
+      >
         <option value="">All ATS scores</option>
         <option value="high">High (80+)</option>
         <option value="mid">Mid (60–79)</option>
         <option value="low">Low (&lt;60)</option>
       </select>
-      <lucide-angular [img]="icons.ChevronDown" size="14" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
+      <lucide-angular
+        [img]="icons.ChevronDown"
+        size="14"
+        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+      ></lucide-angular>
     </div>
 
     <div class="relative">
-      <select class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm" [class]="ui.input" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event)">
+      <select
+        class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm"
+        [class]="ui.input"
+        [ngModel]="typeFilter()"
+        (ngModelChange)="typeFilter.set($event)"
+      >
         <option value="">All accounts</option>
         <option value="user">Candidate</option>
       </select>
-      <lucide-angular [img]="icons.ChevronDown" size="14" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
+      <lucide-angular
+        [img]="icons.ChevronDown"
+        size="14"
+        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+      ></lucide-angular>
     </div>
   </div>
 
@@ -57,7 +87,11 @@
     } @else if (filteredUsers().length === 0) {
       <div class="flex items-center justify-center py-20 text-text-secondary text-sm">
         <div class="text-center">
-          <lucide-angular [img]="icons.User" size="32" class="text-text-muted mx-auto mb-3"></lucide-angular>
+          <lucide-angular
+            [img]="icons.User"
+            size="32"
+            class="text-text-muted mx-auto mb-3"
+          ></lucide-angular>
           <p class="font-medium text-text-primary">No users found</p>
           <p class="text-xs text-text-muted mt-1">Try adjusting your filters</p>
         </div>
@@ -67,12 +101,27 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-bg-secondary border-b border-theme">
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[28%]">User</th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[12%]">Type</th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[11%]">Plan</th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[9%]">ATS</th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[22%]">Tokens</th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[13%]">Joined</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[28%]">
+                User
+              </th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[12%]">
+                Type
+              </th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[11%]">
+                Plan
+              </th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[9%]">
+                ATS
+              </th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[22%]">
+                Tokens
+              </th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[10%]">
+                Status
+              </th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[13%]">
+                Joined
+              </th>
               <th class="w-[5%]"></th>
             </tr>
           </thead>
@@ -86,7 +135,9 @@
                     <div
                       class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm"
                       [ngClass]="[getAvatarColor(i).bg, getAvatarColor(i).text]"
-                    >{{ getInitials(u) }}</div>
+                    >
+                      {{ getInitials(u) }}
+                    </div>
                     <div>
                       <p class="font-semibold text-text-primary text-[13px]">{{ getName(u) }}</p>
                       <p class="text-[11px] text-text-muted">{{ u.email }}</p>
@@ -94,13 +145,16 @@
                   </div>
                 </td>
 
-                <td class="px-5 py-4 text-text-secondary capitalize font-medium text-[13px]">{{ u.role }}</td>
+                <td class="px-5 py-4 text-text-secondary capitalize font-medium text-[13px]">
+                  {{ u.role }}
+                </td>
 
                 <td class="px-5 py-4">
                   <span
                     class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold"
                     [ngClass]="planBadgeClass(u.plan)"
-                  >{{ u.plan }}</span>
+                    >{{ u.plan }}</span
+                  >
                 </td>
 
                 <td class="px-5 py-4">
@@ -108,7 +162,8 @@
                     <span
                       class="font-bold text-[13px] px-2.5 py-1 rounded-lg"
                       [ngClass]="atsBadgeClass(getAts(u))"
-                    >{{ getAts(u) }}</span>
+                      >{{ getAts(u) }}</span
+                    >
                   } @else {
                     <span class="text-text-muted italic">No CV</span>
                   }
@@ -118,7 +173,9 @@
                   <p class="text-[11px] text-text-secondary mb-2 font-medium">
                     {{ formatTokens(u.tokenUsage) }} / {{ formatTokens(u.maxToken) }}
                   </p>
-                  <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden w-24">
+                  <div
+                    class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden w-24"
+                  >
                     <div
                       class="h-full rounded-full transition-all duration-300"
                       [ngClass]="
@@ -129,6 +186,22 @@
                       [style.width]="getTokenPct(u) + '%'"
                     ></div>
                   </div>
+                </td>
+                
+                <td class="px-5 py-4">
+                  @if (u.isBlocked) {
+                    <span
+                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300"
+                    >
+                      Banned
+                    </span>
+                  } @else {
+                    <span
+                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300"
+                    >
+                      Active
+                    </span>
+                  }
                 </td>
 
                 <td class="px-5 py-4 text-[12px] text-text-muted font-medium">
@@ -157,8 +230,14 @@
         class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 bg-bg-secondary border-t border-theme"
       >
         <div class="text-sm text-text-secondary font-medium">
-          Showing <span class="font-bold text-text-primary">{{ ((currentPage() - 1) * pageSize() + 1) }}</span> to
-          <span class="font-bold text-text-primary">{{ Math.min(currentPage() * pageSize(), filteredUsers().length) }}</span>
+          Showing
+          <span class="font-bold text-text-primary">{{
+            (currentPage() - 1) * pageSize() + 1
+          }}</span>
+          to
+          <span class="font-bold text-text-primary">{{
+            Math.min(currentPage() * pageSize(), filteredUsers().length)
+          }}</span>
           of <span class="font-bold text-text-primary">{{ filteredUsers().length }}</span> users
         </div>
 
@@ -216,16 +295,17 @@
         [style.left.px]="anchor.left"
         (click)="$event.stopPropagation()"
       >
-        <button type="button" [class]="ui.menuItem" [routerLink]="['/dashboard/users', u._id]" (click)="closeMenu()">
+        <button
+          type="button"
+          [class]="ui.menuItem"
+          [routerLink]="['/dashboard/users', u._id]"
+          (click)="closeMenu()"
+        >
           <lucide-angular [img]="icons.Eye" size="14"></lucide-angular> View profile
         </button>
-       <button
-  type="button"
-  [class]="ui.menuItem"
-  (click)="openCV(u); closeMenu()"
->
-  <lucide-angular [img]="icons.FileText" size="14"></lucide-angular> View CV
-</button>
+        <button type="button" [class]="ui.menuItem" (click)="openCV(u); closeMenu()">
+          <lucide-angular [img]="icons.FileText" size="14"></lucide-angular> View CV
+        </button>
         <button
           type="button"
           [class]="ui.menuItem + ' justify-between'"
@@ -267,10 +347,16 @@
         <hr class="border-theme my-1" />
         <button
           type="button"
-          [class]="ui.menuItem + ' text-warning hover:bg-amber-50 dark:hover:bg-amber-500/10'"
-          (click)="closeMenu()"
+          [class]="
+            ui.menuItem +
+            (u.isBlocked
+              ? ' text-success hover:bg-green-50'
+              : ' text-warning hover:bg-amber-50 dark:hover:bg-amber-500/10')
+          "
+          (click)="banUser(u)"
         >
-          <lucide-angular [img]="icons.Ban" size="14"></lucide-angular> Ban user
+          <lucide-angular [img]="icons.Ban" size="14"></lucide-angular>
+          {{ u.isBlocked ? 'Unban user' : 'Ban user' }}
         </button>
         <button
           type="button"
