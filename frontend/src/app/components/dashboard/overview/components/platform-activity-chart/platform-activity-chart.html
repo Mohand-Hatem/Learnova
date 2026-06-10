@@ -7,6 +7,11 @@
     <span *ngIf="!isLive()" class="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-amber-600 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300">Demo</span>
   </div>
   <div class="mt-6 flex-1 min-h-0 rounded-[1.75rem] bg-white dark:bg-slate-900 p-3 shadow-sm">
-    <div echarts [options]="chartOptions()" class="h-full w-full"></div>
+    <div
+      echarts
+      class="block h-[260px] w-full min-h-[260px] min-w-0"
+      [options]="chartOptions()"
+      [autoResize]="true"
+    ></div>
   </div>
 </div>

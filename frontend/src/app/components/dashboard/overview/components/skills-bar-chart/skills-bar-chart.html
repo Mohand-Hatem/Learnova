@@ -6,6 +6,11 @@
     </div>
   </div>
   <div class="mt-6 flex-1 min-h-0 rounded-[1.75rem] bg-white dark:bg-slate-900 p-3 shadow-sm">
-    <div echarts [options]="chartOptions()" class="h-full w-full"></div>
+    <div
+      echarts
+      class="block h-[260px] w-full min-h-[260px] min-w-0"
+      [options]="chartOptions()"
+      [autoResize]="true"
+    ></div>
   </div>
 </div>

@@ -21,7 +21,7 @@ import { LucideAngularModule, Menu, X, Search, Moon, Sun, Bell } from 'lucide-an
   standalone: true,
   imports: [CommonModule, RouterOutlet, Sidebar, LucideAngularModule],
   templateUrl: './admin-layout.html',
-  styleUrls: ['./admin-layout.scss'],
+  host: { class: 'block' },
 })
 export class AdminLayout {
   private readonly router: Router = inject(Router);
@@ -49,7 +49,7 @@ export class AdminLayout {
   });
 
   readonly sidebarOpen = signal(false);
-  private readonly isDesktop = signal(false);
+  readonly isDesktop = signal(false);
 
   constructor() {
     this.router.events
@@ -58,18 +58,31 @@ export class AdminLayout {
         takeUntilDestroyed(),
       )
       .subscribe(() => {
-        if (!this.isDesktop()) this.closeSidebar();
+        if (this.isDesktop()) return;
+        this.closeSidebarOnMobile();
       });
 
     if (isPlatformBrowser(this.platformId)) {
-      const syncViewport = () => {
-        this.isDesktop.set(window.innerWidth >= 1024);
+      const syncViewport = (isInitial = false) => {
+        const desktop = window.innerWidth >= 1024;
+        const wasDesktop = this.isDesktop();
+        this.isDesktop.set(desktop);
+
+        if (isInitial) {
+          this.sidebarOpen.set(desktop);
+          return;
+        }
+
+        if (desktop && !wasDesktop) {
+          this.sidebarOpen.set(true);
+        } else if (!desktop && wasDesktop) {
+          this.sidebarOpen.set(false);
+        }
       };
 
-      syncViewport();
-      this.sidebarOpen.set(window.innerWidth >= 1024);
+      syncViewport(true);
 
-      const onResize = () => syncViewport();
+      const onResize = () => syncViewport(false);
       window.addEventListener('resize', onResize);
 
       effect(() => {
@@ -86,10 +99,24 @@ export class AdminLayout {
 
   toggleSidebar(): void {
     this.sidebarOpen.update((open) => !open);
+    this.notifyContentResize();
+  }
+
+  private notifyContentResize(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    window.setTimeout(() => window.dispatchEvent(new Event('resize')), 320);
+  }
+
+  /** Closes sidebar from overlay / sidebar X — mobile only. */
+  closeSidebarOnMobile(): void {
+    if (this.isDesktop()) return;
+    this.sidebarOpen.set(false);
   }
 
   closeSidebar(): void {
     this.sidebarOpen.set(false);
+    this.notifyContentResize();
   }
 
   logout(): void {

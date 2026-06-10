@@ -39,7 +39,12 @@
           class="absolute inset-0 rounded-[1.5rem] bg-gradient-to-br from-violet-500/5 to-transparent"
         ></div>
         <div class="relative h-full w-full overflow-hidden rounded-[1.25rem]">
-          <div echarts [options]="chartOptions()" class="h-full w-full"></div>
+          <div
+            echarts
+            class="block h-full w-full min-h-[48px] min-w-0"
+            [options]="chartOptions()"
+            [autoResize]="true"
+          ></div>
         </div>
       </div>
     </div>

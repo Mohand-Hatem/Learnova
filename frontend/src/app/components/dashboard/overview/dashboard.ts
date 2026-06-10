@@ -29,6 +29,7 @@ import { DashboardService } from '../../../services/dashboard.service';
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
+  host: { class: 'block w-full min-w-0 max-w-full' },
 })
 export class Dashboard implements OnInit {
   private readonly dashboardService = inject(DashboardService);

@@ -1,44 +1,40 @@
-<div class="dashboard mx-auto grid max-w-[1600px] gap-6 px-2 sm:px-4">
-  <div *ngIf="loading()" class="rounded-[2rem] border border-theme bg-white dark:bg-bg-card px-4 py-3 text-sm text-text-secondary shadow-sm">
+<div class="dashboard mx-auto grid w-full min-w-0 max-w-full gap-6 xl:max-w-[1600px]">
+  <div *ngIf="loading()" class="min-w-0 rounded-[2rem] border border-theme bg-white px-4 py-3 text-sm text-text-secondary shadow-sm dark:bg-bg-card">
     Loading dashboard…
   </div>
 
-  <div class="rounded-[2rem] border border-theme bg-white dark:bg-bg-card p-4 sm:p-6 shadow-sm">
+  <div class="min-w-0 rounded-[2rem] border border-theme bg-white p-4 shadow-sm sm:p-6 dark:bg-bg-card">
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div class="space-y-2">
+      <div class="min-w-0 space-y-2">
         <div class="text-xs uppercase tracking-[0.32em] text-text-muted">Dashboard</div>
-        <h1 class="text-2xl sm:text-3xl font-semibold text-text-primary">Welcome back, {{ userName() }}</h1>
+        <h1 class="text-2xl font-semibold text-text-primary sm:text-3xl">Welcome back, {{ userName() }}</h1>
         <p class="max-w-3xl text-sm text-text-secondary">Here's what's happening with your CV Intelligence platform today.</p>
-      </div>
-      <div class="flex flex-wrap items-center gap-3">
-        
-       
       </div>
     </div>
   </div>
 
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <ng-container *ngFor="let stat of stats(); let i = index">
-      <div class="min-h-[150px] w-full animate-slide-up" [style.animation-delay]="i * 0.05 + 's'">
+      <div class="min-h-[150px] min-w-0 w-full animate-slide-up" [style.animation-delay]="i * 0.05 + 's'">
         <app-stat-card [stat]="stat" />
       </div>
     </ng-container>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-[2fr_1fr]">
-    <div class="animate-slide-up" style="animation-delay: 0.3s">
+  <div class="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
+    <div class="min-w-0 animate-slide-up" style="animation-delay: 0.3s">
       <app-platform-activity-chart [activity]="platformActivity()" [isLive]="sources().platformActivity" />
     </div>
-    <div class="animate-slide-up" style="animation-delay: 0.35s">
+    <div class="min-w-0 animate-slide-up" style="animation-delay: 0.35s">
       <app-skills-bar-chart [skills]="topSkills()" [isLive]="sources().topSkills" />
     </div>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-[7fr_5fr]">
-    <div class="animate-slide-up" style="animation-delay: 0.4s">
+  <div class="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
+    <div class="min-w-0 animate-slide-up" style="animation-delay: 0.4s">
       <app-recent-cvs-table [cvs]="recentCvs()" [isLive]="sources().recentCvs" />
     </div>
-    <div class="animate-slide-up" style="animation-delay: 0.45s">
+    <div class="min-w-0 animate-slide-up" style="animation-delay: 0.45s">
       <app-ai-health-panel [items]="aiHealth()" [isLive]="sources().aiHealth" />
     </div>
   </div>
