@@ -27,6 +27,8 @@ import { NAV_ITEMS } from '../overview/dashboard.models';
 })
 export class Sidebar {
   readonly open = input(false);
+  /** When false, nav links won't auto-close the sidebar (desktop push layout). */
+  readonly closeOnNav = input(true);
   readonly closeRequested = output<void>();
   readonly navItems = NAV_ITEMS;
   readonly icons = { X, LayoutDashboard, Users, Building2, FileText, BarChart3, Activity, Settings };
@@ -47,6 +49,8 @@ export class Sidebar {
   }
 
   onNavClick(): void {
-    this.closeRequested.emit();
+    if (this.closeOnNav()) {
+      this.closeRequested.emit();
+    }
   }
 }

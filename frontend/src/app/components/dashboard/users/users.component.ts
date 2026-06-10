@@ -35,6 +35,7 @@ import { AdminService } from '../../../services/admin.service';
 import { PlanUpdateDialogComponent } from './plan-update-dialog/plan-update-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { USER_PLANS } from './user-plan.util';
+import { NoCvDialogComponent } from './no-cv-dialog/no-cv-dialog.component';
 import {
   atsBadgeClass,
   planBadgeClass,
@@ -53,9 +54,14 @@ interface UserItem {
   plan: string;
   maxToken: number;
   tokenUsage: number;
-  isBanned?: boolean;
+  // isBanned?: boolean;
+  isBlocked?: boolean;
   createdAt: string;
-  cvs?: { atsScore: number }[];
+  cvs?: {
+    atsScore: number;
+    originalFile?: { url: string; fileName: string };
+    processingStatus?: string;
+  }[];
 }
 
 @Component({
@@ -291,6 +297,43 @@ export class UsersComponent implements OnInit {
   closeDetail() {
     this.selectedUser.set(null);
   }
+
+  openCV(u: UserItem) {
+  const cv = u.cvs?.[0];
+  if (cv?.originalFile?.url) {
+    window.open(cv.originalFile.url, '_blank');
+  } else {
+    this.dialog.open(NoCvDialogComponent, {
+      width: '360px',
+      panelClass: USERS_DIALOG_PANEL,
+      data: { userName: this.getName(u) },
+    });
+  }
+}
+
+banUser(u: UserItem) {
+  const action = u.isBlocked ? 'unban' : 'ban';
+  const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    width: '420px',
+    panelClass: USERS_DIALOG_PANEL,
+    data: {
+      title: u.isBlocked ? 'Unban User' : 'Ban User',
+      message: `Are you sure you want to ${action} ${this.getName(u)}?`,
+      confirmLabel: u.isBlocked ? 'Unban' : 'Ban',
+      confirmDanger: !u.isBlocked,
+    },
+  });
+  dialogRef.afterClosed().subscribe((confirmed) => {
+    if (!confirmed) return;
+    this.adminService.toggleBan(u._id).subscribe({
+      next: (res) => {
+        this.users.update(list =>
+          list.map(x => x._id === u._id ? { ...x, isBlocked: res.data.isBlocked } : x)
+        );
+      },
+    });
+  });
+}
 
   deleteUser(id: string) {
     const u = this.users().find((x) => x._id === id);

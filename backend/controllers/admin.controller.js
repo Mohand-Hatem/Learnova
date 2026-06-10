@@ -115,3 +115,21 @@ export const updateUserPlan = asyncHandler(async (req, res, next) => {
     data: user,
   });
 });
+export const toggleBanUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findById(id).select('-password');
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  user.isBlocked = !user.isBlocked;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: user.isBlocked ? 'User banned successfully' : 'User unbanned successfully',
+    data: user,
+  });
+});

@@ -22,4 +22,12 @@ export class AdminService {
   updatePlan(id: string, plan: string) {
     return this.http.put<any>(`${this.api}/user/${id}/plan`, { plan }, { withCredentials: true });
   }
+
+  toggleBan(id: string) {
+    return this.http.put<{ success: boolean; data: any }>(
+      `${this.api}/${id}/ban`,
+      {},
+      { withCredentials: true },
+    );
+  }
 }
