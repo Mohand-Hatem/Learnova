@@ -14,7 +14,9 @@ import { filter } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { ThemeService } from '../../../services/theme.service';
 import { Sidebar } from '../sidebar/sidebar';
-import { LucideAngularModule, Menu, X, Search, Moon, Sun, Bell } from 'lucide-angular';
+import { LucideAngularModule, PanelLeft, PanelLeftClose, Search, Moon, Sun } from 'lucide-angular';
+
+const DESKTOP_BREAKPOINT = 1024;
 
 @Component({
   selector: 'app-admin-layout',
@@ -30,7 +32,7 @@ export class AdminLayout {
   readonly themeService: ThemeService = inject(ThemeService);
   private readonly authService: AuthService = inject(AuthService);
 
-  readonly icons = { Menu, X, Search, Moon, Sun, Bell };
+  readonly icons = { PanelLeft, PanelLeftClose, Search, Moon, Sun };
 
   readonly user = this.authService.currentUser;
 
@@ -48,7 +50,9 @@ export class AdminLayout {
     return u.role.charAt(0).toUpperCase() + u.role.slice(1);
   });
 
+  /** Sidebar visible — open by default on desktop, closed on mobile. */
   readonly sidebarOpen = signal(false);
+  readonly isDesktop = signal(false);
 
   constructor() {
     this.router.events
@@ -56,14 +60,25 @@ export class AdminLayout {
         filter((e): e is NavigationEnd => e instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.closeSidebar());
+      .subscribe(() => {
+        if (!this.isDesktop()) {
+          this.sidebarOpen.set(false);
+        }
+      });
 
     if (isPlatformBrowser(this.platformId)) {
+      this.syncViewport(true);
+
+      const onResize = () => this.syncViewport(false);
+      window.addEventListener('resize', onResize);
+
       effect(() => {
-        document.body.style.overflow = this.sidebarOpen() ? 'hidden' : '';
+        const lockScroll = this.sidebarOpen() && !this.isDesktop();
+        document.body.style.overflow = lockScroll ? 'hidden' : '';
       });
 
       this.destroyRef.onDestroy(() => {
+        window.removeEventListener('resize', onResize);
         document.body.style.overflow = '';
       });
     }
@@ -81,5 +96,22 @@ export class AdminLayout {
     this.authService.logout().subscribe({
       complete: () => this.router.navigate(['/login']),
     });
+  }
+
+  private syncViewport(isInitial: boolean): void {
+    const desktop = window.innerWidth >= DESKTOP_BREAKPOINT;
+    const wasDesktop = this.isDesktop();
+    this.isDesktop.set(desktop);
+
+    if (isInitial) {
+      this.sidebarOpen.set(desktop);
+      return;
+    }
+
+    if (desktop && !wasDesktop) {
+      this.sidebarOpen.set(true);
+    } else if (!desktop && wasDesktop) {
+      this.sidebarOpen.set(false);
+    }
   }
 }
