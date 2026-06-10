@@ -1,3 +1,4 @@
+
 import {
   Component,
   inject,
@@ -27,6 +28,7 @@ import {
 } from 'lucide-angular';
 
 import { CompanyService } from '../../../services/company.service';
+import { CompanyItem } from '../../../models/company.model';
 import { CompanyPlanUpdateDialogComponent } from './plan-update-dialog/company-plan-update-dialog';
 import { CompanyConfirmDialogComponent } from './confirm-dialog/Company-confirm-dialog';
 import { COMPANY_PLANS } from './company-plan.util';
@@ -41,19 +43,6 @@ import {
   COMPANIES_PLAN_SUBMENU,
 } from './companies-theme';
 
-interface CompanyItem {
-  _id: string;
-  name: { en: string; ar: string } | string;
-  email: string;
-  plan: string;
-  maxToken: number;
-  tokenUsage: number;
-  role: string;
-  isBlocked?: boolean;
-  createdAt: string;
-  searches?: number | null;
-}
-
 @Component({
   selector: 'app-companies',
   standalone: true,
@@ -67,17 +56,6 @@ interface CompanyItem {
   ],
   templateUrl: './companies.component.html',
 })
-/**
- * CompaniesComponent
- * -------------------
- * مسؤول عن إدارة وعرض قائمة الشركات داخل لوحة التحكم:
- * - عرض الشركات مع الفلترة والبحث
- * - Pagination
- * - فتح menu لكل شركة (block / delete / change plan)
- * - التعامل مع dialogs
- * - تحديث البيانات بشكل reactive باستخدام signals
- */
-
 export class CompaniesComponent implements OnInit {
   Math = Math;
 
@@ -92,18 +70,17 @@ export class CompaniesComponent implements OnInit {
     planSubmenu: COMPANIES_PLAN_SUBMENU,
   };
 
-  // CSS badge helpers
   readonly planBadgeClass   = companyPlanBadgeClass;
   readonly statusBadgeClass = companyStatusBadgeClass;
 
   // =========================
   // DEPENDENCY INJECTION
   // =========================
-  private companyService = inject(CompanyService);
-  private dialog         = inject(MatDialog);
-  private fb             = inject(FormBuilder);
+  // Changed: `private` → `private readonly` to prevent accidental reassignment.
+  private readonly companyService = inject(CompanyService);
+  private readonly dialog         = inject(MatDialog);
+  private readonly fb             = inject(FormBuilder);
 
-  // Icons used in template
   icons = {
     Search, ChevronDown, MoreVertical, Eye, ArrowUp,
     Trash2, Building2, ChevronLeft, ChevronRight, Ban,
@@ -121,43 +98,31 @@ export class CompaniesComponent implements OnInit {
   // =========================
   // STATE (SIGNALS)
   // =========================
-  companies            = signal<CompanyItem[]>([]); // all companies
-  loading              = signal(true);              // loading state
-  openMenuId           = signal<string | null>(null); // opened action menu
-  planSubmenuCompanyId = signal<string | null>(null); // plan submenu state
+  companies            = signal<CompanyItem[]>([]);
+  loading              = signal(true);
+  openMenuId           = signal<string | null>(null);
+  planSubmenuCompanyId = signal<string | null>(null);
   menuAnchor           = signal<{ top: number; left: number; flipAbove: boolean } | null>(null);
 
-  // pagination state
   currentPage = signal(1);
   pageSize    = signal(10);
 
-  // filter signals (synced with form)
   private searchQuery  = signal('');
   private planFilter   = signal('');
   private statusFilter = signal('');
 
-  // available plans list
   readonly plans = [...COMPANY_PLANS];
 
   // =========================
   // COMPUTED VALUES
   // =========================
 
-  /**
-   * currently selected company (for menu actions)
-   */
   openMenuCompany = computed(() => {
     const id = this.openMenuId();
     if (!id) return null;
     return this.companies().find((c) => c._id === id) ?? null;
   });
 
-  /**
-   * filtered companies based on:
-   * - search query
-   * - plan filter
-   * - status filter
-   */
   filteredCompanies = computed(() => {
     const q      = this.searchQuery().toLowerCase();
     const plan   = this.planFilter();
@@ -178,17 +143,11 @@ export class CompaniesComponent implements OnInit {
     });
   });
 
-  /**
-   * pagination slice of filtered data
-   */
   paginatedCompanies = computed(() => {
     const start = (this.currentPage() - 1) * this.pageSize();
     return this.filteredCompanies().slice(start, start + this.pageSize());
   });
 
-  /**
-   * pagination helpers
-   */
   totalPages  = computed(() => Math.ceil(this.filteredCompanies().length / this.pageSize()));
   pageNumbers = computed(() =>
     Array.from({ length: this.totalPages() }, (_, i) => i + 1)
@@ -199,9 +158,6 @@ export class CompaniesComponent implements OnInit {
   // =========================
 
   constructor() {
-    /**
-     * React to filter changes and reset pagination automatically
-     */
     effect(() => {
       this.searchQuery();
       this.planFilter();
@@ -211,9 +167,6 @@ export class CompaniesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    /**
-     * Load companies from backend
-     */
     this.companyService.getAllCompanies().subscribe({
       next: (res) => {
         this.companies.set(res.data);
@@ -222,12 +175,9 @@ export class CompaniesComponent implements OnInit {
       error: () => this.loading.set(false),
     });
 
-    /**
-     * Sync reactive form with signals
-     */
     this.filterForm.valueChanges.subscribe((vals) => {
-      this.searchQuery.set(vals.searchQuery  ?? '');
-      this.planFilter.set(vals.planFilter    ?? '');
+      this.searchQuery.set(vals.searchQuery   ?? '');
+      this.planFilter.set(vals.planFilter     ?? '');
       this.statusFilter.set(vals.statusFilter ?? '');
     });
   }
@@ -236,14 +186,12 @@ export class CompaniesComponent implements OnInit {
   // HELPER FUNCTIONS
   // =========================
 
-  /** return company display name */
   getName(c: CompanyItem): string {
     if (!c.name) return '—';
     if (typeof c.name === 'string') return c.name;
     return c.name.en || c.name.ar || '—';
   }
 
-  /** generate initials for avatar */
   getInitials(c: CompanyItem): string {
     return this.getName(c)
       .split(' ')
@@ -253,13 +201,11 @@ export class CompaniesComponent implements OnInit {
       .toUpperCase();
   }
 
-  /** calculate token usage percentage */
   getTokenPct(c: CompanyItem): number {
     if (!c.maxToken) return 0;
     return Math.round((c.tokenUsage / c.maxToken) * 100);
   }
 
-  /** format large numbers (e.g. 1200 -> 1.2k) */
   formatTokens(n: number): string {
     return n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
   }
@@ -269,10 +215,10 @@ export class CompaniesComponent implements OnInit {
   // =========================
   readonly avatarColors = [
     { bg: 'bg-violet-100', text: 'text-violet-700' },
-    { bg: 'bg-cyan-100',   text: 'text-cyan-700' },
-    { bg: 'bg-indigo-100',  text: 'text-indigo-700' },
-    { bg: 'bg-amber-100',   text: 'text-amber-700' },
-    { bg: 'bg-pink-100',    text: 'text-pink-700' },
+    { bg: 'bg-cyan-100',   text: 'text-cyan-700'   },
+    { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+    { bg: 'bg-amber-100',  text: 'text-amber-700'  },
+    { bg: 'bg-pink-100',   text: 'text-pink-700'   },
   ];
 
   getAvatarColor(index: number) {
@@ -293,10 +239,7 @@ export class CompaniesComponent implements OnInit {
 
     this.planSubmenuCompanyId.set(null);
     this.openMenuId.set(id);
-
-    this.menuAnchor.set(
-      this.computeMenuAnchor(event.currentTarget as HTMLElement)
-    );
+    this.menuAnchor.set(this.computeMenuAnchor(event.currentTarget as HTMLElement));
   }
 
   closeMenu(): void {
@@ -305,7 +248,6 @@ export class CompaniesComponent implements OnInit {
     this.menuAnchor.set(null);
   }
 
-  /** close menu when clicking outside */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.openMenuId()) return;
@@ -319,18 +261,13 @@ export class CompaniesComponent implements OnInit {
     this.closeMenu();
   }
 
-  /** close menu on resize */
   @HostListener('window:resize')
   onWindowResize(): void {
     if (this.openMenuId()) this.closeMenu();
   }
 
-  /**
-   * calculate menu position dynamically
-   */
   private computeMenuAnchor(trigger: HTMLElement) {
-    const rect = trigger.getBoundingClientRect();
-
+    const rect       = trigger.getBoundingClientRect();
     const menuWidth  = 200;
     const estimatedH = 180;
     const gap        = 6;
@@ -340,29 +277,18 @@ export class CompaniesComponent implements OnInit {
 
     const spaceBelow = window.innerHeight - rect.bottom;
     const flipAbove  = spaceBelow < estimatedH && rect.top > estimatedH;
-
-    const top = flipAbove
-      ? rect.top - gap
-      : rect.bottom + gap;
+    const top        = flipAbove ? rect.top - gap : rect.bottom + gap;
 
     return { top, left, flipAbove };
   }
 
   togglePlanSubmenu(companyId: string, event: Event): void {
     event.stopPropagation();
-
     this.planSubmenuCompanyId.set(
       this.planSubmenuCompanyId() === companyId ? null : companyId
     );
   }
 
-  // =========================
-  // BUSINESS ACTIONS
-  // =========================
-
-  /**
-   * block / unblock company with confirmation dialog
-   */
   toggleBlockStatus(company: CompanyItem): void {
     const isBlocking = !company.isBlocked;
 
@@ -390,21 +316,15 @@ export class CompaniesComponent implements OnInit {
         next: () => {
           this.companies.update((list) =>
             list.map((c) =>
-              c._id === company._id
-                ? { ...c, isBlocked: isBlocking }
-                : c
+              c._id === company._id ? { ...c, isBlocked: isBlocking } : c
             )
           );
-
           this.closeMenu();
         },
       });
     });
   }
 
-  /**
-   * delete company permanently
-   */
   deleteCompany(id: string): void {
     const c = this.companies().find((x) => x._id === id);
 
@@ -423,24 +343,17 @@ export class CompaniesComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
-
       this.companyService.deleteCompany(id).subscribe({
         next: () => {
-          this.companies.update((list) =>
-            list.filter((x) => x._id !== id)
-          );
+          this.companies.update((list) => list.filter((x) => x._id !== id));
           this.closeMenu();
         },
       });
     });
   }
 
-  /**
-   * change company subscription plan
-   */
   requestPlanChange(c: CompanyItem, plan: string, event?: Event): void {
     event?.stopPropagation();
-
     if (plan === c.plan) return;
 
     this.closeMenu();
@@ -449,11 +362,7 @@ export class CompaniesComponent implements OnInit {
       width: '420px',
       panelClass: COMPANIES_DIALOG_PANEL,
       data: {
-        company: {
-          name: this.getName(c),
-          email: c.email,
-          plan: c.plan,
-        },
+        company: { name: this.getName(c), email: c.email, plan: c.plan },
         newPlan: plan,
         isEnterprise: plan === 'Enterprise',
       },
@@ -461,13 +370,10 @@ export class CompaniesComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
-
       this.companyService.updateCompanyPlan(c._id, plan).subscribe({
         next: () =>
           this.companies.update((list) =>
-            list.map((x) =>
-              x._id === c._id ? { ...x, plan } : x
-            )
+            list.map((x) => (x._id === c._id ? { ...x, plan } : x))
           ),
       });
     });

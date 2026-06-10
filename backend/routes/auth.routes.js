@@ -18,6 +18,8 @@ import {
 import { protect } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 import { registerSchema, loginSchema } from "../schemas/auth.schema.js";
+import { verifyOtp } from "../controllers/auth.controller.js";
+import { verifyOtpSchema } from "../schemas/user.schema.js";
 
 const router = express.Router();
 
@@ -38,6 +40,7 @@ router.post("/logout", logout);
 router.get("/me", protect, getMe);
 
 router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
+router.post("/verify-otp", validate(verifyOtpSchema), verifyOtp);
 router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
 
 if (isGoogleAuthEnabled) {

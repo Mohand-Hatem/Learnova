@@ -1,4 +1,6 @@
 <div class="min-h-screen grid grid-cols-1 md:grid-cols-12 bg-bg-secondary text-text-primary">
+
+
   <section
     class="hidden md:flex md:col-span-8 relative items-center justify-center p-16 overflow-hidden"
     [ngClass]="
@@ -14,42 +16,35 @@
       <div class="space-y-6">
         <h1 class="text-5xl font-extrabold leading-tight text-text-primary">
           Hire smarter.<br />with
-          <span
-            class="bg-linear-to-r from-indigo-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent"
-            >AI intelligence</span
-          >.
+          <span class="bg-linear-to-r from-indigo-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
+            AI intelligence
+          </span>.
         </h1>
         <p class="max-w-xl text-slate-600 leading-relaxed">
-          The next-generation recruitment platform powered by semantic search, RAG, and autonomous
-          AI agents.
+          The next-generation recruitment platform powered by semantic search, RAG, and autonomous AI agents.
         </p>
       </div>
       <div class="mt-12 space-y-5 text-slate-700">
         <div class="flex items-center gap-3 text-base">
-          <lucide-angular [img]="icons.User" size="20" color="#3b82f6"> </lucide-angular>
+          <lucide-angular [img]="icons.User" size="20" color="#3b82f6"></lucide-angular>
           <p>Semantic CV Analysis</p>
         </div>
         <div class="flex items-center gap-3 text-base">
-          <lucide-angular [img]="icons.Search" size="20" color="#3b82f6"> </lucide-angular>
+          <lucide-angular [img]="icons.Search" size="20" color="#3b82f6"></lucide-angular>
           <p>ATS Score Intelligence</p>
         </div>
         <div class="flex items-center gap-3 text-base">
-          <lucide-angular [img]="icons.Bot" size="20" color="#3b82f6"> </lucide-angular>
+          <lucide-angular [img]="icons.Bot" size="20" color="#3b82f6"></lucide-angular>
           <p>AI-Powered Matching</p>
         </div>
       </div>
     </div>
-    <div
-      class="absolute rounded-full blur-3xl opacity-20 bg-indigo-300 w-[20rem] h-112 -top-24 -right-32"
-    ></div>
-    <div
-      class="absolute rounded-full blur-3xl opacity-20 bg-cyan-300 w-[20rem] h-80 -bottom-24 -left-24"
-    ></div>
+    <div class="absolute rounded-full blur-3xl opacity-20 bg-indigo-300 w-[20rem] h-112 -top-24 -right-32"></div>
+    <div class="absolute rounded-full blur-3xl opacity-20 bg-cyan-300 w-[20rem] h-80 -bottom-24 -left-24"></div>
   </section>
 
-  <section
-    class="flex shadow-2xl w-full max-w-full md:col-span-4 items-center justify-center p-8 bg-bg-card"
-  >
+  <section class="flex shadow-2xl w-full max-w-full md:col-span-4 items-center justify-center p-8 bg-bg-card">
+
     <button
       type="button"
       aria-label="Toggle theme"
@@ -70,25 +65,25 @@
         </ng-template>
       </span>
     </button>
+
+
     <div class="w-full max-w-md space-y-8 rounded-3xl border border-theme bg-bg-card p-8 shadow-xl">
+
       <div class="space-y-3">
         <h2 class="text-4xl font-semibold text-text-primary">Welcome Admin</h2>
-        <p class="text-sm text-text-secondary">
-          Sign in to continue managing your AI recruitment platform.
-        </p>
+        <p class="text-sm text-text-secondary">Sign in to continue managing your AI recruitment platform.</p>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+
         <div class="space-y-2">
           <label for="email" class="block text-sm font-medium text-text-secondary">Email</label>
           <div
             class="flex items-center gap-3 rounded-2xl border border-theme bg-bg-card px-4 py-3 shadow-sm transition duration-200 focus-within:border-brand focus-within:ring-2"
-            [ngClass]="{
-              'border-rose-500 ring-rose-500/20':
-                loginForm.get('email')?.invalid && loginForm.get('email')?.touched,
-            }"
+            [ngClass]="{ 'border-rose-500 ring-rose-500/20': loginForm.get('email')?.invalid && loginForm.get('email')?.touched }"
           >
-            <lucide-angular [img]="icons.AtSign" size="20" color="#3b82f6"> </lucide-angular>
+            <lucide-angular [img]="icons.AtSign" size="20" color="#3b82f6"></lucide-angular>
             <input
               id="email"
               type="email"
@@ -97,26 +92,19 @@
               class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none"
             />
           </div>
-          <p
-            *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
-            class="text-xs text-rose-500"
-          >
+          <p *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-xs text-rose-500">
             Please enter a valid email
           </p>
         </div>
 
+
         <div class="space-y-2">
-          <label for="password" class="block text-sm font-medium text-text-secondary"
-            >Password</label
-          >
+          <label for="password" class="block text-sm font-medium text-text-secondary">Password</label>
           <div
             class="flex items-center gap-3 rounded-2xl border border-theme bg-bg-card px-4 py-3 shadow-sm transition duration-200 focus-within:border-brand focus-within:ring-2"
-            [ngClass]="{
-              'border-rose-500 ring-rose-500/20':
-                loginForm.get('password')?.invalid && loginForm.get('password')?.touched,
-            }"
+            [ngClass]="{ 'border-rose-500 ring-rose-500/20': loginForm.get('password')?.invalid && loginForm.get('password')?.touched }"
           >
-            <lucide-angular [img]="icons.KeyRound" size="20" color="#3b82f6"> </lucide-angular>
+            <lucide-angular [img]="icons.KeyRound" size="20" color="#3b82f6"></lucide-angular>
             <input
               id="password"
               [type]="showPassword() ? 'text' : 'password'"
@@ -124,61 +112,242 @@
               placeholder="Enter your password"
               class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none"
             />
-            <button
-              type="button"
-              class="text-slate-500 transition hover:text-slate-900"
-              (click)="togglePassword()"
-            >
+            <button type="button" class="text-slate-500 transition hover:text-slate-900" (click)="togglePassword()">
               <ng-container *ngIf="showPassword(); else showEye">
-                <lucide-angular
-                  [img]="icons.EyeClosed"
-                  size="20"
-                  class="text-gray-400"
-                ></lucide-angular>
+                <lucide-angular [img]="icons.EyeClosed" size="20" class="text-gray-400"></lucide-angular>
               </ng-container>
               <ng-template #showEye>
                 <lucide-angular [img]="icons.Eye" size="20" class="text-gray-400"></lucide-angular>
               </ng-template>
             </button>
-            <!-- {{ showPassword() ? "<lucide-angular [img]="icons.EyeClosed" size="20" color="#3b82f6"> </lucide-angular>" : <lucide-angular [img]="icons.Show" size="20" color="#3b82f6"> </lucide-angular> }} -->
           </div>
-          <p
-            *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
-            class="text-xs text-rose-500"
-          >
+          <p *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-xs text-rose-500">
             Password must be at least 6 characters
           </p>
         </div>
 
-        <div
-          *ngIf="errorMessage()"
-          class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
-        >
+
+        <div class="text-right -mt-2">
+          <button type="button" (click)="openForgotPassword()" class="text-xs text-brand hover:underline cursor-pointer">
+            Forgot password?
+          </button>
+        </div>
+
+
+        <div *ngIf="errorMessage()" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {{ errorMessage() }}
         </div>
+
 
         <button
           type="submit"
           [disabled]="isLoading()"
           class="flex w-full cursor-pointer text-base items-center justify-center gap-2 rounded-2xl px-5 py-2 text-white transition duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
-          [ngStyle]="{
-            background: 'linear-gradient(90deg, var(--color-grad-start), var(--color-grad-end))',
-          }"
+          [ngStyle]="{ background: 'linear-gradient(90deg, var(--color-grad-start), var(--color-grad-end))' }"
         >
-          <span
-            *ngIf="isLoading()"
-            class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
-          ></span>
+          <span *ngIf="isLoading()" class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
           <span>{{ isLoading() ? 'Signing in...' : 'Sign In' }}</span>
         </button>
+
       </form>
 
-      <div
-        class="mt-8 flex items-center justify-center gap-2 border-t border-slate-200 pt-5 text-xs text-slate-500"
-      >
+
+      <div class="mt-8 flex items-center justify-center gap-2 border-t border-slate-200 pt-5 text-xs text-slate-500">
         <lucide-angular [img]="icons.Info" size="16" class="text-slate-400"></lucide-angular>
         <span>Aventra AI Recruitment Platform</span>
       </div>
+
     </div>
+
+
+    <div
+      *ngIf="showForgotPassword()"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      (click)="closeForgotPassword()"
+    >
+      <div
+        class="w-full max-w-md rounded-3xl border border-theme bg-bg-card p-8 shadow-2xl space-y-6"
+        (click)="$event.stopPropagation()"
+      >
+
+
+        <div class="flex items-center gap-3">
+          <button type="button" (click)="goBack()" class="text-text-secondary hover:text-text-primary transition">
+            <lucide-angular [img]="icons.ArrowLeft" size="20"></lucide-angular>
+          </button>
+          <div>
+            <h3 class="text-xl font-semibold text-text-primary">
+              {{
+                forgotStep() === 'email' ? 'Forgot Password'
+                : forgotStep() === 'otp' ? 'Enter OTP'
+                : 'New Password'
+              }}
+            </h3>
+            <p class="text-xs text-text-secondary mt-0.5">
+              {{
+                forgotStep() === 'email' ? 'Enter your email to receive an OTP'
+                : forgotStep() === 'otp' ? 'Check your email for the 6-digit code'
+                : 'Choose a strong new password'
+              }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <div
+            *ngFor="let s of ['email', 'otp', 'newPassword']"
+            class="h-1 flex-1 rounded-full transition-colors duration-300"
+            [ngClass]="
+              forgotStep() === s ||
+              (s === 'email' && (forgotStep() === 'otp' || forgotStep() === 'newPassword')) ||
+              (s === 'otp' && forgotStep() === 'newPassword')
+                ? 'bg-brand'
+                : 'bg-slate-200'
+            "
+          ></div>
+        </div>
+
+
+        <form
+          *ngIf="forgotStep() === 'email'"
+          @fadeSlide
+          [formGroup]="emailForm"
+          (ngSubmit)="onSendOtp()"
+          class="space-y-4"
+        >
+          <div
+            class="flex items-center gap-3 rounded-2xl border border-theme bg-bg-card px-4 py-3 focus-within:border-brand focus-within:ring-2 transition"
+            [ngClass]="{ 'border-rose-500': emailForm.get('email')?.invalid && emailForm.get('email')?.touched }"
+          >
+            <lucide-angular [img]="icons.Mail" size="18" color="#3b82f6"></lucide-angular>
+            <input
+              type="email"
+              formControlName="email"
+              placeholder="your@email.com"
+              class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none text-sm"
+            />
+          </div>
+          <p *ngIf="emailForm.get('email')?.invalid && emailForm.get('email')?.touched" class="text-xs text-rose-500">
+            Please enter a valid email
+          </p>
+          <p *ngIf="forgotError()" class="text-xs text-rose-500 bg-rose-50 rounded-xl px-3 py-2">
+            {{ forgotError() }}
+          </p>
+          <button
+            type="submit"
+            [disabled]="forgotLoading()"
+            class="flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-white text-sm font-medium transition hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
+            [ngStyle]="{ background: 'linear-gradient(90deg, var(--color-grad-start), var(--color-grad-end))' }"
+          >
+            <span *ngIf="forgotLoading()" class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+            {{ forgotLoading() ? 'Sending...' : 'Send OTP' }}
+          </button>
+        </form>
+
+
+        <form
+          *ngIf="forgotStep() === 'otp'"
+          @fadeSlide
+          [formGroup]="otpForm"
+          (ngSubmit)="onVerifyOtp()"
+          class="space-y-4"
+        >
+          <p class="text-sm text-text-secondary">
+            OTP sent to <span class="font-medium text-text-primary">{{ forgotEmail() }}</span>. Valid for 10 minutes.
+          </p>
+          <div
+            class="flex items-center gap-3 rounded-2xl border border-theme bg-bg-card px-4 py-3 focus-within:border-brand focus-within:ring-2 transition"
+            [ngClass]="{ 'border-rose-500': otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched }"
+          >
+            <lucide-angular [img]="icons.ShieldCheck" size="18" color="#3b82f6"></lucide-angular>
+            <input
+              type="text"
+              formControlName="otp"
+              placeholder="123456"
+              maxlength="6"
+              class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none text-sm tracking-widest"
+            />
+          </div>
+          <p *ngIf="otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched" class="text-xs text-rose-500">
+            Please enter the 6-digit OTP
+          </p>
+          <p *ngIf="forgotError()" class="text-xs text-rose-500 bg-rose-50 rounded-xl px-3 py-2">
+            {{ forgotError() }}
+          </p>
+          <button
+            type="submit"
+            [disabled]="otpForm.invalid || forgotLoading()"
+            class="flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-white text-sm font-medium transition hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
+            [ngStyle]="{ background: 'linear-gradient(90deg, var(--color-grad-start), var(--color-grad-end))' }"
+          >
+            <span *ngIf="forgotLoading()" class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+            {{ forgotLoading() ? 'Verifying...' : 'Verify OTP' }}
+          </button>
+          <button
+            type="button"
+            (click)="onSendOtp()"
+            class="w-full text-xs text-text-secondary hover:text-brand transition text-center"
+          >
+            Didn't receive it? Resend OTP
+          </button>
+        </form>
+
+
+        <form
+          *ngIf="forgotStep() === 'newPassword'"
+          @fadeSlide
+          [formGroup]="newPasswordForm"
+          (ngSubmit)="onResetPassword()"
+          class="space-y-4"
+        >
+          <div class="flex items-center gap-3 rounded-2xl border border-theme bg-bg-card px-4 py-3 focus-within:border-brand focus-within:ring-2 transition">
+            <lucide-angular [img]="icons.KeyRound" size="18" color="#3b82f6"></lucide-angular>
+            <input
+              type="password"
+              formControlName="newPassword"
+              placeholder="New password (min 8 chars)"
+              class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none text-sm"
+            />
+          </div>
+          <div
+            class="flex items-center gap-3 rounded-2xl border border-theme bg-bg-card px-4 py-3 focus-within:border-brand focus-within:ring-2 transition"
+            [ngClass]="{
+              'border-rose-500': newPasswordForm.errors?.['mismatch'] && newPasswordForm.get('confirmPassword')?.touched
+            }"
+          >
+            <lucide-angular [img]="icons.KeyRound" size="18" color="#3b82f6"></lucide-angular>
+            <input
+              type="password"
+              formControlName="confirmPassword"
+              placeholder="Confirm new password"
+              class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none text-sm"
+            />
+          </div>
+          <p *ngIf="newPasswordForm.errors?.['mismatch'] && newPasswordForm.get('confirmPassword')?.touched" class="text-xs text-rose-500">
+            Passwords do not match
+          </p>
+          <p *ngIf="forgotError()" class="text-xs text-rose-500 bg-rose-50 rounded-xl px-3 py-2">
+            {{ forgotError() }}
+          </p>
+          <p *ngIf="forgotSuccess()" class="text-xs text-emerald-600 bg-emerald-50 rounded-xl px-3 py-2">
+            {{ forgotSuccess() }}
+          </p>
+          <button
+            type="submit"
+            [disabled]="forgotLoading() || newPasswordForm.invalid"
+            class="flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-white text-sm font-medium transition hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
+            [ngStyle]="{ background: 'linear-gradient(90deg, var(--color-grad-start), var(--color-grad-end))' }"
+          >
+            <span *ngIf="forgotLoading()" class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+            {{ forgotLoading() ? 'Resetting...' : 'Reset Password' }}
+          </button>
+        </form>
+
+      </div>
+    </div>
+
   </section>
 </div>
+
+
+

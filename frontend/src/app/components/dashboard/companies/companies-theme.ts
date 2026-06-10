@@ -15,8 +15,8 @@ export const COMPANIES_PLAN_SUBMENU =
 export const COMPANIES_MENU_ITEM =
   'flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-secondary transition-colors hover:bg-violet-50 hover:text-violet-700 dark:hover:bg-violet-950/30 dark:hover:text-violet-200';
 
-export const COMPANIES_DEMO_BADGE =
-  'rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300';
+// export const COMPANIES_DEMO_BADGE =
+//   'rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300';
 
 export const COMPANIES_DIALOG_PANEL = 'companies-dialog-panel';
 

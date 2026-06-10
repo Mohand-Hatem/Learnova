@@ -54,4 +54,18 @@ export class AuthService {
       tap(() => this.isInitialized.set(true)),
     );
   }
+
+forgotPassword(email: string): Observable<any> {
+  return this.http.post(`${environment.apiUrl}/auth/forgot-password`, { email });
+}
+
+  verifyOtp(data: { email: string; otp: string }): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/auth/verify-otp`, data);
+  }
+
+
+resetPassword(data: { email: string; otp: string; newPassword: string }): Observable<any> {
+  return this.http.post(`${environment.apiUrl}/auth/reset-password`, data);
+}
+
 }

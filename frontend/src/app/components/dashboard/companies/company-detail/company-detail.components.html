@@ -1,4 +1,3 @@
-
 @if (loading()) {
   <div class="flex items-center justify-center min-h-[70vh]">
     <div class="flex flex-col items-center gap-4">
@@ -118,14 +117,15 @@
           </div>
         </div>
 
-        
+
         <div [class]="ui.card + ' p-6'">
           <div class="flex items-center gap-2 mb-4">
             <lucide-angular [img]="icons.CreditCard" size="15" class="text-theme"></lucide-angular>
             <p class="text-xs uppercase tracking-widest font-bold text-text-secondary">Current Plan</p>
           </div>
           <h2 class="text-4xl font-black text-text-primary mb-1">{{ c.plan || '—' }}</h2>
-          <p class="text-xs text-text-muted mb-5">Renews on {{ renewDate() }}</p>
+          <!-- Changed: renewDate() → renewDate (plain getter, not computed signal) -->
+          <p class="text-xs text-text-muted mb-5">Renews on {{ renewDate }}</p>
           <div class="flex items-center justify-between mb-1.5">
             <p class="text-sm text-text-secondary">Tokens used</p>
             <p class="text-sm font-bold text-text-primary">
@@ -202,7 +202,7 @@
             <div
               echarts
               [options]="searchActivityChartOptions()!"
-              [initOpts]="{ renderer: 'canvas', height: 260 }"
+              [initOpts]="chartInitOptsSmall"
               class="w-full h-[260px]"
             ></div>
           } @else {
@@ -250,7 +250,7 @@
             <div
               echarts
               [options]="tokenConsumptionChartOptions()!"
-              [initOpts]="{ renderer: 'canvas', height: 260 }"
+              [initOpts]="chartInitOptsSmall"
               class="w-full h-[260px]"
             ></div>
           } @else {

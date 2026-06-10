@@ -1,3 +1,27 @@
+/**
+ * company-detail.component.ts
+ *
+ * Changes from original:
+ *  1. Removed inline `CompanyDetail`, `SearchedRole`, `SearchedSkill` interfaces
+ *     — now imported from `company.models.ts`.  Safe: identical shapes.
+ *  2. Removed `MatButtonModule` import — not used in the template.
+ *     Safe: grep of template confirms no `mat-button` / `matButton` directive.
+ *  3. Removed unused icon imports `Users` and `Briefcase` from lucide-angular
+ *     and from the `icons` object.
+ *     Safe: template search confirms neither icon name is referenced.
+ *  4. All injected services marked `private readonly`.
+ *  5. `renewDate` converted from `computed(() => this.getRenewDate())` to a
+ *     plain getter.  The original computed had no reactive signal dependencies,
+ *     so computed() added overhead with no benefit.  The template binding
+ *     `{{ renewDate() }}` becomes `{{ renewDate }}` — update the template
+ *     accordingly (see company-detail.component.html changes below).
+ *  6. `chartInitOpts` is now used consistently for all four charts whose
+ *     height matches CHART_HEIGHT.  The two "tall" charts (roles + skills)
+ *     already used it; the two "short" charts (search activity + token) used
+ *     inline `[initOpts]` objects.  Those two short charts now use a second
+ *     constant `chartInitOptsSmall` so the value is declared once, not
+ *     repeated inline in the template.
+ */
 import {
   Component,
   inject,
@@ -10,7 +34,6 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
 
@@ -24,8 +47,6 @@ import {
   MapPin,
   Building2,
   Zap,
-  Users,
-  Briefcase,
   TrendingUp,
   CreditCard,
   BarChart2,
@@ -34,6 +55,7 @@ import {
 
 import { CompanyService } from '../../../../services/company.service';
 import { ThemeService } from '../../../../services/theme.service';
+import { CompanyDetail } from '../../../../models/company.model';
 
 import { CompanyPlanUpdateDialogComponent } from '../plan-update-dialog/company-plan-update-dialog';
 import { CompanyConfirmDialogComponent } from '../confirm-dialog/Company-confirm-dialog';
@@ -50,42 +72,16 @@ import {
   COMPANIES_MENU_ITEM,
 } from '../companies-theme';
 
-interface SearchedRole  { role: string;  count: number; }
-interface SearchedSkill { skill: string; count: number; }
+// ---------------------------------------------------------------------------
+// Chart helpers (file-private — not exported)
+// ---------------------------------------------------------------------------
 
-interface CompanyDetail {
-  _id: string;
-  name: { en: string; ar: string } | string;
-  email: string;
-  role: string;
-  plan: string;
-  maxToken: number;
-  tokenUsage: number;
-  website?: string;
-  location?: string;
-  isBlocked?: boolean;
-  createdAt: string;
-
-  recruiters?: number;
-  openRoles?: number;
-  hiresThisQ?: number;
-  totalSearches?: number;
-
-  searchActivity?: number[];
-  searchActivityMonths?: string[];
-
-  tokenHistory?: number[];
-  tokenDays?: string[];
-
-  mostSearchedRoles?: SearchedRole[];
-  mostSearchedSkills?: SearchedSkill[];
-}
-
-const CHART_HEIGHT = 360;
+const CHART_HEIGHT       = 360;
+const CHART_HEIGHT_SMALL = 260;
 
 function withAlpha(hex: string, alpha: number): string {
   const h    = hex.replace('#', '');
-  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const full = h.length === 3 ? h.split('').map((ch: string) => ch + ch).join('') : h;
   const r    = parseInt(full.slice(0, 2), 16);
   const g    = parseInt(full.slice(2, 4), 16);
   const b    = parseInt(full.slice(4, 6), 16);
@@ -116,6 +112,9 @@ function baseGrid(): EChartsOption['grid'] {
   return { left: 48, right: 16, top: 24, bottom: 32, containLabel: true };
 }
 
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 @Component({
   selector: 'app-company-detail',
@@ -125,7 +124,7 @@ function baseGrid(): EChartsOption['grid'] {
     RouterModule,
     LucideAngularModule,
     MatDialogModule,
-    MatButtonModule,
+    // MatButtonModule removed — not used in template
     NgxEchartsDirective,
   ],
   templateUrl: './company-detail.components.html',
@@ -133,28 +132,34 @@ function baseGrid(): EChartsOption['grid'] {
 export class CompanyDetailComponent implements OnInit {
 
   readonly ui = {
-    card:    COMPANIES_CARD,
-    input:   COMPANIES_INPUT,
-    menu:    COMPANIES_MENU_FIXED,
+    card:     COMPANIES_CARD,
+    input:    COMPANIES_INPUT,
+    menu:     COMPANIES_MENU_FIXED,
     menuItem: COMPANIES_MENU_ITEM,
   };
 
   readonly plans = [...COMPANY_PLANS];
 
+  /** Used for the two tall charts (roles + skills, height = 360). */
   readonly chartInitOpts = { renderer: 'canvas' as const, height: CHART_HEIGHT };
+
+  /** Used for the two short charts (activity + tokens, height = 260). */
+  readonly chartInitOptsSmall = { renderer: 'canvas' as const, height: CHART_HEIGHT_SMALL };
 
   readonly planBadgeClass = companyPlanBadgeClass;
 
-  private companyService = inject(CompanyService);
-  private route          = inject(ActivatedRoute);
-  private router         = inject(Router);
-  private dialog         = inject(MatDialog);
-  private themeService   = inject(ThemeService);
+  // Changed: `private` → `private readonly`
+  private readonly companyService = inject(CompanyService);
+  private readonly route          = inject(ActivatedRoute);
+  private readonly router         = inject(Router);
+  private readonly dialog         = inject(MatDialog);
+  private readonly themeService   = inject(ThemeService);
 
+  // Removed: Users, Briefcase — not referenced in template
   icons = {
     ChevronLeft, ArrowUp, Trash2,
     Mail, Globe, MapPin, Building2,
-    Zap, Users, Briefcase, TrendingUp,
+    Zap, TrendingUp,
     CreditCard, BarChart2, Sparkles,
   };
 
@@ -165,12 +170,22 @@ export class CompanyDetailComponent implements OnInit {
   showPlanDropdown = signal(false);
   planMenuAnchor   = signal<{ top: number; left: number; flipAbove: boolean } | null>(null);
 
-  searchActivityChartOptions  = signal<EChartsOption | null>(null);
+  searchActivityChartOptions   = signal<EChartsOption | null>(null);
   tokenConsumptionChartOptions = signal<EChartsOption | null>(null);
   rolesChartOptions            = signal<EChartsOption | null>(null);
   skillsChartOptions           = signal<EChartsOption | null>(null);
 
-  readonly renewDate = computed(() => this.getRenewDate());
+  /**
+   * Changed: was `computed(() => this.getRenewDate())`.
+   * getRenewDate() reads no signals — wrapping it in computed() only adds
+   * unnecessary memoisation overhead.  A plain getter is correct here.
+   * Template changes: `{{ renewDate() }}` → `{{ renewDate }}`.
+   */
+  get renewDate(): string {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
 
   constructor() {
     effect(() => {
@@ -374,6 +389,10 @@ export class CompanyDetailComponent implements OnInit {
     };
   }
 
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
   getName(c: CompanyDetail): string {
     if (!c?.name) return '—';
     if (typeof c.name === 'string') return c.name;
@@ -396,12 +415,9 @@ export class CompanyDetailComponent implements OnInit {
     return String(n);
   }
 
-  getRenewDate(): string {
-    const d = new Date();
-    d.setMonth(d.getMonth() + 1);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  }
-
+  // ---------------------------------------------------------------------------
+  // Plan dropdown
+  // ---------------------------------------------------------------------------
 
   togglePlanDropdown(event: Event): void {
     event.stopPropagation();
@@ -427,16 +443,20 @@ export class CompanyDetailComponent implements OnInit {
   onWindowResize(): void { if (this.showPlanDropdown()) this.closePlanDropdown(); }
 
   private computeMenuAnchor(trigger: HTMLElement, menuWidth: number) {
-    const rect          = trigger.getBoundingClientRect();
-    const estimatedH    = 160;
-    const gap           = 6;
-    let left            = rect.right - menuWidth;
-    left                = Math.max(8, Math.min(left, window.innerWidth - menuWidth - 8));
-    const spaceBelow    = window.innerHeight - rect.bottom;
-    const flipAbove     = spaceBelow < estimatedH && rect.top > estimatedH;
-    const top           = flipAbove ? rect.top - gap : rect.bottom + gap;
+    const rect       = trigger.getBoundingClientRect();
+    const estimatedH = 160;
+    const gap        = 6;
+    let left         = rect.right - menuWidth;
+    left             = Math.max(8, Math.min(left, window.innerWidth - menuWidth - 8));
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const flipAbove  = spaceBelow < estimatedH && rect.top > estimatedH;
+    const top        = flipAbove ? rect.top - gap : rect.bottom + gap;
     return { top, left, flipAbove };
   }
+
+  // ---------------------------------------------------------------------------
+  // Business actions
+  // ---------------------------------------------------------------------------
 
   selectPlan(plan: string): void {
     const c = this.company();
@@ -469,9 +489,9 @@ export class CompanyDetailComponent implements OnInit {
       width: '420px',
       panelClass: COMPANIES_DIALOG_PANEL,
       data: {
-        title:        'Delete company',
-        message:      `Are you sure you want to delete ${this.getName(c)}? This action cannot be undone.`,
-        confirmLabel: 'Delete',
+        title:         'Delete company',
+        message:       `Are you sure you want to delete ${this.getName(c)}? This action cannot be undone.`,
+        confirmLabel:  'Delete',
         confirmDanger: true,
       },
     });
