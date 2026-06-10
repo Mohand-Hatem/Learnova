@@ -58,6 +58,7 @@ export class LoginComponent {
   showPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal('');
+  showRequiredMessage = signal(false);
 
   showForgotPassword = signal(false);
   forgotStep = signal<ForgotStep>('email');
@@ -98,7 +99,15 @@ export class LoginComponent {
   }
 
   onSubmit() {
-    if (this.loginForm.invalid) return;
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      const emailEmpty = this.loginForm.get('email')?.hasError('required');
+      const passwordEmpty = this.loginForm.get('password')?.hasError('required');
+      this.showRequiredMessage.set(!!emailEmpty && !!passwordEmpty);
+      return;
+    }
+
+    this.showRequiredMessage.set(false);
     this.isLoading.set(true);
     this.errorMessage.set('');
 

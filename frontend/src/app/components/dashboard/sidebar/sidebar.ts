@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import {
@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-angular';
 import { NAV_ITEMS } from '../overview/dashboard.models';
+import { ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -26,6 +27,7 @@ import { NAV_ITEMS } from '../overview/dashboard.models';
   },
 })
 export class Sidebar {
+  readonly themeService = inject(ThemeService);
   readonly open = input(false);
   /** When false, nav links won't auto-close the sidebar (desktop push layout). */
   readonly closeOnNav = input(true);

@@ -3,7 +3,11 @@
     class="app-sidebar__brand flex items-center justify-between gap-2 border-b border-theme px-4 py-2.5"
   >
     <div class="flex min-w-0 items-center gap-3">
-      <img src="/Aventra-logo.png" alt="Learnova" class="h-15 w-full object-cover" />
+      @if(themeService.isDark()) {
+        <img src="/Aventra-logo-white1.png" alt="Learnova" class="h-10 my-2 w-full object-cover" />
+      } @else {
+        <img src="/Aventra-logo.png" alt="Learnova" class="h-15 w-full object-cover" />
+      }
     </div>
     <button
       type="button"

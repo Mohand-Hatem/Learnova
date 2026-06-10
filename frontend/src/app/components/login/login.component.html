@@ -11,7 +11,11 @@
   >
     <div class="relative z-10 max-w-xl">
       <div class="flex items-center gap-3 w-fit">
-        <img src="Aventra-logo.png" alt="Aventra Logo" class="w-full h-20 object-cover" />
+        @if(themeService.isDark()) {
+          <img src="Aventra-logo-white1.png" alt="Aventra Logo" class="w-full h-13 object-cover" />
+        } @else {
+          <img src="Aventra-logo.png" alt="Aventra Logo" class="w-full h-20 object-cover" />
+        }
       </div>
       <div class="space-y-6">
         <h1 class="text-5xl font-extrabold leading-tight text-text-primary">
@@ -86,20 +90,38 @@
             <lucide-angular [img]="icons.AtSign" size="20" color="#3b82f6"></lucide-angular>
             <input
               id="email"
+              required
               type="email"
               formControlName="email"
               placeholder="Enter your email"
               class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none"
             />
           </div>
-          <p *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-xs text-rose-500">
+          <p
+            *ngIf="!showRequiredMessage() && loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched"
+            class="text-xs text-rose-500"
+          >
+            Email is required
+          </p>
+          <p
+            *ngIf="!showRequiredMessage() && loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched"
+            class="text-xs text-rose-500"
+          >
             Please enter a valid email
           </p>
         </div>
 
 
         <div class="space-y-2">
+          <div class="flex items-center justify-between">
           <label for="password" class="block text-sm font-medium text-text-secondary">Password</label>
+            <div class="text-right -mt-2">
+              <button type="button" (click)="openForgotPassword()" class="text-xs font-medium text-brand hover:underline cursor-pointer">
+                Forgot password?
+              </button>
+            </div>
+          </div>
+  
           <div
             class="flex items-center gap-3 rounded-2xl border border-theme bg-bg-card px-4 py-3 shadow-sm transition duration-200 focus-within:border-brand focus-within:ring-2"
             [ngClass]="{ 'border-rose-500 ring-rose-500/20': loginForm.get('password')?.invalid && loginForm.get('password')?.touched }"
@@ -109,6 +131,7 @@
               id="password"
               [type]="showPassword() ? 'text' : 'password'"
               formControlName="password"
+              required
               placeholder="Enter your password"
               class="w-full bg-transparent text-text-primary placeholder:text-text-muted outline-none"
             />
@@ -121,18 +144,31 @@
               </ng-template>
             </button>
           </div>
-          <p *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-xs text-rose-500">
+          <p
+            *ngIf="!showRequiredMessage() && loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched"
+            class="text-xs text-rose-500"
+          >
+            Password is required
+          </p>
+          <p
+            *ngIf="!showRequiredMessage() && loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched"
+            class="text-xs text-rose-500"
+          >
             Password must be at least 6 characters
           </p>
         </div>
 
 
-        <div class="text-right -mt-2">
+        <!-- <div class="text-right -mt-2">
           <button type="button" (click)="openForgotPassword()" class="text-xs text-brand hover:underline cursor-pointer">
             Forgot password?
           </button>
-        </div>
+        </div> -->
 
+
+        <p *ngIf="showRequiredMessage()" class="text-sm text-rose-500">
+          Email and Password are required
+        </p>
 
         <div *ngIf="errorMessage()" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {{ errorMessage() }}
@@ -142,6 +178,7 @@
         <button
           type="submit"
           [disabled]="isLoading()"
+          
           class="flex w-full cursor-pointer text-base items-center justify-center gap-2 rounded-2xl px-5 py-2 text-white transition duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
           [ngStyle]="{ background: 'linear-gradient(90deg, var(--color-grad-start), var(--color-grad-end))' }"
         >
