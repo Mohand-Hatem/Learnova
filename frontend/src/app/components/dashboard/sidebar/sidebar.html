@@ -1,52 +1,71 @@
-<aside class="flex h-full w-full flex-col bg-white dark:bg-[#0d0f18] border-r border-theme">
-  <div
-    class="app-sidebar__brand flex items-center justify-between gap-2 border-b border-theme px-4 py-2.5"
-  >
-    <div class="flex min-w-0 items-center gap-3">
-      @if(themeService.isDark()) {
-        <img src="/Aventra-logo-white1.png" alt="Learnova" class="h-10 my-2 w-full object-cover" />
-      } @else {
-        <img src="/Aventra-logo.png" alt="Learnova" class="h-15 w-full object-cover" />
-      }
+<aside class="flex h-full w-full flex-col border-r border-theme bg-bg-primary">
+
+  <!-- ── Brand / Logo ──────────────────────────────────────── -->
+  <div class="flex shrink-0 items-center justify-between gap-2 border-b border-theme px-4 ">
+    <div class="flex min-w-full items-center py-1  gap-2.5 h-full ">
+      <!-- Logo mark -->
+     
+      <!-- Logo image (light / dark variants) -->
+      
+        @if (themeService.isDark()) {
+          <img src="/Aventra-logo-white1.png" alt="Learnova" class=""  width="150px" height="50px" />
+        } @else {
+          <img src="/Aventra-logo2.png" alt="Learnova" class=""  width="150px" height="50px" />
+        }
+      
     </div>
+
+    <!-- Close button — mobile only -->
     <button
       type="button"
-      class="app-sidebar__close inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-theme bg-transparent text-text-secondary transition-all duration-200 hover:border-violet-400 hover:bg-violet-100 dark:hover:border-violet-400/40 dark:hover:bg-violet-950/10 dark:hover:text-white lg:hidden"
+      class="lg:hidden inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-bg-secondary hover:text-text-primary"
       aria-label="Close sidebar"
       (click)="closeRequested.emit()"
     >
-      <lucide-angular [img]="icons.X" size="18"></lucide-angular>
+      <lucide-angular [img]="icons.X" size="16"></lucide-angular>
     </button>
   </div>
 
-  <nav class="app-sidebar__nav flex h-full flex-col gap-2 overflow-y-auto p-3">
-    <ng-container *ngFor="let item of navItems; let i = index">
+  <!-- ── Navigation ─────────────────────────────────────────── -->
+  <nav class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4" aria-label="Main navigation">
+
+    <p class="mb-2 px-2 text-[0.6rem] font-bold uppercase tracking-widest text-text-muted">
+      Navigation
+    </p>
+
+    <ng-container *ngFor="let item of navItems">
       <a
         [routerLink]="item.route"
-        routerLinkActive="bg-violet-100 text-violet-700 border border-violet-300 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-500/40"
+        routerLinkActive="active-nav-item"
         [routerLinkActiveOptions]="{ exact: false }"
-        class="transition-smooth flex items-center gap-3 rounded-2xl px-3 py-2 text-text-secondary hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-violet-950/30 dark:hover:text-slate-100 no-underline"
+        class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-secondary no-underline transition-all duration-150 hover:bg-bg-secondary hover:text-text-primary dark:hover:bg-bg-card"
         (click)="onNavClick()"
       >
-        <lucide-angular
-          [img]="iconClass(item.route)"
-          size="20"
-          class="transition-transform duration-300"
-        ></lucide-angular>
-        <span class="text-sm">{{ item.label }}</span>
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors group-[.active-nav-item]:bg-indigo-600 group-[.active-nav-item]:text-white group-[.active-nav-item]:shadow-sm text-text-muted group-hover:text-text-primary dark:group-hover:text-text-primary">
+          <lucide-angular
+            [img]="iconClass(item.route)"
+            size="17"
+            class="transition-transform duration-200 group-hover:scale-110"
+          ></lucide-angular>
+        </span>
+        <span class="truncate">{{ item.label }}</span>
       </a>
     </ng-container>
+
   </nav>
 
-  <div class="app-sidebar__footer p-3">
-    <div
-      class="transition-all flex items-center gap-2 rounded-2xl border border-theme bg-white dark:bg-[#151724] p-3 hover:border-emerald-400 dark:hover:border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
-    >
-      <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-      <div>
-        <div class="text-sm font-semibold text-text-primary">AI Engine Online</div>
-        <div class="text-[0.65rem] text-text-secondary">All systems operational</div>
+  <!-- ── Footer: AI status ──────────────────────────────────── -->
+  <div class="shrink-0 border-t border-theme p-3">
+    <div class="flex items-center gap-2.5 rounded-xl border border-theme bg-bg-secondary px-3 py-2.5 dark:bg-bg-card">
+      <span class="relative flex h-2.5 w-2.5 shrink-0">
+        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+      </span>
+      <div class="min-w-0">
+        <p class="text-xs font-semibold text-text-primary">AI Engine Online</p>
+        <p class="text-[0.6rem] text-text-muted">All systems operational</p>
       </div>
     </div>
   </div>
+
 </aside>

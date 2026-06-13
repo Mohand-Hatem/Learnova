@@ -25,10 +25,10 @@
   </button>
 
   <!-- Header Section -->
-  <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+  <div class="mb-8 flex flex-wrap items-start justify-between gap-4">
     <div>
-      <h1 class="text-3xl font-bold text-text-primary">{{ getName(user()!) }}</h1>
-      <p class="text-text-secondary mt-1">{{ user()!.email }}</p>
+      <h1 class="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">{{ getName(user()!) }}</h1>
+      <p class="mt-1 text-sm text-text-muted">{{ user()!.email }}</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       @if (latestCv()?.originalFile?.url; as cvUrl) {
@@ -139,9 +139,8 @@
 
     <!-- ATS Score Card -->
     <div [class]="ui.card + ' p-6'">
-      <div class="flex items-center gap-2 mb-4">
-        <lucide-angular [img]="icons.CheckCircle" size="16" class="text-success"></lucide-angular>
-        <p class="text-xs text-text-secondary uppercase font-bold tracking-wider">ATS Score</p>
+      <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+        <h6 class="text-sm font-semibold text-text-primary">ATS Score</h6>
       </div>
       @if (getLatestCV(); as cv) {
         <div class="flex items-end gap-2 mb-4">
@@ -167,9 +166,8 @@
 
     <!-- AI Summary Card -->
     <div [class]="ui.card + ' p-6'">
-      <div class="flex items-center gap-2 mb-4">
-        <lucide-angular [img]="icons.Sparkles" size="16" class="text-info"></lucide-angular>
-        <p class="text-xs text-text-secondary uppercase font-bold tracking-wider">AI Summary</p>
+      <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+        <h6 class="text-sm font-semibold text-text-primary">AI Summary</h6>
       </div>
       @if (latestCv()?.aiAnalysis?.summary; as summary) {
         <p class="text-sm text-text-secondary leading-relaxed">{{ summary }}</p>
@@ -184,9 +182,8 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
       <!-- Strengths -->
       <div [class]="ui.card + ' p-6'">
-        <div class="flex items-center gap-2 mb-4">
-          <lucide-angular [img]="icons.CheckCircle" size="16" class="text-success"></lucide-angular>
-          <p class="text-sm font-bold text-text-primary">Strengths</p>
+        <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+          <h6 class="text-sm font-semibold text-text-primary">Strengths</h6>
         </div>
         @if (cvStrengths(cv).length) {
           <ul class="space-y-2.5">
@@ -204,13 +201,8 @@
 
       <!-- Weaknesses -->
       <div [class]="ui.card + ' p-6'">
-        <div class="flex items-center gap-2 mb-4">
-          <lucide-angular
-            [img]="icons.AlertTriangle"
-            size="16"
-            class="text-warning"
-          ></lucide-angular>
-          <p class="text-sm font-bold text-text-primary">Weaknesses</p>
+        <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+          <h6 class="text-sm font-semibold text-text-primary">Weaknesses</h6>
         </div>
         @if (cvWeaknesses(cv).length) {
           <ul class="space-y-2.5">
@@ -228,9 +220,8 @@
 
       <!-- Key Skills -->
       <div [class]="ui.card + ' p-6'">
-        <div class="flex items-center gap-2 mb-4">
-          <lucide-angular [img]="icons.Zap" size="16" class="text-info"></lucide-angular>
-          <p class="text-sm font-bold text-text-primary">Key Skills</p>
+        <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+          <h6 class="text-sm font-semibold text-text-primary">Key Skills</h6>
         </div>
         @if (cvSkills(cv).length) {
           <div class="flex flex-wrap gap-2">
@@ -251,16 +242,9 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
       <!-- Plan Card -->
       <div [class]="ui.card + ' p-6'">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <lucide-angular
-              [img]="icons.CreditCard"
-              size="16"
-              class="text-violet-500 dark:text-violet-300"
-            ></lucide-angular>
-            <p class="text-sm font-bold text-text-primary">Current Plan</p>
-          </div>
-          <span class="text-xs font-bold text-success">Active</span>
+        <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+          <h6 class="text-sm font-semibold text-text-primary">Current Plan</h6>
+          <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Active</span>
         </div>
         <p class="text-3xl font-bold text-text-primary mb-2">{{ user()!.plan }}</p>
         <p class="text-xs text-text-muted mb-5">Renews on {{ getRenewDate() }}</p>
@@ -286,19 +270,14 @@
 
       <!-- CV Details -->
       <div [class]="ui.card + ' p-6 flex flex-col'">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <lucide-angular [img]="icons.FileText" size="16" class="text-info"></lucide-angular>
-            <p class="text-sm font-bold text-text-primary">Uploaded CV</p>
-          </div>
+        <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+          <h6 class="text-sm font-semibold text-text-primary">Uploaded CV</h6>
           @if (cv.originalFile?.url) {
             <a
               [href]="cv.originalFile!.url"
               target="_blank"
-              class="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-300 hover:opacity-80 font-medium"
-            >
-              <lucide-angular [img]="icons.ExternalLink" size="12"></lucide-angular> Open
-            </a>
+              class="text-xs font-medium text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+            >Open</a>
           }
         </div>
         <div
@@ -323,11 +302,9 @@
 
       <!-- AI Suggestions -->
       <div [class]="ui.card + ' p-6'">
-        <div class="flex items-center gap-2 mb-3">
-          <lucide-angular [img]="icons.Sparkles" size="16" class="text-info"></lucide-angular>
-          <p class="text-sm font-bold text-text-primary">AI Suggestions</p>
+        <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+          <h6 class="text-sm font-semibold text-text-primary">AI Suggestions</h6>
         </div>
-        <p class="text-xs text-text-muted mb-4">Recommendations to improve</p>
         @if (cvSuggestions(cv).length) {
           <div class="space-y-2.5">
             @for (s of cvSuggestions(cv).slice(0, 3); track s; let i = $index) {
@@ -353,11 +330,8 @@
   <!-- Charts: always shown for loaded user (demo data until API history exists) -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
     <div [class]="ui.card + ' p-6 min-w-0'">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <p class="text-sm font-bold text-text-primary mb-1">Skills Analytics</p>
-          <p class="text-xs text-text-muted">Detected proficiency levels</p>
-        </div>
+      <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+        <h6 class="text-sm font-semibold text-text-primary">Skills Analytics</h6>
         <span [class]="ui.demoBadge">Demo</span>
       </div>
       @if (skillsChartOptions(); as skillOpts) {
@@ -374,11 +348,8 @@
     </div>
 
     <div [class]="ui.card + ' p-6 min-w-0'">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <p class="text-sm font-bold text-text-primary mb-1">Token Usage</p>
-          <p class="text-xs text-text-muted">Last 7 days activity</p>
-        </div>
+      <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+        <h6 class="text-sm font-semibold text-text-primary">Token Usage</h6>
         <span [class]="ui.demoBadge">Demo</span>
       </div>
       @if (tokenChartOptions(); as tokOpts) {
@@ -394,11 +365,8 @@
   </div>
 
   <div [class]="ui.card + ' p-6 mb-6 min-w-0'">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <p class="text-sm font-bold text-text-primary mb-1">ATS Performance</p>
-        <p class="text-xs text-text-muted">Score evolution over 12 months</p>
-      </div>
+    <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+      <h6 class="text-sm font-semibold text-text-primary">ATS Performance</h6>
       <span [class]="ui.demoBadge">Demo</span>
     </div>
     @if (atsChartOptions(); as atsOpts) {

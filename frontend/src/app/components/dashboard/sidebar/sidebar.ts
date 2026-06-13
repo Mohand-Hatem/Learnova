@@ -10,6 +10,7 @@ import {
   BarChart3,
   Activity,
   Settings,
+  ShieldCheck,
   X,
 } from 'lucide-angular';
 import { NAV_ITEMS } from '../overview/dashboard.models';
@@ -37,12 +38,13 @@ export class Sidebar {
 
   readonly iconMap: Record<string, any> = {
     'layout-dashboard': LayoutDashboard,
-    users: Users,
-    'building-2': Building2,
-    'file-text': FileText,
-    'bar-chart-3': BarChart3,
-    activity: Activity,
-    settings: Settings,
+    'shield-check':     ShieldCheck,
+    users:              Users,
+    'building-2':       Building2,
+    'file-text':        FileText,
+    'bar-chart-3':      BarChart3,
+    activity:           Activity,
+    settings:           Settings,
   };
 
   iconClass(route: string): any {

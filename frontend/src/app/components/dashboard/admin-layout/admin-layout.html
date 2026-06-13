@@ -1,4 +1,6 @@
 <div class="relative min-h-screen w-full bg-bg-secondary">
+
+  <!-- Mobile overlay -->
   @if (sidebarOpen() && !isDesktop()) {
     <button
       type="button"
@@ -14,87 +16,127 @@
     (closeRequested)="closeSidebarOnMobile()"
   />
 
+  <!-- Main column (shifts right when sidebar open on desktop) -->
   <div
-    class="box-border flex min-h-screen w-full max-w-full min-w-0 flex-col bg-bg-secondary transition-[margin,width,max-width] duration-300 ease-out"
+    class="box-border flex min-h-screen min-w-0 w-full max-w-full flex-col bg-bg-secondary transition-[margin,width,max-width] duration-300 ease-out"
     [ngClass]="
       sidebarOpen() && isDesktop()
         ? 'lg:ml-[280px] lg:w-[calc(100%-280px)] lg:max-w-[calc(100vw-280px)]'
         : ''
     "
   >
+
+    <!-- ── Navbar ──────────────────────────────────────────── -->
     <header
-      class="sticky top-0 z-1020 flex min-w-0 items-center justify-between gap-3 border-b border-theme bg-bg-secondary p-4 md:p-5"
+      class="sticky top-0 z-1020 flex min-w-0 items-center justify-between gap-3 border-b border-theme bg-bg-primary/95 px-4 py-3 backdrop-blur-sm md:px-6"
     >
+
+      <!-- LEFT: toggle + breadcrumb -->
       <div class="flex min-w-0 items-center gap-3">
+
+        <!-- Sidebar toggle -->
         <button
           type="button"
-          class="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-theme bg-bg-card px-3 text-sm font-medium text-text-primary transition-colors hover:bg-violet-100 hover:text-violet-700 focus:outline-none dark:hover:bg-slate-900/70 dark:hover:text-white"
+          class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-theme bg-bg-card text-text-secondary transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300"
           [attr.aria-expanded]="sidebarOpen()"
           [attr.aria-label]="sidebarOpen() ? 'Close sidebar' : 'Open sidebar'"
           (click)="toggleSidebar()"
         >
           @if (!isDesktop() && sidebarOpen()) {
-            <lucide-angular [img]="icons.X" size="20"></lucide-angular>
+            <lucide-angular [img]="icons.X" size="18"></lucide-angular>
           } @else {
-            <lucide-angular [img]="icons.Menu" size="20"></lucide-angular>
+            <lucide-angular [img]="icons.Menu" size="18"></lucide-angular>
           }
-          <span class="hidden sm:inline">Toggle sidebar</span>
         </button>
+
+        <!-- Divider -->
+        <span class="hidden h-5 w-px bg-border sm:block"></span>
+
+        <!-- Breadcrumb: Dashboard / Page -->
+        <nav class="hidden min-w-0 items-center gap-1.5 text-sm sm:flex" aria-label="Breadcrumb">
+          <span class="font-medium text-text-muted">Dashboard</span>
+          <lucide-angular [img]="icons.ChevronRight" size="14" class="shrink-0 text-text-muted"></lucide-angular>
+          <span class="truncate font-semibold text-text-primary">{{ pageLabel() }}</span>
+        </nav>
+
+        <!-- Mobile: page title only -->
+        <span class="text-sm font-semibold text-text-primary sm:hidden">{{ pageLabel() }}</span>
       </div>
 
-      <div class="flex shrink-0 items-center gap-2">
+      <!-- RIGHT: actions -->
+      <div class="flex shrink-0 items-center gap-1.5">
+
+        <!-- Bell (placeholder) -->
         <button
           type="button"
-          class="inline-flex items-center justify-center rounded-xl p-2 text-text-secondary transition-colors duration-300 hover:bg-violet-100 hover:text-violet-600 focus:outline-none md:hidden dark:hover:bg-slate-900/50 dark:hover:text-white"
-          aria-label="Search"
+          class="relative inline-flex h-9 w-9 items-center justify-center rounded-xl text-text-secondary transition-colors hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300"
+          aria-label="Notifications"
         >
-          <lucide-angular [img]="icons.Search" size="20"></lucide-angular>
+          <lucide-angular [img]="icons.Bell" size="18"></lucide-angular>
+          <!-- Notification dot -->
+          <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-bg-primary"></span>
         </button>
+
+        <!-- Theme toggle -->
         <button
           type="button"
           aria-label="Toggle theme"
           (click)="themeService.toggle()"
-          class="relative flex h-10 w-20 cursor-pointer items-center rounded-full transition-colors duration-300 focus:outline-none"
-          [ngClass]="themeService.isDark() ? 'bg-brand' : 'bg-gray-200'"
+          class="relative flex h-9 w-15 cursor-pointer items-center rounded-full border border-theme bg-bg-card transition-colors duration-300 focus:outline-none"
         >
           <span class="sr-only">Toggle theme</span>
           <span
-            class="relative left-1 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md transition-transform duration-300"
-            [style.transform]="themeService.isDark() ? 'translateX(2.50rem)' : 'translateX(0)'"
+            class="absolute left-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-md transition-transform duration-300 dark:bg-slate-700"
+            [style.transform]="themeService.isDark() ? 'translateX(1.75rem)' : 'translateX(0)'"
           >
             <ng-container *ngIf="themeService.isDark(); else showMoon">
-              <lucide-angular [img]="icons.Sun" size="15" class="text-yellow-600"></lucide-angular>
+              <lucide-angular [img]="icons.Sun" size="14" class="text-amber-500"></lucide-angular>
             </ng-container>
             <ng-template #showMoon>
-              <lucide-angular [img]="icons.Moon" size="15" class="text-indigo-950"></lucide-angular>
+              <lucide-angular [img]="icons.Moon" size="14" class="text-indigo-600"></lucide-angular>
             </ng-template>
           </span>
         </button>
 
+        <!-- Logout -->
         <button
           type="button"
-          class="inline-flex cursor-pointer items-center justify-center rounded-xl border border-theme bg-bg-card px-4 py-2 text-sm font-medium text-text-primary transition-colors duration-300 hover:bg-violet-100 hover:text-violet-700 focus:outline-none dark:hover:bg-slate-900 dark:hover:text-white"
+          class="hidden items-center gap-1.5 rounded-xl border border-theme bg-bg-card px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 focus:outline-none sm:inline-flex dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
           (click)="logout()"
         >
           Logout
         </button>
-        <div class="flex items-center gap-2">
-          <img
-            [src]="user()?.avatar"
-            alt=""
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-cyan-500 text-sm font-semibold text-white transition-transform duration-300 hover:scale-110"
-          />
 
-          <div class="hidden md:block">
-            <div class="text-sm font-semibold">{{ userName() }}</div>
-            <div class="text-xs text-text-muted">{{ userRole() }}</div>
+        <!-- User avatar -->
+        <div class="flex items-center gap-2.5 pl-1">
+          <div class="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl">
+            @if (user()?.avatar) {
+              <img
+                [src]="user()!.avatar"
+                [alt]="userName()"
+                class="h-full w-full object-cover"
+              />
+            } @else {
+              <div class="flex h-full w-full items-center justify-center bg-linear-to-br from-indigo-500 to-cyan-500 text-xs font-bold text-white">
+                {{ userName().charAt(0).toUpperCase() }}
+              </div>
+            }
+          </div>
+          <div class="hidden flex-col md:flex">
+            <span class="text-sm font-semibold leading-tight text-text-primary">{{ userName() }}</span>
+            <span class="text-[0.65rem] text-text-muted">{{ userRole() }}</span>
           </div>
         </div>
+
       </div>
     </header>
 
+    <!-- ── Page content ──────────────────────────────────── -->
     <main class="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-4 md:p-6">
-      <router-outlet />
+      <div [@routeFade]="prepareRoute(outlet)" style="min-height:0">
+        <router-outlet #outlet="outlet" />
+      </div>
     </main>
+
   </div>
 </div>

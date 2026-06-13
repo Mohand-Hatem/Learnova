@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core';
-import { BarChart, LineChart } from 'echarts/charts';
+import { BarChart, LineChart, PieChart } from 'echarts/charts';
 import {
   AxisPointerComponent,
   GridComponent,
@@ -12,6 +12,7 @@ import { provideEchartsCore } from 'ngx-echarts';
 echarts.use([
   BarChart,
   LineChart,
+  PieChart,
   GridComponent,
   TooltipComponent,
   AxisPointerComponent,
@@ -19,9 +20,7 @@ echarts.use([
   CanvasRenderer,
 ]);
 
-/** Tree-shaken ECharts core for dashboard charts. */
+/** Global tree-shaken ECharts registration used across the whole app. */
 export const USERS_ECHARTS_PROVIDERS = [
-  provideEchartsCore({
-    echarts: () => Promise.resolve(echarts),
-  }),
+  provideEchartsCore({ echarts: () => Promise.resolve(echarts) }),
 ];

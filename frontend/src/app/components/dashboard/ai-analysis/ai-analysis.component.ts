@@ -1,62 +1,58 @@
-// import { Component } from '@angular/core';
-
-// @Component({
-//   selector: 'app-ai-analysis',
-//   standalone: true,
-//   templateUrl: './ai-analysis.component.html',
-// })
-// export class AiAnalysisComponent {}
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../../services/theme.service';
 import { NgxEchartsModule, provideEchartsCore } from 'ngx-echarts';
 import * as echarts from 'echarts';
-// import { NgxEchartsModule, provideEcharts } from 'ngx-echarts';
+import { StatCardComponent } from '../overview/components/stat-card/stat-card';
+import type { StatCard } from '../overview/dashboard.models';
 
 @Component({
   selector: 'app-ai-analysis',
   standalone: true,
-  imports: [CommonModule, NgxEchartsModule],
+  imports: [CommonModule, NgxEchartsModule, StatCardComponent],
   providers: [provideEchartsCore({ echarts })],
-  // providers: [provideEcharts()],
   templateUrl: './ai-analysis.component.html',
 })
 export class AiAnalysisComponent implements OnInit {
   themeService = inject(ThemeService);
 
   // ========== STAT CARDS ==========
-  statCards = signal([
+  statCards = signal<StatCard[]>([
     {
       title: 'AI Calls',
       value: '2.4M',
-      change: '+24.6%',
-      positive: true,
-      icon: '✦',
+      trendPercent: '+24.6%',
+      trendUp: true,
+      sparkline: [30, 38, 35, 44, 40, 52, 48, 58, 54, 65],
+      icon: 'activity',
       color: 'indigo',
     },
     {
       title: 'Token Spend',
       value: '$42.8K',
-      change: '-3.2%',
-      positive: false,
-      icon: '⚡',
+      trendPercent: '-3.2%',
+      trendUp: false,
+      sparkline: [60, 55, 58, 50, 52, 48, 45, 43, 42, 40],
+      icon: 'zap',
       color: 'cyan',
     },
     {
       title: 'Avg Response Time',
       value: '1.2s',
-      change: '+8.1%',
-      positive: false,
-      icon: '⏱',
+      trendPercent: '-8.1%',
+      trendUp: true,
+      sparkline: [20, 18, 22, 17, 19, 15, 16, 14, 13, 12],
+      icon: 'clock',
       color: 'violet',
     },
     {
       title: 'Success Rate',
       value: '99.3%',
-      change: '+0.4%',
-      positive: true,
-      icon: '✔',
-      color: 'green',
+      trendPercent: '+0.4%',
+      trendUp: true,
+      sparkline: [94, 95, 96, 95, 97, 96, 98, 97, 99, 99],
+      icon: 'shield',
+      color: 'emerald',
     },
   ]);
 

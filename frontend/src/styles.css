@@ -5,68 +5,93 @@ html {
   min-height: 100%;
 }
 
+/* ── Design Tokens ──────────────────────────────────────────── */
 @theme {
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f1f5f9; /* slate-100 like login */
-  --color-bg-card: #f8fafc; /* slightly off-white card */
+  /* Font */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
-  --color-text-blue: #60a5fa;
-  --color-text-primary: #0f172a; /* slate-900 */
-  --color-text-secondary: #475569; /* slate-600 */
-  --color-text-muted: #94a3b8; /* slate-400 */
+  /* Light mode backgrounds */
+  --color-bg-primary:   #ffffff;        /* page / content areas */
+  --color-bg-secondary: #f4f6fb;        /* outer shell / sidebar background */
+  --color-bg-card:      #ffffff;        /* cards — pure white for crisp contrast */
 
-  --color-border: #e6e9ef; /* subtle border like slate-200 */
+  /* Light mode text */
+  --color-text-blue:      #6366f1;
+  --color-text-primary:   #0f172a;      /* slate-900 */
+  --color-text-secondary: #475569;      /* slate-600 */
+  --color-text-muted:     #94a3b8;      /* slate-400 */
 
-  --color-brand: #4f46e5; /* indigo-600 from login */
-  --color-brand-hover: #6366f1; /* slightly lighter on hover */
-  --color-brand-light: #eef2ff; /* light indigo background */
+  /* Borders */
+  --color-border: #e2e8f0;              /* slate-200 */
 
-  --color-grad-start: #4f46e5; /* indigo */
-  --color-grad-end: #06b6d4; /* cyan */
+  /* Brand (indigo) */
+  --color-brand:       #4f46e5;
+  --color-brand-hover: #6366f1;
+  --color-brand-light: #eef2ff;
 
+  /* Gradients */
+  --color-grad-start: #4f46e5;
+  --color-grad-end:   #06b6d4;
+
+  /* Semantic */
   --color-success: #22c55e;
   --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #06b6d4; /* cyan-500 */
+  --color-error:   #ef4444;
+  --color-info:    #06b6d4;
 }
 
+/* ── Dark mode overrides ────────────────────────────────────── */
 .dark {
-  --color-bg-primary: #071028; /* deep navy for dark mode */
-  --color-bg-secondary: #0b1b2b; /* darker secondary */
-  --color-bg-card: #0f1724; /* card background in dark */
+  --color-bg-primary:   #0c1425;        /* deep navy */
+  --color-bg-secondary: #0f1b2d;        /* slightly lighter navy */
+  --color-bg-card:      #131e30;        /* card surface */
 
-  --color-text-primary: #f8fafc; /* near white */
-  --color-text-blue: #60a5fa;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  --color-text-primary:   #f1f5f9;      /* slate-100 */
+  --color-text-blue:      #818cf8;
+  --color-text-secondary: #94a3b8;      /* slate-400 */
+  --color-text-muted:     #475569;      /* slate-600 */
 
-  --color-border: #1f2a44;
+  --color-border: #1e2d45;
 
-  --color-brand: #818cf8; /* lighter indigo for contrast */
+  --color-brand:       #818cf8;
   --color-brand-hover: #6366f1;
-  --color-brand-light: #0f172a;
+  --color-brand-light: #1e1b4b;
 
-  --color-grad-start: #3b82f6; /* blue-ish start in dark */
-  --color-grad-end: #06b6d4; /* cyan end */
+  --color-grad-start: #3b82f6;
+  --color-grad-end:   #06b6d4;
 
   --color-success: #4ade80;
   --color-warning: #fbbf24;
-  --color-error: #f87171;
-  --color-info: #60a5fa;
+  --color-error:   #f87171;
+  --color-info:    #60a5fa;
 }
-/* Apply theme colors to body */
+
+/* ── Global base ────────────────────────────────────────────── */
 body {
   @apply min-h-screen antialiased;
-  background-color: var(--color-bg-primary);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
 }
 
-/* Utility classes for components */
+* {
+  @apply box-border;
+}
+
+/* ── Utility classes ─────────────────────────────────────────── */
 .card {
   background-color: var(--color-bg-card);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+.dark .card {
+  box-shadow: none;
 }
 
 .sidebar {
@@ -95,25 +120,12 @@ body {
   border-color: var(--color-border);
 }
 
-.FontChange {
-  font-family: 'arial', sans-serif;
-}
-
-* {
-  @apply box-border;
-}
-
-/* Material dialogs opened from users admin screens */
-.users-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
-  background-color: var(--color-bg-card);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 1rem;
-}
-
+/* ── Material dialog panels ─────────────────────────────────── */
+.users-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface,
 .companies-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
   background-color: var(--color-bg-card);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
   border-radius: 1rem;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }

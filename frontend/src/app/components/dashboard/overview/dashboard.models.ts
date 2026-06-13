@@ -1,11 +1,15 @@
+// ─── Interfaces ──────────────────────────────────────────────────────────────
+
 export interface StatCard {
   title: string;
   value: string;
   trendPercent: string;
-  trendLabel: string;
+  trendLabel?: string;
   trendUp: boolean;
-  sparkline: number[];
+  sparkline?: number[];
   icon: string;
+  color?: 'indigo' | 'emerald' | 'cyan' | 'violet' | 'amber';
+  progressValue?: number;
 }
 
 export interface RecentCv {
@@ -14,6 +18,7 @@ export interface RecentCv {
   ats: number;
   status: 'Shortlisted' | 'Reviewing' | 'New';
   avatar: string;
+  timeAgo?: string;
 }
 
 export interface AiHealthItem {
@@ -24,6 +29,9 @@ export interface AiHealthItem {
 export interface SkillItem {
   skill: string;
   count: number;
+  trend?: string;
+  trendUp?: boolean;
+  icon?: 'code' | 'cloud' | 'database' | 'cpu' | 'layers';
 }
 
 export interface PlatformActivity {
@@ -39,126 +47,120 @@ export interface NavItem {
   active?: boolean;
 }
 
+export interface TopPlan {
+  name: string;
+  percentage: number;
+  color: string;
+}
+
+export interface TopCompany {
+  name: string;
+  searchType: string;
+  count: number;
+  initials: string;
+  color: string;
+}
+
+// ─── Nav ──────────────────────────────────────────────────────────────────────
+
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Overview', icon: 'layout-dashboard', route: '/dashboard/overview' },
-  { label: 'Users', icon: 'users', route: '/dashboard/users' },
-  { label: 'Companies', icon: 'building-2', route: '/dashboard/companies' },
-  { label: 'AI Monitoring', icon: 'activity', route: '/dashboard/ai-monitoring' },
+  { label: 'Overview',     icon: 'layout-dashboard', route: '/dashboard/overview'     },
+  { label: 'Admins',       icon: 'shield-check',     route: '/dashboard/admins'       },
+  { label: 'Users',        icon: 'users',             route: '/dashboard/users'        },
+  { label: 'Companies',    icon: 'building-2',        route: '/dashboard/companies'    },
+  { label: 'AI Monitoring',icon: 'activity',          route: '/dashboard/ai-monitoring'},
 ];
+
+// ─── Mock data ────────────────────────────────────────────────────────────────
 
 export const STATS: StatCard[] = [
   {
-    title: 'TOTAL USERS',
-    value: '48,219',
-    trendPercent: '+12.4%',
-    trendLabel: 'vs last week',
+    title: 'Total Users',
+    value: '14,280',
+    trendPercent: '+12%',
     trendUp: true,
-    sparkline: [28, 42, 35, 52, 44, 58, 48, 62, 55, 68, 60, 72, 65, 78],
+    sparkline: [28, 34, 30, 40, 38, 45, 42, 50, 47, 55],
     icon: 'people',
+    color: 'indigo',
   },
   {
-    title: 'COMPANIES',
-    value: '1,284',
-    trendPercent: '+5.1%',
-    trendLabel: 'vs last week',
+    title: 'Total Companies',
+    value: '842',
+    trendPercent: '+5.2%',
     trendUp: true,
-    sparkline: [14, 19, 17, 25, 22, 29, 26, 33, 30, 36, 34, 40, 38, 44],
+    sparkline: [20, 25, 22, 28, 26, 30, 32, 29, 35, 38],
     icon: 'building',
+    color: 'violet',
   },
   {
-    title: 'CVs ANALYZED',
-    value: '92,580',
-    trendPercent: '+18.7%',
-    trendLabel: 'vs last week',
+    title: 'Total CVs',
+    value: '124,500',
+    trendPercent: '+24%',
     trendUp: true,
-    sparkline: [30, 45, 42, 52, 49, 61, 57, 68, 65, 78, 74, 86, 81, 92],
+    sparkline: [40, 55, 48, 62, 58, 70, 65, 78, 72, 85],
     icon: 'file-text',
+    color: 'cyan',
   },
   {
-    title: 'AI ANALYSES',
-    value: '312k',
-    trendPercent: '+22.3%',
-    trendLabel: 'vs last week',
+    title: 'Avg ATS Score',
+    value: '84.2%',
+    trendPercent: '+1.5%',
     trendUp: true,
-    sparkline: [24, 38, 34, 50, 46, 58, 54, 68, 63, 77, 72, 86, 80, 95],
+    sparkline: [70, 72, 71, 74, 73, 75, 76, 75, 78, 80],
     icon: 'brain',
+    color: 'emerald',
   },
   {
-    title: 'TOKENS USED',
-    value: '4.82M',
-    trendPercent: '-3.2%',
-    trendLabel: 'vs last week',
-    trendUp: false,
-    sparkline: [60, 62, 61, 59, 58, 57, 56, 55, 54, 54, 53, 52, 52, 51],
-    icon: 'dollar-sign',
-  },
-  {
-    title: 'ACTIVE NOW',
-    value: '2,471',
-    trendPercent: '+8.0%',
-    trendLabel: 'vs last week',
+    title: 'AI Match Rate',
+    value: '94%',
+    trendPercent: '+3%',
     trendUp: true,
-    sparkline: [18, 20, 22, 24, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45],
-    icon: 'people-fill',
+    sparkline: [80, 82, 85, 83, 87, 88, 90, 89, 92, 94],
+    icon: 'dollar-sign',
+    color: 'amber',
+    progressValue: 94,
   },
 ];
 
 export const RECENT_CVS: RecentCv[] = [
-  {
-    name: 'Sara Kassem',
-    role: 'Senior Backend Engineer',
-    ats: 94,
-    status: 'Shortlisted',
-    avatar: 'SK',
-  },
-  {
-    name: 'Marcus Lee',
-    role: 'ML Engineer',
-    ats: 88,
-    status: 'Reviewing',
-    avatar: 'ML',
-  },
-  {
-    name: 'Aicha Benali',
-    role: 'Product Designer',
-    ats: 81,
-    status: 'New',
-    avatar: 'AB',
-  },
-  {
-    name: 'Diego Romero',
-    role: 'DevOps Lead',
-    ats: 76,
-    status: 'Reviewing',
-    avatar: 'DR',
-  },
-  {
-    name: 'Yuki Tanaka',
-    role: 'Data Scientist',
-    ats: 69,
-    status: 'New',
-    avatar: 'YT',
-  },
+  { name: 'Jane Doe',    role: 'UI Designer',           ats: 92, status: 'Shortlisted', avatar: 'JD', timeAgo: '2m ago'  },
+  { name: 'Mark Kim',    role: 'Backend Eng.',           ats: 88, status: 'Reviewing',  avatar: 'MK', timeAgo: '15m ago' },
+  { name: 'Alex Smith',  role: 'DevOps',                 ats: 76, status: 'New',         avatar: 'AS', timeAgo: '45m ago' },
+  { name: 'Sara Kassem', role: 'Senior Backend Engineer',ats: 94, status: 'Shortlisted', avatar: 'SK', timeAgo: '1h ago'  },
+  { name: 'Diego Romero',role: 'DevOps Lead',            ats: 76, status: 'Reviewing',  avatar: 'DR', timeAgo: '2h ago'  },
 ];
 
 export const AI_HEALTH: AiHealthItem[] = [
-  { label: 'Embedding API', value: 99.98 },
-  { label: 'RAG Pipeline', value: 99.4 },
-  { label: 'ATS Engine', value: 97.2 },
-  { label: 'Semantic Search', value: 92.8 },
+  { label: 'Embedding API',   value: 99.98 },
+  { label: 'RAG Pipeline',    value: 99.4  },
+  { label: 'ATS Engine',      value: 97.2  },
+  { label: 'Semantic Search', value: 92.8  },
 ];
 
 export const TOP_SKILLS: SkillItem[] = [
-  { skill: 'Python', count: 4200 },
-  { skill: 'React', count: 3800 },
-  { skill: 'Node.js', count: 3200 },
-  { skill: 'PostgreSQL', count: 2900 },
-  { skill: 'AWS', count: 2500 },
-  { skill: 'Docker', count: 2100 },
+  { skill: 'React.js', count: 12400, trend: '+8%',  trendUp: true, icon: 'code'  },
+  { skill: 'Python',   count: 9800,  trend: '+15%', trendUp: true, icon: 'code'  },
+  { skill: 'AWS',      count: 7200,  trend: '+5%',  trendUp: true, icon: 'cloud' },
+  { skill: 'Node.js',  count: 6500,  trend: '+12%', trendUp: true, icon: 'code'  },
 ];
 
 export const PLATFORM_ACTIVITY: PlatformActivity = {
-  labels: Array.from({ length: 14 }, (_, i) => `Day ${String(i + 1).padStart(2, '0')}`),
+  labels:      ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb'],
   activeUsers: [320, 410, 380, 520, 490, 610, 580, 650, 620, 700, 680, 720, 750, 780],
-  aiAnalyses: [180, 220, 260, 300, 340, 380, 420, 460, 500, 540, 580, 620, 660, 700],
+  aiAnalyses:  [180, 220, 260, 300, 340, 380, 420, 460, 500, 540, 580, 620, 660, 700],
 };
+
+export const TOP_PLANS: TopPlan[] = [
+  { name: 'Enterprise',   percentage: 42, color: '#6366f1' },
+  { name: 'Professional', percentage: 38, color: '#22d3ee' },
+  { name: 'Starter',      percentage: 20, color: '#64748b' },
+];
+
+export const TOP_COMPANIES: TopCompany[] = [
+  { name: 'Microsoft', searchType: 'Searching: Frontend Eng.',   count: 2840, initials: 'MS', color: '#0078d4' },
+  { name: 'Google',    searchType: 'Searching: Data Science',    count: 1920, initials: 'G',  color: '#ea4335' },
+  { name: 'Amazon',    searchType: 'Searching: AWS Specialists', count: 1750, initials: 'A',  color: '#ff9900' },
+];
+
+export const AI_INSIGHT =
+  "Matching efficiency is up 18% compared to last week. Based on current trends, we recommend prioritizing Senior React developers for Company X's recent expansion.";

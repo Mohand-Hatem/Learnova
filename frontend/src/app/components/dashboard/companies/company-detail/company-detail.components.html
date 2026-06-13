@@ -28,8 +28,8 @@
 
     <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
       <div>
-        <h1 class="text-4xl font-bold tracking-tight text-text-primary">{{ getName(c) }}</h1>
-        <p class="text-lg text-text-secondary mt-2">{{ c.email || 'No email available' }}</p>
+        <h1 class="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">{{ getName(c) }}</h1>
+        <p class="mt-1 text-sm text-text-muted">{{ c.email || 'No email available' }}</p>
       </div>
 
       <div class="flex items-center gap-3 flex-wrap">
@@ -119,9 +119,8 @@
 
 
         <div [class]="ui.card + ' p-6'">
-          <div class="flex items-center gap-2 mb-4">
-            <lucide-angular [img]="icons.CreditCard" size="15" class="text-theme"></lucide-angular>
-            <p class="text-xs uppercase tracking-widest font-bold text-text-secondary">Current Plan</p>
+          <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+            <h6 class="text-sm font-semibold text-text-primary">Current Plan</h6>
           </div>
           <h2 class="text-4xl font-black text-text-primary mb-1">{{ c.plan || '—' }}</h2>
           <!-- Changed: renewDate() → renewDate (plain getter, not computed signal) -->
@@ -172,9 +171,8 @@
 
 
         <div [class]="ui.card + ' p-6'">
-          <div class="mb-5">
-            <h3 class="text-base font-bold text-text-primary">Most searched roles</h3>
-            <p class="text-xs text-text-secondary mt-0.5">Top role queries this month</p>
+          <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+            <h6 class="text-sm font-semibold text-text-primary">Most Searched Roles</h6>
           </div>
           @if (rolesChartOptions()) {
             <div
@@ -194,9 +192,8 @@
 
 
         <div [class]="ui.card + ' p-6'">
-          <div class="mb-5">
-            <h3 class="text-base font-bold text-text-primary">Search activity</h3>
-            <p class="text-xs text-text-secondary mt-0.5">Candidate searches per month</p>
+          <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+            <h6 class="text-sm font-semibold text-text-primary">Search Activity</h6>
           </div>
           @if (searchActivityChartOptions()) {
             <div
@@ -220,9 +217,8 @@
 
 
         <div [class]="ui.card + ' p-6'">
-          <div class="mb-5">
-            <h3 class="text-base font-bold text-text-primary">Most searched skills</h3>
-            <p class="text-xs text-text-secondary mt-0.5">Top skill filters used</p>
+          <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+            <h6 class="text-sm font-semibold text-text-primary">Most Searched Skills</h6>
           </div>
           @if (skillsChartOptions()) {
             <div
@@ -242,9 +238,8 @@
 
 
         <div [class]="ui.card + ' p-6'">
-          <div class="mb-5">
-            <h3 class="text-base font-bold text-text-primary">Token consumption</h3>
-            <p class="text-xs text-text-secondary mt-0.5">AI tokens spent this week</p>
+          <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+            <h6 class="text-sm font-semibold text-text-primary">Token Consumption</h6>
           </div>
           @if (tokenConsumptionChartOptions()) {
             <div

@@ -1,0 +1,31 @@
+<div class="flex h-full min-h-[340px] min-w-0 flex-col rounded-2xl border border-theme bg-white p-5 shadow-sm dark:bg-bg-card">
+
+  <!-- Header -->
+  <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
+    <h6 class="text-sm font-semibold text-text-primary">Top Plans</h6>
+  </div>
+
+  <!-- Donut chart -->
+  <div class="flex flex-1 items-center justify-center">
+    <div
+      echarts
+      class="block h-[200px] w-full min-w-0"
+      [options]="chartOptions()"
+      [autoResize]="true"
+    ></div>
+  </div>
+
+  <!-- Legend -->
+  <div class="mt-2 space-y-2.5 border-t border-theme pt-3">
+    @for (plan of plans(); track plan.name) {
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="inline-block h-2.5 w-2.5 rounded-full" [style.background]="plan.color"></span>
+          <span class="text-sm text-text-secondary">{{ plan.name }}</span>
+        </div>
+        <span class="text-sm font-semibold text-text-primary">{{ plan.percentage }}%</span>
+      </div>
+    }
+  </div>
+
+</div>

@@ -22,11 +22,11 @@ export class PlatformActivityChart {
     const data = this.activity();
     const maxVal = Math.max(...data.activeUsers, ...data.aiAnalyses, 10);
     const dark = this.themeService.isDark();
-    const textColor = dark ? '#94a3b8' : '#475569';
-    const gridColor = dark ? '#1e2430' : '#e2e8f0';
-    const backgroundColor = dark ? '#0f172a' : '#ffffff';
-    const tooltipBackgroundColor = dark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)';
-    const tooltipBorderColor = dark ? '#334155' : '#e2e8f0';
+
+    const textColor             = dark ? '#94a3b8' : '#64748b';
+    const gridColor             = dark ? '#1e2d45' : '#e2e8f0';
+    const tooltipBackgroundColor = dark ? '#131e30' : '#ffffff';
+    const tooltipBorderColor    = dark ? '#1e2d45' : '#e2e8f0';
 
     return {
       color: ['#8b5cf6', '#22d3ee'],
@@ -124,8 +124,8 @@ export class PlatformActivityChart {
               x2: 0,
               y2: 1,
               colorStops: [
-                { offset: 0, color: 'rgba(139, 92, 246, 0.45)' },
-                { offset: 1, color: 'rgba(139, 92, 246, 0.05)' },
+                { offset: 0, color: dark ? 'rgba(139, 92, 246, 0.45)' : 'rgba(99, 102, 241, 0.18)' },
+                { offset: 1, color: 'rgba(139, 92, 246, 0.02)' },
               ],
             },
           },
@@ -147,8 +147,8 @@ export class PlatformActivityChart {
               x2: 0,
               y2: 1,
               colorStops: [
-                { offset: 0, color: 'rgba(34, 211, 238, 0.45)' },
-                { offset: 1, color: 'rgba(34, 211, 238, 0.05)' },
+                { offset: 0, color: dark ? 'rgba(34, 211, 238, 0.45)' : 'rgba(6, 182, 212, 0.18)' },
+                { offset: 1, color: 'rgba(34, 211, 238, 0.02)' },
               ],
             },
           },

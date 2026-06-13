@@ -1,3 +1,4 @@
+/* ── Sidebar host positioning ────────────────────────────────── */
 :host {
   position: fixed;
   top: 0;
@@ -13,7 +14,7 @@
 
 :host(.app-sidebar--open) {
   transform: translateX(0);
-  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.18);
   pointer-events: auto;
 }
 
@@ -21,4 +22,16 @@
   :host(.app-sidebar--open) {
     box-shadow: none;
   }
+}
+
+/* ── Active nav item ─────────────────────────────────────────── */
+a.active-nav-item {
+  color: #4f46e5;
+  background-color: #eef2ff;
+  font-weight: 600;
+}
+
+:host-context(.dark) a.active-nav-item {
+  color: #a5b4fc;
+  background-color: rgba(99, 102, 241, 0.12);
 }

@@ -9,6 +9,8 @@ import { CompaniesComponent } from './components/dashboard/companies/companies.c
 import { AiAnalysisComponent } from './components/dashboard/ai-analysis/ai-analysis.component';
 import { UserDetailComponent } from './components/dashboard/users/user-detail/user-detail.component';
 import { CompanyDetailComponent } from './components/dashboard/companies/company-detail/company-detail.components';
+import { AdminsComponent } from './components/dashboard/admins/admins.component';
+import { AdminDetailComponent } from './components/dashboard/admins/admin-detail/admin-detail.component';
 
 export const routes: Routes = [
   {
@@ -25,13 +27,15 @@ export const routes: Routes = [
     component: AdminLayout,
     canActivate: [roleGuard],
     children: [
-      { path: '', redirectTo: 'overview', pathMatch: 'full' },
-      { path: 'overview', component: OverviewComponent },
-      { path: 'users', component: UsersComponent },
-       { path: 'users/:id', component: UserDetailComponent },
-      { path: 'companies', component: CompaniesComponent },
-       { path: 'companies/:id', component: CompanyDetailComponent },
-      { path: 'ai-monitoring', component: AiAnalysisComponent },
+      { path: '',             redirectTo: 'overview', pathMatch: 'full' },
+      { path: 'overview',     component: OverviewComponent    },
+      { path: 'admins',       component: AdminsComponent      },
+      { path: 'admins/:id',   component: AdminDetailComponent  },
+      { path: 'users',        component: UsersComponent       },
+      { path: 'users/:id',    component: UserDetailComponent  },
+      { path: 'companies',    component: CompaniesComponent   },
+      { path: 'companies/:id',component: CompanyDetailComponent },
+      { path: 'ai-monitoring',component: AiAnalysisComponent  },
     ],
   },
   {
