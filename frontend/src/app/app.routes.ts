@@ -1,16 +1,5 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './components/login/login.component';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { AdminLayout } from './components/dashboard/admin-layout/admin-layout';
 import { roleGuard } from './guards/role.guard';
-import { Dashboard as OverviewComponent } from './components/dashboard/overview/dashboard';
-import { UsersComponent } from './components/dashboard/users/users.component';
-import { CompaniesComponent } from './components/dashboard/companies/companies.component';
-import { AiAnalysisComponent } from './components/dashboard/ai-analysis/ai-analysis.component';
-import { UserDetailComponent } from './components/dashboard/users/user-detail/user-detail.component';
-import { CompanyDetailComponent } from './components/dashboard/companies/company-detail/company-detail.components';
-import { AdminsComponent } from './components/dashboard/admins/admins.component';
-import { AdminDetailComponent } from './components/dashboard/admins/admin-detail/admin-detail.component';
 
 export const routes: Routes = [
   {
@@ -20,22 +9,66 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    component: LoginComponent,
+    loadComponent: () =>
+      import('./components/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'dashboard',
-    component: AdminLayout,
+    loadComponent: () =>
+      import('./components/dashboard/admin-layout/admin-layout').then((m) => m.AdminLayout),
     canActivate: [roleGuard],
     children: [
-      { path: '',             redirectTo: 'overview', pathMatch: 'full' },
-      { path: 'overview',     component: OverviewComponent    },
-      { path: 'admins',       component: AdminsComponent      },
-      { path: 'admins/:id',   component: AdminDetailComponent  },
-      { path: 'users',        component: UsersComponent       },
-      { path: 'users/:id',    component: UserDetailComponent  },
-      { path: 'companies',    component: CompaniesComponent   },
-      { path: 'companies/:id',component: CompanyDetailComponent },
-      { path: 'ai-monitoring',component: AiAnalysisComponent  },
+      { path: '', redirectTo: 'overview', pathMatch: 'full' },
+      {
+        path: 'overview',
+        loadComponent: () =>
+          import('./components/dashboard/overview/dashboard').then((m) => m.Dashboard),
+      },
+      {
+        path: 'admins',
+        loadComponent: () =>
+          import('./components/dashboard/admins/admins.component').then((m) => m.AdminsComponent),
+      },
+      {
+        path: 'admins/:id',
+        loadComponent: () =>
+          import('./components/dashboard/admins/admin-detail/admin-detail.component').then(
+            (m) => m.AdminDetailComponent,
+          ),
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./components/dashboard/users/users.component').then((m) => m.UsersComponent),
+      },
+      {
+        path: 'users/:id',
+        loadComponent: () =>
+          import('./components/dashboard/users/user-detail/user-detail.component').then(
+            (m) => m.UserDetailComponent,
+          ),
+      },
+      {
+        path: 'companies',
+        loadComponent: () =>
+          import('./components/dashboard/companies/companies.component').then(
+            (m) => m.CompaniesComponent,
+          ),
+      },
+      {
+        path: 'companies/:id',
+        loadComponent: () =>
+          import('./components/dashboard/companies/company-detail/company-detail.components').then(
+            (m) => m.CompanyDetailComponent,
+          ),
+      },
+      {
+        path: 'ai-monitoring',
+        loadComponent: () =>
+          import('./components/dashboard/ai-analysis/ai-analysis.component').then(
+            (m) => m.AiAnalysisComponent,
+          ),
+      },
     ],
   },
   {
