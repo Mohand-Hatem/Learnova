@@ -11,14 +11,14 @@ import CV from "../models/Cv.model.js";
 const accessCookieOptions = {
   httpOnly: true,
   secure: Env.NODE_ENV === "production",
-  sameSite: "strict",
+  sameSite: "none",
   maxAge: 15 * 60 * 1000,
 };
 
 const refreshCookieOptions = {
   httpOnly: true,
   secure: Env.NODE_ENV === "production",
-  sameSite: "strict",
+  sameSite: "none",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
