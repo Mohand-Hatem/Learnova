@@ -7,6 +7,7 @@ import {
   paymobWebhook,
   payWithPaymob,
   userUpdateSubscription,
+  getMyAiUsage,
 } from "../controllers/user.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
@@ -23,6 +24,7 @@ import {
 const router = Router();
 
 router.get("/me", protect, getProfile);
+router.get("/me/ai-usage", protect, getMyAiUsage);
 
 router.put(
   "/update-profile",

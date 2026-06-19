@@ -13,18 +13,23 @@ const cvSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
+
       publicId: {
         type: String,
         required: true,
       },
+
       fileType: {
         type: String,
         enum: ["pdf", "doc", "docx"],
         required: true,
       },
+
       fileName: {
         type: String,
+        trim: true,
       },
+
       fileSize: {
         type: Number,
       },
@@ -34,32 +39,33 @@ const cvSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
     parsedData: {
-      skills: [
-        {
-          type: String,
-          trim: true,
-        },
-      ],
+      skills: {
+        technical: [{ type: String, trim: true }],
+
+        soft: [{ type: String, trim: true }],
+
+        missingRecommended: [{ type: String, trim: true }],
+      },
+
+      certifications: [{ type: String, trim: true }],
 
       experience: [
         {
-          company: {
-            type: String,
-            trim: true,
-          },
-
           role: {
             type: String,
             trim: true,
           },
 
-          startDate: {
-            type: Date,
+          company: {
+            type: String,
+            trim: true,
           },
 
-          endDate: {
-            type: Date,
+          duration: {
+            type: String,
+            trim: true,
           },
 
           description: {
@@ -71,34 +77,26 @@ const cvSchema = new mongoose.Schema(
 
       education: [
         {
-          university: {
-            type: String,
-            trim: true,
-          },
-
           degree: {
             type: String,
             trim: true,
           },
 
-          field: {
+          institution: {
             type: String,
             trim: true,
           },
 
-          startDate: {
-            type: Date,
-          },
-
-          endDate: {
-            type: Date,
+          year: {
+            type: String,
+            trim: true,
           },
         },
       ],
 
       projects: [
         {
-          title: {
+          name: {
             type: String,
             trim: true,
           },
@@ -108,19 +106,7 @@ const cvSchema = new mongoose.Schema(
             trim: true,
           },
 
-          technologies: [
-            {
-              type: String,
-              trim: true,
-            },
-          ],
-        },
-      ],
-
-      certifications: [
-        {
-          type: String,
-          trim: true,
+          technologies: [{ type: String, trim: true }],
         },
       ],
     },
@@ -131,47 +117,117 @@ const cvSchema = new mongoose.Schema(
       max: 100,
       default: 0,
     },
+
+    scoreBreakdown: {
+      keywordMatch: {
+        type: Number,
+        default: 0,
+      },
+
+      formattingClarity: {
+        type: Number,
+        default: 0,
+      },
+
+      skillsRelevance: {
+        type: Number,
+        default: 0,
+      },
+
+      experienceDepth: {
+        type: Number,
+        default: 0,
+      },
+
+      educationCertifications: {
+        type: Number,
+        default: 0,
+      },
+    },
+
     aiAnalysis: {
       summary: {
         type: String,
         default: "",
       },
+
       strengths: [
         {
-          type: String,
-          trim: true,
+          title: {
+            type: String,
+            trim: true,
+          },
+
+          detail: {
+            type: String,
+            trim: true,
+          },
         },
       ],
+
       weaknesses: [
         {
-          type: String,
-          trim: true,
+          title: {
+            type: String,
+            trim: true,
+          },
+
+          detail: {
+            type: String,
+            trim: true,
+          },
         },
       ],
 
       suggestions: [
         {
-          type: String,
-          trim: true,
+          title: {
+            type: String,
+            trim: true,
+          },
+
+          detail: {
+            type: String,
+            trim: true,
+          },
         },
       ],
     },
-    pineconeVectorId: {
-      type: String,
-      default: null,
+
+    aiUsage: {
+      embeddingTokens: { type: Number, default: 0 },
+      promptTokens: { type: Number, default: 0 },
+      completionTokens: { type: Number, default: 0 },
+      totalTokens: { type: Number, default: 0 },
+      responseTimeMs: { type: Number, default: 0 },
+      analyzedAt: { type: Date, default: null },
     },
+
+    pineconeVectorIds: [
+      {
+        type: String,
+      },
+    ],
+
     processingStatus: {
       type: String,
       enum: ["uploaded", "processing", "analyzed", "failed"],
       default: "uploaded",
     },
+
+    errorMessage: {
+      type: String,
+      default: "",
+    },
   },
+
   {
     timestamps: true,
   },
 );
 
 cvSchema.index({ userId: 1 });
+
 const CV = mongoose.model("CV", cvSchema);
 
 export default CV;

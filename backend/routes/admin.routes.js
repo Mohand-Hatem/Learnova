@@ -3,10 +3,12 @@ import express from "express";
 import {
   getAllUsers,
   deleteUser,
-  toggleBanUser ,
   updateUserRole,
   updateUserPlan,
-  getOneUser, 
+  getOneUser,
+  getAiStats,
+  getOverviewStats,
+  toggleBanUser,
 } from "../controllers/admin.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
@@ -19,13 +21,17 @@ const router = express.Router();
 router.use(protect);
 router.use(roleMiddleware("admin"));
 
-
 router.get("/all", getAllUsers);
+router.get("/stats/overview", getOverviewStats);
+router.get("/stats/ai", getAiStats);
 router.get("/:id", getOneUser);
+
 router.delete("/user/:id", deleteUser);
 
 router.put("/user/:id/role", validate(updateRoleSchema), updateUserRole);
+
 router.put("/user/:id/plan", validate(updatePlanSchema), updateUserPlan);
+
 router.put("/:id/ban", toggleBanUser);
 
 export default router;

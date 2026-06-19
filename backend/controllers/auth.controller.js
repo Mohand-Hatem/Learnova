@@ -12,7 +12,7 @@ const accessCookieOptions = {
   httpOnly: true,
   secure: Env.NODE_ENV === "production",
   sameSite: "none",
-  maxAge: 15 * 60 * 1000,
+  maxAge: 30 * 60 * 1000,
 };
 
 const refreshCookieOptions = {

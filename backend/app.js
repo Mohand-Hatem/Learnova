@@ -13,6 +13,7 @@ import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import cvRoutes from "./routes/cv.routes.js";
+import aiRoutes from "./routes/ai.routes.js";
 import "./utils/cron.js";
 import dns from "dns";
 
@@ -32,6 +33,7 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/cv", cvRoutes);
+app.use("/analyze", aiRoutes);
 app.use(notFound);
 app.use(errorMiddleware);
 

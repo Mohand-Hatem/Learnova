@@ -52,6 +52,6 @@ export const resetPasswordSchema = z.object({
   email: z.string().trim().toLowerCase().email("Please provide a valid email"),
   newPassword: z
     .string()
-    .min(6, "New password must be at least 8 characters")
+    .min(8, "New password must be at least 8 characters")
     .max(128, "New password must be at most 128 characters"),
 });

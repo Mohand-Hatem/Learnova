@@ -213,3 +213,60 @@ export const paymobWebhook = asyncHandler(async (req, res) => {
 
   res.json({ ok: true });
 });
+
+export const getMyAiUsage = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const user = await User.findById(userId)
+    .select("tokenUsage maxToken aiCallsCount plan")
+    .lean();
+
+  // Aggregate per-CV AI usage for this user
+  const cvStats = await CV.aggregate([
+    { $match: { userId: userId } },
+    {
+      $group: {
+        _id: null,
+        totalEmbeddingTokens: { $sum: "$aiUsage.embeddingTokens" },
+        totalPromptTokens: { $sum: "$aiUsage.promptTokens" },
+        totalCompletionTokens: { $sum: "$aiUsage.completionTokens" },
+        totalTokensSpent: { $sum: "$aiUsage.totalTokens" },
+        avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
+        analyzedCVs: {
+          $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] },
+        },
+        totalCVs: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const stats = cvStats[0] ?? {
+    totalEmbeddingTokens: 0,
+    totalPromptTokens: 0,
+    totalCompletionTokens: 0,
+    totalTokensSpent: 0,
+    avgResponseTimeMs: 0,
+    analyzedCVs: 0,
+    totalCVs: 0,
+  };
+
+  res.status(200).json({
+    success: true,
+    data: {
+      plan: user.plan,
+      tokenUsage: user.tokenUsage,
+      maxToken: user.maxToken,
+      tokenUsagePercent: Math.round((user.tokenUsage / user.maxToken) * 100),
+      aiCallsCount: user.aiCallsCount,
+      breakdown: {
+        embeddingTokens: stats.totalEmbeddingTokens,
+        promptTokens: stats.totalPromptTokens,
+        completionTokens: stats.totalCompletionTokens,
+        totalTokensSpent: stats.totalTokensSpent,
+      },
+      avgResponseTimeMs: Math.round(stats.avgResponseTimeMs ?? 0),
+      analyzedCVs: stats.analyzedCVs,
+      totalCVs: stats.totalCVs,
+    },
+  });
+});

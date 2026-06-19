@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema(
       default: 0,
     },
 
+    aiCallsCount: {
+      type: Number,
+      default: 0,
+    },
+
     plan: {
       type: String,
       enum: ["Free", "Pro", "Enterprise"],

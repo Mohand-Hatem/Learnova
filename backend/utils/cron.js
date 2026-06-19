@@ -8,11 +8,12 @@ cron.schedule("0 0 1 * *", async () => {
       {
         $set: {
           tokenUsage: 0,
+          aiCallsCount: 0,
         },
       },
     );
 
-    console.log("Token usage reset successfully");
+    console.log("Token usage and AI calls count reset successfully");
   } catch (error) {
     console.log(error);
   }

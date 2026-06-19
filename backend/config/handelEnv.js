@@ -19,6 +19,9 @@ const Env = {
   PAYMOB_API_KEY: process.env.PAYMOB_API_KEY,
   PAYMOB_INTEGRATION_ID: process.env.PAYMOB_INTEGRATION_ID,
   PAYMOB_IFRAME_ID: process.env.PAYMOB_IFRAME_ID,
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  PINECONE_API_KEY: process.env.PINECONE_API_KEY,
+  PINECONE_INDEX_NAME: process.env.PINECONE_INDEX_NAME,
 };
 
 export default Env;
