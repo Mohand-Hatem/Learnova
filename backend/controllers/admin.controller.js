@@ -2,6 +2,30 @@ import User from "../models/User.model.js";
 import { PLANS } from "../config/helpers.config.js";
 import asyncHandler from "express-async-handler";
 import CV from "../models/Cv.model.js";
+import AdminActionLog from "../models/AdminActionLog.model.js";
+import mongoose from "mongoose";
+
+const formatTargetName = (user) => {
+  if (!user?.name) return "Unknown";
+  if (typeof user.name === "string") return user.name;
+  return user.name.en || user.name.ar || "Unknown";
+};
+
+const logAdminAction = async (req, { action, targetUser, details = "" }) => {
+  if (!req?.user?._id || req.user.role !== "admin") return;
+  try {
+    await AdminActionLog.create({
+      actorId: req.user._id,
+      action,
+      targetUserId: targetUser?._id ?? null,
+      targetName: targetUser ? formatTargetName(targetUser) : "",
+      targetRole: targetUser?.role ?? "",
+      details,
+    });
+  } catch (error) {
+    console.error("Failed to write admin action log:", error);
+  }
+};
 
 export const getOverviewStats = asyncHandler(async (req, res) => {
   // date boundaries
@@ -167,6 +191,10 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
           value: roles["user"] ?? 0,
           changePercent: pctChange(thisMonthUsers, prevMonthUsers),
         },
+        totalAdmins: {
+          value: roles["admin"] ?? 0,
+          changePercent: 0,
+        },
         totalCompanies: {
           value: roles["company"] ?? 0,
           changePercent: pctChange(roles["company"] ?? 0, lastMonthUsers),
@@ -281,6 +309,12 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
     });
   }
 
+  await logAdminAction(req, {
+    action: "delete_user",
+    targetUser: user,
+    details: "Deleted account",
+  });
+
   res.status(200).json({
     success: true,
     message: "User deleted successfully",
@@ -290,6 +324,14 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
 export const updateUserRole = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const { role } = req.body;
+
+  const before = await User.findById(id).select("-password");
+  if (!before) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
 
   const user = await User.findByIdAndUpdate(id, { role }, { new: true }).select(
     "-password",
@@ -301,6 +343,12 @@ export const updateUserRole = asyncHandler(async (req, res, next) => {
       message: "User not found",
     });
   }
+
+  await logAdminAction(req, {
+    action: "update_user_role",
+    targetUser: user,
+    details: `Role changed from ${before.role} to ${role}`,
+  });
 
   res.status(200).json({
     success: true,
@@ -545,6 +593,13 @@ export const updateUserPlan = asyncHandler(async (req, res, next) => {
   const { plan } = req.body;
 
   const maxToken = PLANS[plan].maxToken;
+  const before = await User.findById(id).select("-password");
+  if (!before) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
 
   const user = await User.findByIdAndUpdate(
     id,
@@ -558,6 +613,12 @@ export const updateUserPlan = asyncHandler(async (req, res, next) => {
       message: "User not found",
     });
   }
+
+  await logAdminAction(req, {
+    action: "update_user_plan",
+    targetUser: user,
+    details: `Plan changed from ${before.plan} to ${plan}`,
+  });
 
   res.status(200).json({
     success: true,
@@ -578,9 +639,84 @@ export const toggleBanUser = asyncHandler(async (req, res) => {
   user.isBlocked = !user.isBlocked;
   await user.save();
 
+  await logAdminAction(req, {
+    action: user.isBlocked ? "ban_user" : "unban_user",
+    targetUser: user,
+    details: user.isBlocked ? "Blocked account" : "Unblocked account",
+  });
+
   res.status(200).json({
     success: true,
     message: user.isBlocked ? 'User banned successfully' : 'User unbanned successfully',
     data: user,
+  });
+});
+
+export const getAdminActionHistory = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid admin id",
+    });
+  }
+  const actorId = new mongoose.Types.ObjectId(id);
+  const rangeDays = Math.min(Math.max(Number(req.query.days) || 14, 7), 90);
+  const fromDate = new Date();
+  fromDate.setDate(fromDate.getDate() - (rangeDays - 1));
+  fromDate.setHours(0, 0, 0, 0);
+
+  const [actions, dailyCounts, actionTypeBreakdown] = await Promise.all([
+    AdminActionLog.find({ actorId: id })
+      .sort({ createdAt: -1 })
+      .limit(60)
+      .lean(),
+    AdminActionLog.aggregate([
+      { $match: { actorId, createdAt: { $gte: fromDate } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]),
+    AdminActionLog.aggregate([
+      { $match: { actorId } },
+      { $group: { _id: "$action", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 6 },
+    ]),
+  ]);
+
+  const countsByDay = new Map(dailyCounts.map((item) => [item._id, item.count]));
+  const series = Array.from({ length: rangeDays }, (_, index) => {
+    const day = new Date(fromDate);
+    day.setDate(fromDate.getDate() + index);
+    const key = day.toISOString().slice(0, 10);
+    return {
+      date: key,
+      count: countsByDay.get(key) ?? 0,
+    };
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      rangeDays,
+      series,
+      actions: actions.map((item) => ({
+        id: item._id,
+        action: item.action,
+        details: item.details,
+        targetName: item.targetName,
+        targetRole: item.targetRole,
+        createdAt: item.createdAt,
+      })),
+      actionTypeBreakdown: actionTypeBreakdown.map((item) => ({
+        action: item._id,
+        count: item.count,
+      })),
+    },
   });
 });

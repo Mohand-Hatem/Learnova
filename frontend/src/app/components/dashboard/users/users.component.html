@@ -2,8 +2,19 @@
 
   <!-- Page header -->
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <h1 class="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">Users</h1>
-    <p class="text-sm text-text-muted">View and manage all registered users, plans and activity.</p>
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">Users</h1>
+      <p class="text-sm text-text-muted">View and manage all registered users, plans and activity.</p>
+    </div>
+    <button
+      type="button"
+      (click)="openCreateUserDialog()"
+      [disabled]="creatingUser()"
+      class="flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      <lucide-angular [img]="icons.UserPlus" size="14"></lucide-angular>
+      {{ creatingUser() ? 'Creating...' : 'Create New User' }}
+    </button>
   </div>
 
   <div class="flex flex-wrap items-center gap-3 px-1">
@@ -67,11 +78,30 @@
       <select
         class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm"
         [class]="ui.input"
-        [ngModel]="typeFilter()"
-        (ngModelChange)="typeFilter.set($event)"
+        [ngModel]="hasCvFilter()"
+        (ngModelChange)="hasCvFilter.set($event)"
       >
-        <option value="">All accounts</option>
-        <option value="user">Candidate</option>
+        <option value="">Has CV (All)</option>
+        <option value="yes">Has CV</option>
+        <option value="no">No CV</option>
+      </select>
+      <lucide-angular
+        [img]="icons.ChevronDown"
+        size="14"
+        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+      ></lucide-angular>
+    </div>
+
+    <div class="relative">
+      <select
+        class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm"
+        [class]="ui.input"
+        [ngModel]="bannedFilter()"
+        (ngModelChange)="bannedFilter.set($event)"
+      >
+        <option value="">Banned Status (All)</option>
+        <option value="active">Active</option>
+        <option value="banned">Banned</option>
       </select>
       <lucide-angular
         [img]="icons.ChevronDown"
@@ -189,7 +219,10 @@
                 </td>
 
                 <td class="px-5 py-4">
-                  <p class="text-[11px] text-text-secondary mb-2 font-medium">
+                  <p
+                    class="mb-2 text-[11px] font-medium"
+                    [ngClass]="getPlanTokenTextClass(u.plan)"
+                  >
                     {{ formatTokens(u.tokenUsage) }} / {{ formatTokens(u.maxToken) }}
                   </p>
                   <div
@@ -231,7 +264,7 @@
                   <button
                     type="button"
                     data-users-menu-trigger
-                    class="w-8 h-8 rounded-lg flex items-center justify-center text-text-secondary hover:bg-violet-100 hover:text-violet-600 dark:hover:bg-violet-950/40 dark:hover:text-violet-300 transition-colors"
+                    class="w-8 h-8 rounded-lg flex cursor-pointer items-center justify-center text-text-secondary hover:bg-violet-100 hover:text-violet-600 dark:hover:bg-violet-950/40 dark:hover:text-violet-300 transition-colors"
                     (click)="toggleMenu(u._id, $event)"
                     [attr.aria-expanded]="openMenuId() === u._id"
                     aria-label="User actions"
@@ -264,7 +297,7 @@
           <button
             (click)="prevPage()"
             [disabled]="currentPage() === 1"
-            class="flex items-center gap-1 px-3 py-2 rounded-lg border border-theme text-sm font-medium text-text-secondary hover:bg-violet-50 hover:border-violet-400 dark:hover:bg-violet-950/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="flex cursor-pointer items-center gap-1 px-3 py-2 rounded-lg border border-theme text-sm font-medium text-text-secondary hover:bg-violet-50 hover:border-violet-400 dark:hover:bg-violet-950/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <lucide-angular [img]="icons.ChevronLeft" size="14"></lucide-angular>
             <span class="hidden sm:inline">Previous</span>
@@ -275,7 +308,7 @@
               @if (p === 1 || p === totalPages() || Math.abs(p - currentPage()) <= 1) {
                 <button
                   (click)="goToPage(p)"
-                  class="w-8 h-8 flex items-center justify-center rounded-lg border text-sm font-medium transition-colors"
+                  class="w-8 h-8 flex cursor-pointer items-center justify-center rounded-lg border text-sm font-medium transition-colors"
                   [ngClass]="
                     currentPage() === p
                       ? 'bg-brand text-white border-brand'
@@ -293,7 +326,7 @@
           <button
             (click)="nextPage()"
             [disabled]="currentPage() === totalPages()"
-            class="flex items-center gap-1 px-3 py-2 rounded-lg border border-theme text-sm font-medium text-text-secondary hover:bg-violet-50 hover:border-violet-400 dark:hover:bg-violet-950/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="flex cursor-pointer items-center gap-1 px-3 py-2 rounded-lg border border-theme text-sm font-medium text-text-secondary hover:bg-violet-50 hover:border-violet-400 dark:hover:bg-violet-950/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span class="hidden sm:inline">Next</span>
             <lucide-angular [img]="icons.ChevronRight" size="14"></lucide-angular>
@@ -345,7 +378,7 @@
             @for (plan of plans; track plan) {
               <button
                 type="button"
-                class="mb-1 w-full rounded-lg border px-2.5 py-2 text-left transition-colors last:mb-0"
+                class="mb-1 w-full cursor-pointer rounded-lg border px-2.5 py-2 text-left transition-colors last:mb-0"
                 [disabled]="plan === u.plan"
                 [ngClass]="
                   plan === u.plan
@@ -360,7 +393,7 @@
                       class="truncate text-[13px] font-semibold"
                       [ngClass]="
                         plan === u.plan
-                          ? 'text-violet-700 dark:text-violet-300'
+                          ? getPlanTokenTextClass(plan)
                           : 'text-text-primary'
                       "
                     >
@@ -377,8 +410,8 @@
                         plan === 'Enterprise'
                           ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'
                           : plan === 'Pro'
-                            ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300'
-                            : 'bg-slate-100 text-slate-700 dark:bg-slate-700/60 dark:text-slate-300'
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
                       "
                     >
                       {{ getPlanTokenLabel(plan) }}
@@ -387,7 +420,7 @@
                       <lucide-angular
                         [img]="icons.Check"
                         size="13"
-                        class="text-violet-600 dark:text-violet-300"
+                        [ngClass]="getPlanTokenTextClass(plan)"
                       ></lucide-angular>
                     }
                   </div>

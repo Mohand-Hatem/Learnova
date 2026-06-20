@@ -38,6 +38,7 @@ const clearAuthCookies = (res) => {
 
 const formatUser = async (user) => ({
   id: user._id,
+  _id: user._id,
   name: user.name,
   email: user.email,
   role: user.role,
@@ -52,7 +53,7 @@ const formatUser = async (user) => ({
 });
 
 export const register = asyncHandler(async (req, res, next) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, skipLogin } = req.body;
 
   const existingUser = await User.findOne({ email });
 
@@ -70,9 +71,10 @@ export const register = asyncHandler(async (req, res, next) => {
     role: role || "user",
   });
 
-  const { accessToken, refreshToken } = generateTokens(user);
-
-  setAuthCookies(res, accessToken, refreshToken);
+  if (!skipLogin) {
+    const { accessToken, refreshToken } = generateTokens(user);
+    setAuthCookies(res, accessToken, refreshToken);
+  }
 
   sendWelcomeEmail(user.email, user.name).catch((err) => {
     console.error("Error sending welcome email:", err);

@@ -22,10 +22,11 @@ export const registerSchema = z.object({
 
   password: z
     .string()
-    .min(3, "Password must be at least 3 characters")
-    .max(15, "Password must be at most 15 characters"),
+    .min(8, "Password must be at least 8 characters")
+    .max(128, "Password must be at most 128 characters"),
 
   role: z.enum(["user", "company", "admin"]).default("user"),
+  skipLogin: z.boolean().optional(),
 });
 
 export const loginSchema = z.object({

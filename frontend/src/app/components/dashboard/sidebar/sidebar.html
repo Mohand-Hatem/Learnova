@@ -17,7 +17,7 @@
     <!-- Close button — mobile only -->
     <button
       type="button"
-      class="lg:hidden inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-bg-secondary hover:text-text-primary"
+      class="lg:hidden inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-bg-secondary hover:text-text-primary"
       aria-label="Close sidebar"
       (click)="closeRequested.emit()"
     >
@@ -37,7 +37,7 @@
         [routerLink]="item.route"
         routerLinkActive="active-nav-item"
         [routerLinkActiveOptions]="{ exact: false }"
-        class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-secondary no-underline transition-all duration-150 hover:bg-bg-secondary hover:text-text-primary dark:hover:bg-bg-card"
+        class="group flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-secondary no-underline transition-all duration-150 hover:bg-bg-secondary hover:text-text-primary dark:hover:bg-bg-card"
         (click)="onNavClick()"
       >
         <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors group-[.active-nav-item]:bg-indigo-600 group-[.active-nav-item]:text-white group-[.active-nav-item]:shadow-sm text-text-muted group-hover:text-text-primary dark:group-hover:text-text-primary">

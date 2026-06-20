@@ -31,6 +31,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  UserPlus,
 } from 'lucide-angular';
 import { AdminService } from '../../../services/admin.service';
 import { PlanUpdateDialogComponent } from './plan-update-dialog/plan-update-dialog.component';
@@ -49,6 +50,7 @@ import {
 } from './users-theme';
 import { ToastrService } from 'ngx-toastr';
 import { SessionNotificationsService } from '../../../services/session-notifications.service';
+import { CreateAccountDialogData, CreateAccountPayload, CreateAdminDialogComponent } from '../admins/create-admin-dialog/create-admin-dialog.component';
 interface UserItem {
   _id: string;
   name: { en: string; ar: string } | string;
@@ -105,7 +107,7 @@ export class UsersComponent implements OnInit {
   icons = {
     Search, ChevronDown, MoreVertical, Eye, FileText,
     ArrowUp, Ban, Trash2, X, User, CreditCard,
-    Calendar, Activity, Zap, Check, ChevronLeft, ChevronRight,
+    Calendar, Activity, Zap, Check, ChevronLeft, ChevronRight, UserPlus,
   };
 
   users = signal<UserItem[]>([]);
@@ -113,10 +115,12 @@ export class UsersComponent implements OnInit {
   searchQuery = signal('');
   planFilter = signal('');
   atsFilter = signal('');
-  typeFilter = signal('');
+  hasCvFilter = signal('');
+  bannedFilter = signal('');
   openMenuId = signal<string | null>(null);
   planSubmenuUserId = signal<string | null>(null);
   selectedUser = signal<UserItem | null>(null);
+  creatingUser = signal(false);
 
   // Pagination
   currentPage = signal(1);
@@ -133,14 +137,18 @@ export class UsersComponent implements OnInit {
     const q = this.searchQuery().toLowerCase();
     const plan = this.planFilter();
     const ats = this.atsFilter();
-    const type = this.typeFilter();
+    const hasCv = this.hasCvFilter();
+    const banned = this.bannedFilter();
 
     return this.users().filter((u) => {
        if (u.role === 'admin' ||  u.role === 'company' ) return false;
       const name = this.getName(u).toLowerCase();
       if (q && !name.includes(q) && !u.email.toLowerCase().includes(q)) return false;
       if (plan && u.plan !== plan) return false;
-      if (type && u.role !== type) return false;
+      if (hasCv === 'yes' && !this.hasCv(u)) return false;
+      if (hasCv === 'no' && this.hasCv(u)) return false;
+      if (banned === 'banned' && !u.isBlocked) return false;
+      if (banned === 'active' && u.isBlocked) return false;
       const score = this.getAts(u);
       if (ats === 'high' && score < 80) return false;
       if (ats === 'mid' && (score < 60 || score >= 80)) return false;
@@ -168,7 +176,8 @@ export class UsersComponent implements OnInit {
       this.searchQuery();
       this.planFilter();
       this.atsFilter();
-      this.typeFilter();
+      this.hasCvFilter();
+      this.bannedFilter();
       this.resetPagination();
     });
   }
@@ -180,6 +189,48 @@ export class UsersComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+  }
+
+  openCreateUserDialog(): void {
+    const dialogRef = this.dialog.open(CreateAdminDialogComponent, {
+      width: '520px',
+      panelClass: USERS_DIALOG_PANEL,
+      data: {
+        title: 'Create New User',
+        description: 'Add a new user account with the default user role.',
+        submitLabel: 'Create User',
+        role: 'user',
+      } as CreateAccountDialogData,
+    });
+
+    dialogRef.afterClosed().subscribe((payload) => {
+      if (!payload) return;
+      this.createUser(payload);
+    });
+  }
+
+  private createUser(payload: CreateAccountPayload): void {
+    this.creatingUser.set(true);
+    this.adminService.registerAccount({ ...payload, role: 'user', skipLogin: true }).subscribe({
+      next: (res) => {
+        const newUser = res?.data?.user;
+        if (newUser) {
+          this.users.update((list) => [newUser, ...list]);
+        } else {
+          this.adminService.getAllUsers().subscribe({
+            next: (listRes) => this.users.set(listRes.data ?? []),
+          });
+        }
+        this.toastr.success('New user account created successfully.', 'User created');
+        this.sessionNotifications.add(`Admin created user ${payload.name.en}`, 'success');
+        this.resetPagination();
+        this.creatingUser.set(false);
+      },
+      error: (err) => {
+        this.toastr.error(err?.error?.message || 'Could not create user account.', 'Create failed');
+        this.creatingUser.set(false);
+      },
     });
   }
 
@@ -239,6 +290,12 @@ export class UsersComponent implements OnInit {
   formatTokens(n: number): string {
     if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
     return String(n);
+  }
+
+  getPlanTokenTextClass(plan: string): string {
+    if (plan === 'Enterprise') return 'text-purple-700 dark:text-purple-300';
+    if (plan === 'Pro') return 'text-emerald-700 dark:text-emerald-300';
+    return 'text-blue-700 dark:text-blue-300';
   }
 
   avatarColors = [

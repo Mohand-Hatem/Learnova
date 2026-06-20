@@ -24,6 +24,7 @@ export interface CompanyItem {
   isBlocked?: boolean;
   createdAt: string;
   searches?: number | null;
+  aiCallsCount?: number | null;
 }
 
 export interface CompanyDetail {
