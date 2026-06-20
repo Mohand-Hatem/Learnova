@@ -11,5 +11,4 @@ import type { RecentCv } from '../../dashboard.models';
 })
 export class RecentCvsTable {
   readonly cvs = input.required<RecentCv[]>();
-  readonly isLive = input(false);
 }

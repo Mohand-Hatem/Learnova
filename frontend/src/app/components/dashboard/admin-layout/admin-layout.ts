@@ -4,13 +4,14 @@ import {
   computed,
   DestroyRef,
   effect,
+  HostListener,
   inject,
   PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { filter } from 'rxjs';
+import { filter, map, startWith } from 'rxjs';
 import {
   trigger,
   transition,
@@ -25,15 +26,17 @@ import {
   LucideAngularModule,
   Menu, X, Search, Moon, Sun, Bell, ChevronRight,
 } from 'lucide-angular';
+import { ToastrService } from 'ngx-toastr';
+import { SessionNotificationsService } from '../../../services/session-notifications.service';
 
 const PAGE_LABELS: Record<string, string> = {
-  overview:       'Overview',
-  admins:         'Admins',
-  users:          'Users',
-  companies:      'Companies',
-  'ai-monitoring':'AI Monitoring',
-  'ai-analysis':  'AI Monitoring',
-  dashboard:      'Dashboard',
+  overview:        'Overview',
+  admins:          'Admins',
+  users:           'Users',
+  companies:       'Companies',
+  'ai-monitoring': 'AI Monitoring',
+  'ai-analysis':   'AI Monitoring',
+  dashboard:       'Dashboard',
 };
 
 @Component({
@@ -60,10 +63,14 @@ export class AdminLayout {
   private readonly destroyRef:  DestroyRef  = inject(DestroyRef);
   readonly themeService:  ThemeService = inject(ThemeService);
   private readonly authService: AuthService = inject(AuthService);
+  private readonly toastr: ToastrService = inject(ToastrService);
+  private readonly sessionNotificationsService = inject(SessionNotificationsService);
 
   readonly icons = { Menu, X, Search, Moon, Sun, Bell, ChevronRight };
 
   readonly user     = this.authService.currentUser;
+  readonly sessionNotifications = this.sessionNotificationsService.items;
+  readonly unreadNotifications = this.sessionNotificationsService.unreadCount;
 
   readonly userName = computed(() => {
     const u = this.user();
@@ -79,35 +86,44 @@ export class AdminLayout {
     return u.role.charAt(0).toUpperCase() + u.role.slice(1);
   });
 
-  /** Tracks the current URL so the breadcrumb can react to navigation. */
-  private readonly currentUrl = signal('');
+  /**
+   * Tracks the current URL using toSignal + startWith so the initial value
+   * is set before the first template render — prevents NG0100.
+   */
+  readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map((e) => e.urlAfterRedirects),
+      startWith(this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
 
-  /** Label of the active page segment (e.g. "Users", "AI Monitoring"). */
+  /** Label of the active page segment for the breadcrumb. */
   readonly pageLabel = computed(() => {
-    const url  = this.currentUrl();
+    const url  = this.currentUrl() ?? '';
     const segs = url.split('/').filter(Boolean);
-    // Skip MongoDB-like IDs (24-char hex) to get the meaningful segment
-    const last = [...segs].reverse().find((s) => !/^[a-f0-9]{24}$/i.test(s) && s !== 'dashboard') ?? 'overview';
+    const last = [...segs].reverse().find(
+      (s) => !/^[a-f0-9]{24}$/i.test(s) && s !== 'dashboard',
+    ) ?? 'overview';
     return PAGE_LABELS[last] ?? last.charAt(0).toUpperCase() + last.slice(1);
   });
 
   readonly sidebarOpen = signal(false);
   readonly isDesktop   = signal(false);
+  readonly notificationsOpen = signal(false);
 
   constructor() {
+    // Close mobile sidebar on navigation
     this.router.events
       .pipe(
         filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-        takeUntilDestroyed(),
       )
-      .subscribe((e) => {
-        this.currentUrl.set(e.urlAfterRedirects);
-        if (!this.isDesktop()) this.closeSidebarOnMobile();
+      .subscribe(() => {
+        if (!this.isDesktop()) this.sidebarOpen.set(false);
       });
 
     if (isPlatformBrowser(this.platformId)) {
-      this.currentUrl.set(this.router.url);
-
       const syncViewport = (isInitial = false) => {
         const desktop    = window.innerWidth >= 1024;
         const wasDesktop = this.isDesktop();
@@ -118,11 +134,8 @@ export class AdminLayout {
           return;
         }
 
-        if (desktop && !wasDesktop) {
-          this.sidebarOpen.set(true);
-        } else if (!desktop && wasDesktop) {
-          this.sidebarOpen.set(false);
-        }
+        if (desktop && !wasDesktop)  this.sidebarOpen.set(true);
+        else if (!desktop && wasDesktop) this.sidebarOpen.set(false);
       };
 
       syncViewport(true);
@@ -163,16 +176,33 @@ export class AdminLayout {
     this.notifyContentResize();
   }
 
-  logout(): void {
-    this.authService.logout().subscribe({
-      complete: () => this.router.navigate(['/login']),
-    });
+  toggleNotifications(event: Event): void {
+    event.stopPropagation();
+    const willOpen = !this.notificationsOpen();
+    this.notificationsOpen.set(willOpen);
+    if (willOpen) this.sessionNotificationsService.markAllRead();
   }
 
-  /** Returns a unique value per route to trigger [@routeFade] transitions. */
-  prepareRoute(outlet: RouterOutlet): string {
-    return outlet?.isActivated
-      ? (outlet.activatedRoute.snapshot.url.map((s) => s.path).join('/') || 'root')
-      : '';
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.notificationsOpen()) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('[data-notification-menu]') || target.closest('[data-notification-trigger]')) {
+      return;
+    }
+    this.notificationsOpen.set(false);
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe({
+      next: (res) => {
+        if (res === null) {
+          this.toastr.warning('Session ended, but server logout failed.', 'Logged out');
+        } else {
+          this.toastr.info('You have been logged out.', 'Logged out');
+        }
+      },
+      complete: () => this.router.navigate(['/login']),
+    });
   }
 }

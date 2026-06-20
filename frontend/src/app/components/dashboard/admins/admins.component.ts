@@ -100,6 +100,18 @@ export class AdminsComponent implements OnInit {
     return Array.isArray(user.cvs) ? user.cvs.length : 0;
   }
 
+  getTokenPct(user: any): number {
+    const tokenLimit = Number(user?.maxToken) || 0;
+    if (!tokenLimit) return 0;
+    const usage = Number(user?.tokenUsage) || 0;
+    return Math.min(100, Math.round((Math.max(0, usage) / tokenLimit) * 100));
+  }
+
+  formatTokens(value: unknown): string {
+    const tokens = Number(value) || 0;
+    return tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}k` : String(tokens);
+  }
+
   isDefaultAvatar(url: string): boolean {
     return !url || url.includes('149071');
   }

@@ -37,6 +37,7 @@ export class Dashboard implements OnInit {
   readonly platformActivity = this.dashboardService.platformActivity;
   readonly aiHealth         = this.dashboardService.aiHealth;
   readonly topPlans         = this.dashboardService.topPlans;
+  readonly topPlansTotal    = this.dashboardService.topPlansTotal;
   readonly topCompanies     = this.dashboardService.topCompanies;
   readonly aiInsight        = this.dashboardService.aiInsight;
   readonly userName         = this.dashboardService.userName;

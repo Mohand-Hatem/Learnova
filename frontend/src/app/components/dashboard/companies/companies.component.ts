@@ -202,8 +202,10 @@ export class CompaniesComponent implements OnInit {
   }
 
   getTokenPct(c: CompanyItem): number {
-    if (!c.maxToken) return 0;
-    return Math.round((c.tokenUsage / c.maxToken) * 100);
+    const tokenLimit = Number(c.maxToken) || 0;
+    if (!tokenLimit) return 0;
+    const usage = Number(c.tokenUsage) || 0;
+    return Math.min(100, Math.round((Math.max(0, usage) / tokenLimit) * 100));
   }
 
   formatTokens(n: number): string {
@@ -371,10 +373,14 @@ export class CompaniesComponent implements OnInit {
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
       this.companyService.updateCompanyPlan(c._id, plan).subscribe({
-        next: () =>
+        next: (res) => {
+          const updatedMaxToken = res?.data?.maxToken;
           this.companies.update((list) =>
-            list.map((x) => (x._id === c._id ? { ...x, plan } : x))
-          ),
+            list.map((x) =>
+              x._id === c._id ? { ...x, plan, maxToken: updatedMaxToken ?? x.maxToken } : x,
+            )
+          );
+        },
       });
     });
   }

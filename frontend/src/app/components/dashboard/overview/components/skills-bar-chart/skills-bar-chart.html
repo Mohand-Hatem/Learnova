@@ -3,40 +3,41 @@
   <!-- Header -->
   <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
     <h6 class="text-sm font-semibold text-text-primary">Top Skills Detected</h6>
-    @if (!isLive()) {
-      <span class="rounded-full border border-amber-300/50 bg-amber-50 px-2.5 py-0.5 text-[0.6rem] font-semibold uppercase text-amber-600 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300">
-        Demo
-      </span>
-    }
   </div>
 
   <!-- Skills list -->
-  <div class="flex flex-1 flex-col justify-between gap-2">
-    @for (skill of skills(); track skill.skill) {
-      <div class="flex items-center gap-3 rounded-xl px-1 py-2 transition hover:bg-bg-secondary dark:hover:bg-bg-primary">
+  @if (skills().length > 0) {
+    <div class="flex flex-1 flex-col justify-between gap-2">
+      @for (skill of skills(); track skill.skill) {
+        <div class="flex items-center gap-3 rounded-xl px-1 py-2 transition hover:bg-bg-secondary dark:hover:bg-bg-primary">
 
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-theme bg-bg-secondary text-text-muted dark:bg-bg-primary">
-          <lucide-angular [img]="iconMap[skill.icon ?? 'code']" size="15"></lucide-angular>
-        </div>
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-theme bg-bg-secondary text-text-muted dark:bg-bg-primary">
+            <lucide-angular [img]="iconMap[skill.icon ?? 'code']" size="15"></lucide-angular>
+          </div>
 
-        <span class="flex-1 truncate text-sm font-medium text-text-primary">{{ skill.skill }}</span>
+          <span class="flex-1 truncate text-sm font-medium text-text-primary">{{ skill.skill }}</span>
 
-        <div class="flex flex-col items-end gap-0.5">
-          <span class="text-sm font-bold text-text-primary">{{ formatCount(skill.count) }}</span>
-          @if (skill.trend) {
-            @if (skill.trendUp) {
-              <span class="inline-flex items-center gap-0.5 text-[0.62rem] font-semibold text-emerald-600 dark:text-emerald-400">
-                {{ skill.trend }}<svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor"><path d="M5 2 L9 7 L1 7 Z"/></svg>
-              </span>
-            } @else {
-              <span class="inline-flex items-center gap-0.5 text-[0.62rem] font-semibold text-rose-600 dark:text-rose-400">
-                {{ skill.trend }}<svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor" class="rotate-180"><path d="M5 2 L9 7 L1 7 Z"/></svg>
-              </span>
+          <div class="flex flex-col items-end gap-0.5">
+            <span class="text-sm font-bold text-text-primary">{{ formatCount(skill.count) }}</span>
+            @if (skill.trend) {
+              @if (skill.trendUp) {
+                <span class="inline-flex items-center gap-0.5 text-[0.62rem] font-semibold text-emerald-600 dark:text-emerald-400">
+                  {{ skill.trend }}<svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor"><path d="M5 2 L9 7 L1 7 Z"/></svg>
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-0.5 text-[0.62rem] font-semibold text-rose-600 dark:text-rose-400">
+                  {{ skill.trend }}<svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor" class="rotate-180"><path d="M5 2 L9 7 L1 7 Z"/></svg>
+                </span>
+              }
             }
-          }
-        </div>
+          </div>
 
-      </div>
-    }
-  </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="flex flex-1 items-center justify-center rounded-xl border border-dashed border-theme text-sm text-text-muted">
+      No skills data available yet.
+    </div>
+  }
 </div>

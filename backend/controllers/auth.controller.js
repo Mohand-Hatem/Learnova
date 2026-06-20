@@ -8,17 +8,21 @@ import bcrypt from "bcryptjs";
 import sendResetPasswordEmail from "../utils/sendResetPasswordEmail.js";
 import CV from "../models/Cv.model.js";
 
-const accessCookieOptions = {
+const isProduction = Env.NODE_ENV === "production";
+
+const sharedCookieOptions = {
   httpOnly: true,
-  secure: Env.NODE_ENV === "production",
-  sameSite: "none",
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+};
+
+const accessCookieOptions = {
+  ...sharedCookieOptions,
   maxAge: 30 * 60 * 1000,
 };
 
 const refreshCookieOptions = {
-  httpOnly: true,
-  secure: Env.NODE_ENV === "production",
-  sameSite: "none",
+  ...sharedCookieOptions,
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -28,8 +32,8 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
 };
 
 const clearAuthCookies = (res) => {
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  res.clearCookie("accessToken", sharedCookieOptions);
+  res.clearCookie("refreshToken", sharedCookieOptions);
 };
 
 const formatUser = async (user) => ({
@@ -196,39 +200,6 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
   res.json({ message: "OTP sent to your email. It expires in 10 minutes." });
 });
-
-
-
-export const verifyOtp = asyncHandler(async (req, res) => {
-  const { email, otp } = req.body;
- 
-  const user = await User.findOne({ email }).select("+resetOtp +resetOtpExpires");
- 
-  if (!user || !user.resetOtp || !user.resetOtpExpires) {
-    res.status(400);
-    throw new Error("No password reset was requested for this account");
-  }
- 
-  if (user.resetOtpExpires < new Date()) {
-    user.resetOtp = null;
-    user.resetOtpExpires = null;
-    await user.save();
-    res.status(400);
-    throw new Error("OTP has expired. Please request a new one.");
-  }
- 
-  const isMatch = await bcrypt.compare(otp, user.resetOtp);
-  if (!isMatch) {
-    res.status(400);
-    throw new Error("Invalid OTP");
-  }
- 
-
-  res.json({ success: true, message: "OTP verified successfully" });
-});
- 
-
-
 
 export const resetPassword = asyncHandler(async (req, res) => {
   const { email, otp, newPassword } = req.body;

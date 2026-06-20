@@ -8,10 +8,10 @@ export const USERS_INPUT =
 
 /** Fixed popover — avoids clipping inside table overflow containers */
 export const USERS_MENU_FIXED =
-  'fixed z-[1050] min-w-[200px] max-h-[min(20rem,calc(100dvh-1.5rem))] overflow-y-auto overscroll-contain rounded-xl border border-theme bg-white dark:bg-bg-card py-1 shadow-lg';
+  'fixed z-[1050] min-w-[250px] max-w-[min(92vw,300px)] max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-xl border border-theme bg-white dark:bg-bg-card py-1 shadow-lg users-menu-enter';
 
 export const USERS_PLAN_SUBMENU =
-  'max-h-36 overflow-y-auto overscroll-contain border-t border-b border-theme bg-bg-secondary py-1';
+  'border-t border-b border-theme bg-bg-secondary px-2 py-1.5 users-plan-submenu-enter';
 
 export const USERS_MENU_ITEM =
   'flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-secondary transition-colors hover:bg-violet-50 hover:text-violet-700 dark:hover:bg-violet-950/30 dark:hover:text-violet-200';

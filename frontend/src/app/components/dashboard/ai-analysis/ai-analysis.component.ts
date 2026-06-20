@@ -1,10 +1,10 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../../services/theme.service';
 import { NgxEchartsModule, provideEchartsCore } from 'ngx-echarts';
 import * as echarts from 'echarts';
 import { StatCardComponent } from '../overview/components/stat-card/stat-card';
-import type { StatCard } from '../overview/dashboard.models';
+import { AiMonitoringService } from '../../../services/ai-monitoring.service';
 
 @Component({
   selector: 'app-ai-analysis',
@@ -14,112 +14,102 @@ import type { StatCard } from '../overview/dashboard.models';
   templateUrl: './ai-analysis.component.html',
 })
 export class AiAnalysisComponent implements OnInit {
-  themeService = inject(ThemeService);
+  private readonly themeService = inject(ThemeService);
+  private readonly aiService = inject(AiMonitoringService);
 
-  // ========== STAT CARDS ==========
-  statCards = signal<StatCard[]>([
-    {
-      title: 'AI Calls',
-      value: '2.4M',
-      trendPercent: '+24.6%',
-      trendUp: true,
-      sparkline: [30, 38, 35, 44, 40, 52, 48, 58, 54, 65],
-      icon: 'activity',
-      color: 'indigo',
-    },
-    {
-      title: 'Token Spend',
-      value: '$42.8K',
-      trendPercent: '-3.2%',
-      trendUp: false,
-      sparkline: [60, 55, 58, 50, 52, 48, 45, 43, 42, 40],
-      icon: 'zap',
-      color: 'cyan',
-    },
-    {
-      title: 'Avg Response Time',
-      value: '1.2s',
-      trendPercent: '-8.1%',
-      trendUp: true,
-      sparkline: [20, 18, 22, 17, 19, 15, 16, 14, 13, 12],
-      icon: 'clock',
-      color: 'violet',
-    },
-    {
-      title: 'Success Rate',
-      value: '99.3%',
-      trendPercent: '+0.4%',
-      trendUp: true,
-      sparkline: [94, 95, 96, 95, 97, 96, 98, 97, 99, 99],
-      icon: 'shield',
-      color: 'emerald',
-    },
-  ]);
+  readonly statCards = this.aiService.statCards;
+  readonly companies = this.aiService.topUsers;
+  readonly loading = this.aiService.loading;
+  readonly loadError = this.aiService.loadError;
+  readonly hasStats = this.aiService.hasStats;
+  readonly hasTopUsers = this.aiService.hasTopUsers;
+  readonly hasMonthly = this.aiService.hasMonthly;
+  readonly hasTokenBreakdown = this.aiService.hasTokenBreakdown;
 
-  // ========== SKILLS CHART ==========
-  skillsChartOption = computed(() => ({
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis' },
-    xAxis: {
-      type: 'category',
-      data: ['TypeScript', 'React', 'Python', 'Kubernetes', 'Figma', 'AWS'],
-      axisLabel: { color: this.themeService.isDark() ? '#94a3b8' : '#475569' },
-      axisLine: { lineStyle: { color: this.themeService.isDark() ? '#1f2a44' : '#e6e9ef' } },
-    },
-    yAxis: {
-      type: 'value',
-      axisLabel: { color: this.themeService.isDark() ? '#94a3b8' : '#475569' },
-      splitLine: { lineStyle: { color: this.themeService.isDark() ? '#1f2a44' : '#e6e9ef' } },
-    },
-    series: [{
-      data: [1320, 1100, 1050, 750, 690, 620],
-      type: 'bar',
-      barMaxWidth: 50,
-      itemStyle: {
-        color: '#4f46e5',
-        borderRadius: [6, 6, 0, 0],
+  readonly tokenBreakdownChartOption = computed(() => {
+    const dark = this.themeService.isDark();
+    const textColor = dark ? '#cbd5e1' : '#475569';
+    const data = this.aiService.tokenBreakdown();
+
+    return {
+      backgroundColor: 'transparent',
+      tooltip: { trigger: 'item' },
+      legend: {
+        bottom: 0,
+        textStyle: { color: textColor, fontSize: 11 },
       },
-    }],
-  }));
+      series: [
+        {
+          type: 'pie',
+          radius: ['45%', '70%'],
+          center: ['50%', '45%'],
+          label: { show: false },
+          data: [
+            { value: data.embedding, name: 'Embedding', itemStyle: { color: '#6366f1' } },
+            { value: data.prompt, name: 'Prompt', itemStyle: { color: '#06b6d4' } },
+            { value: data.completion, name: 'Completion', itemStyle: { color: '#22c55e' } },
+          ],
+        },
+      ],
+    };
+  });
 
-  // ========== TOKEN USAGE CHART ==========
-  tokenChartOption = computed(() => ({
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis' },
-    xAxis: {
-      type: 'category',
-      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      axisLabel: { color: this.themeService.isDark() ? '#94a3b8' : '#475569' },
-      axisLine: { lineStyle: { color: this.themeService.isDark() ? '#1f2a44' : '#e6e9ef' } },
-    },
-    yAxis: {
-      type: 'value',
-      axisLabel: {
-        color: this.themeService.isDark() ? '#94a3b8' : '#475569',
-        formatter: (v: number) => `${v / 1000}k`,
+  readonly tokenChartOption = computed(() => {
+    const dark = this.themeService.isDark();
+    const data = this.aiService.monthly();
+
+    return {
+      backgroundColor: 'transparent',
+      tooltip: { trigger: 'axis' },
+      legend: {
+        top: 0,
+        textStyle: { color: dark ? '#cbd5e1' : '#475569' },
       },
-      splitLine: { lineStyle: { color: this.themeService.isDark() ? '#1f2a44' : '#e6e9ef' } },
-    },
-    series: [{
-      data: [750000, 820000, 980000, 940000, 1150000, 700000, 650000],
-      type: 'bar',
-      barMaxWidth: 50,
-      itemStyle: {
-        color: '#4f46e5',
-        borderRadius: [6, 6, 0, 0],
+      xAxis: {
+        type: 'category',
+        data: data.labels,
+        axisLabel: { color: dark ? '#94a3b8' : '#475569' },
+        axisLine: { lineStyle: { color: dark ? '#1f2a44' : '#e6e9ef' } },
       },
-    }],
-  }));
+      yAxis: [
+        {
+          type: 'value',
+          name: 'Calls',
+          axisLabel: { color: dark ? '#94a3b8' : '#475569' },
+          splitLine: { lineStyle: { color: dark ? '#1f2a44' : '#e6e9ef' } },
+        },
+        {
+          type: 'value',
+          name: 'Tokens',
+          axisLabel: {
+            color: dark ? '#94a3b8' : '#475569',
+            formatter: (v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)),
+          },
+          splitLine: { show: false },
+        },
+      ],
+      series: [
+        {
+          name: 'AI Calls',
+          type: 'line',
+          smooth: true,
+          data: data.aiCalls,
+          itemStyle: { color: '#6366f1' },
+          lineStyle: { width: 2.5, color: '#6366f1' },
+        },
+        {
+          name: 'Token Usage',
+          type: 'bar',
+          yAxisIndex: 1,
+          barMaxWidth: 36,
+          data: data.totalTokens,
+          itemStyle: { color: '#06b6d4', borderRadius: [6, 6, 0, 0] },
+        },
+      ],
+    };
+  });
 
-  // ========== COMPANIES LEADERBOARD ==========
-  companies = signal([
-    { rank: 1, name: 'Nordstream Labs', searches: 1284, plan: 'Enterprise' },
-    { rank: 2, name: 'Vela Aerospace', searches: 1108, plan: 'Enterprise' },
-    { rank: 3, name: 'Quanta Health', searches: 942, plan: 'Enterprise' },
-    { rank: 4, name: 'Helio Robotics', searches: 482, plan: 'Pro' },
-    { rank: 5, name: 'Linea Bank', searches: 364, plan: 'Pro' },
-    { rank: 6, name: 'Forge Studios', searches: 218, plan: 'Pro' },
-  ]);
-
-  ngOnInit() {}
+  ngOnInit(): void {
+    this.aiService.load();
+  }
 }

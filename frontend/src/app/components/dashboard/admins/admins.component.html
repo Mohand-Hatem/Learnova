@@ -118,6 +118,24 @@
               Admin
             </span>
 
+            <!-- Token usage -->
+            <div class="min-w-[120px]">
+              <p class="mb-1 text-[11px] font-medium text-text-secondary">
+                {{ formatTokens(admin.tokenUsage) }} / {{ formatTokens(admin.maxToken) }}
+              </p>
+              <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                <div
+                  class="h-full rounded-full transition-all duration-300"
+                  [ngClass]="
+                    admin.plan === 'Free'
+                      ? 'bg-slate-400 dark:bg-slate-500'
+                      : 'bg-linear-to-r from-brand to-info'
+                  "
+                  [style.width]="getTokenPct(admin) + '%'"
+                ></div>
+              </div>
+            </div>
+
             <!-- Joined date -->
             <span class="flex items-center gap-1 text-xs text-text-muted">
               <lucide-angular [img]="icons.Calendar" size="12" class="shrink-0"></lucide-angular>

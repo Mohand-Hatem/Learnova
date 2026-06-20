@@ -69,13 +69,48 @@
         <!-- Bell (placeholder) -->
         <button
           type="button"
+          data-notification-trigger
           class="relative inline-flex h-9 w-9 items-center justify-center rounded-xl text-text-secondary transition-colors hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300"
           aria-label="Notifications"
+          [attr.aria-expanded]="notificationsOpen()"
+          (click)="toggleNotifications($event)"
         >
           <lucide-angular [img]="icons.Bell" size="18"></lucide-angular>
           <!-- Notification dot -->
-          <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-bg-primary"></span>
+          @if (unreadNotifications() > 0) {
+            <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-bg-primary"></span>
+          }
         </button>
+        @if (notificationsOpen()) {
+          <div
+            data-notification-menu
+            class="absolute right-4 top-17 z-1030 w-88 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-theme bg-bg-card shadow-xl md:right-6"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="flex items-center justify-between border-b border-theme px-4 py-3">
+              <p class="text-sm font-semibold text-text-primary">Session notifications</p>
+              <span class="rounded-full bg-bg-secondary px-2 py-0.5 text-[0.65rem] font-semibold text-text-secondary">
+                {{ sessionNotifications().length }}
+              </span>
+            </div>
+            @if (sessionNotifications().length > 0) {
+              <div class="max-h-80 overflow-y-auto p-2">
+                @for (item of sessionNotifications(); track item.id) {
+                  <div class="rounded-xl px-3 py-2 transition hover:bg-bg-secondary">
+                    <p class="text-sm text-text-primary">{{ item.message }}</p>
+                    <p class="mt-0.5 text-[0.65rem] text-text-muted">
+                      {{ item.createdAt | date: 'hh:mm a' }}
+                    </p>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="px-4 py-6 text-center text-sm text-text-muted">
+                No actions in this session yet.
+              </div>
+            }
+          </div>
+        }
 
         <!-- Theme toggle -->
         <button
@@ -133,8 +168,8 @@
 
     <!-- ── Page content ──────────────────────────────────── -->
     <main class="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-4 md:p-6">
-      <div [@routeFade]="prepareRoute(outlet)" style="min-height:0">
-        <router-outlet #outlet="outlet" />
+      <div [@routeFade]="currentUrl()" style="min-height:0">
+        <router-outlet />
       </div>
     </main>
 

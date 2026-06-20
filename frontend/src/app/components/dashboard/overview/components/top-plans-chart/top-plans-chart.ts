@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
 import type { TopPlan } from '../../dashboard.models';
-import { TOP_PLANS } from '../../dashboard.models';
 import { ThemeService } from '../../../../../services/theme.service';
 
 @Component({
@@ -14,10 +13,11 @@ import { ThemeService } from '../../../../../services/theme.service';
   host: { class: 'block h-full' },
 })
 export class TopPlansChart {
-  readonly plans = input<TopPlan[]>(TOP_PLANS);
-  readonly total = input<number>(842);
+  readonly plans = input.required<TopPlan[]>();
+  readonly total = input<number>(0);
 
   private readonly themeService = inject(ThemeService);
+  readonly hasData = computed(() => this.plans().length > 0);
 
   readonly chartOptions = computed((): EChartsOption => {
     const dark      = this.themeService.isDark();

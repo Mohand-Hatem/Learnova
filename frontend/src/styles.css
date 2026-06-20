@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'ngx-toastr/toastr';
 @custom-variant dark (&:where(.dark, .dark *));
 
 html {
@@ -128,4 +129,111 @@ body {
   border: 1px solid var(--color-border);
   border-radius: 1rem;
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Base toast */
+.toast-container .ngx-toastr {
+  width: 300px;
+  font-size: 14px;
+  border-radius: 0.9rem;
+  padding: 14px 16px 14px 44px;
+  background: #fff;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-left-width: 5px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  position: relative;
+  background-image: none !important;
+}
+
+.toast-container .ngx-toastr .toast-title,
+.toast-container .ngx-toastr .toast-message {
+  color: var(--color-text-primary);
+}
+
+.dark .toast-container .ngx-toastr,
+.dark .toast-container .ngx-toastr .toast-title,
+.dark .toast-container .ngx-toastr .toast-message,
+.dark .toast-container .ngx-toastr .toast-close-button {
+  color: #000;
+}
+
+.toast-container .ngx-toastr::before {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+/* Success */
+.toast-container .ngx-toastr.toast-success {
+  border-color: var(--color-success);
+}
+
+.toast-container .ngx-toastr.toast-success::before {
+  content: "✓";
+  color: var(--color-success);
+}
+
+/* Error */
+.toast-container .ngx-toastr.toast-error {
+  border-color: var(--color-error);
+}
+
+.toast-container .ngx-toastr.toast-error::before {
+  content: "✕";
+  color: var(--color-error);
+}
+
+/* Warning */
+.toast-container .ngx-toastr.toast-warning {
+  border-color: var(--color-warning);
+}
+
+.toast-container .ngx-toastr.toast-warning::before {
+  content: "!";
+  color: var(--color-warning);
+}
+
+/* Info */
+.toast-container .ngx-toastr.toast-info {
+  border-color: var(--color-info);
+}
+
+.toast-container .ngx-toastr.toast-info::before {
+  content: "i";
+  color: var(--color-info);
+}
+
+@keyframes usersMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes usersPlanSubmenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.users-menu-enter {
+  animation: usersMenuIn 180ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  transform-origin: top right;
+}
+
+.users-plan-submenu-enter {
+  animation: usersPlanSubmenuIn 160ms ease-out;
 }

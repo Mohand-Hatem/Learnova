@@ -2,7 +2,6 @@ import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ExternalLink } from 'lucide-angular';
 import type { AiHealthItem, TopCompany } from '../../dashboard.models';
-import { AI_HEALTH, TOP_COMPANIES } from '../../dashboard.models';
 
 @Component({
   selector: 'app-ai-health-panel',
@@ -12,9 +11,8 @@ import { AI_HEALTH, TOP_COMPANIES } from '../../dashboard.models';
   host: { class: 'block h-full' },
 })
 export class AiHealthPanel {
-  readonly items = input<AiHealthItem[]>(AI_HEALTH);
-  readonly isLive = input(false);
-  readonly companies = input<TopCompany[]>(TOP_COMPANIES);
+  readonly items = input<AiHealthItem[]>([]);
+  readonly companies = input.required<TopCompany[]>();
 
   readonly icons = { ExternalLink };
 }
