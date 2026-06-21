@@ -112,6 +112,7 @@ export class AdminLayout {
   readonly sidebarOpen = signal(false);
   readonly isDesktop   = signal(false);
   readonly notificationsOpen = signal(false);
+  private resizeTickTimers: number[] = [];
 
   constructor() {
     // Close mobile sidebar on navigation
@@ -150,6 +151,7 @@ export class AdminLayout {
 
       this.destroyRef.onDestroy(() => {
         window.removeEventListener('resize', onResize);
+        this.clearResizeTickTimers();
         document.body.style.overflow = '';
       });
     }
@@ -162,13 +164,37 @@ export class AdminLayout {
 
   private notifyContentResize(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+    this.clearResizeTickTimers();
     requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
-    window.setTimeout(() => window.dispatchEvent(new Event('resize')), 320);
+    [120, 260, 380, 520].forEach((delay) => {
+      const timer = window.setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+      }, delay);
+      this.resizeTickTimers.push(timer);
+    });
+  }
+
+  private clearResizeTickTimers(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.resizeTickTimers.forEach((timer) => window.clearTimeout(timer));
+    this.resizeTickTimers = [];
+  }
+
+  onMainLayoutTransitionEnd(event: TransitionEvent): void {
+    if (!event.propertyName) return;
+    if (
+      event.propertyName.includes('margin') ||
+      event.propertyName.includes('width') ||
+      event.propertyName.includes('max-width')
+    ) {
+      this.notifyContentResize();
+    }
   }
 
   closeSidebarOnMobile(): void {
     if (this.isDesktop()) return;
     this.sidebarOpen.set(false);
+    this.notifyContentResize();
   }
 
   closeSidebar(): void {

@@ -103,7 +103,12 @@
       <div class="rounded-2xl border border-theme bg-white p-6 shadow-sm dark:bg-bg-card">
         <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
           <h6 class="text-sm font-semibold text-text-primary">Account</h6>
-          <span class="rounded-full px-3 py-1 text-xs font-bold" [class]="planBadge(a.plan)">{{ a.plan }}</span>
+          <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold" [class]="planBadge(a.plan)">
+            @if (a.plan === 'Unlimited') {
+              <lucide-angular [img]="icons.Star" size="12"></lucide-angular>
+            }
+            {{ a.plan }}
+          </span>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -125,7 +130,8 @@
           </div>
           <div class="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700/60">
             <div
-              class="h-full rounded-full bg-linear-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+              class="h-full rounded-full transition-all duration-700"
+              [class]="a.plan === 'Unlimited' ? 'bg-linear-to-r from-amber-400 via-yellow-400 to-amber-500' : 'bg-linear-to-r from-indigo-500 to-violet-500'"
               [style.width.%]="getTokenPct(a)"
             ></div>
           </div>

@@ -47,6 +47,7 @@ const formatUser = async (user) => ({
   maxToken: user.maxToken,
   tokenUsage: user.tokenUsage,
   googleId: user.googleId,
+  lastDashboardLoginAt: user.lastDashboardLoginAt,
   cvs: await CV.find({ userId: user._id }).sort({ createdAt: -1 }),
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
@@ -109,6 +110,9 @@ export const login = asyncHandler(async (req, res, next) => {
     });
   }
 
+  user.lastDashboardLoginAt = new Date();
+  await user.save();
+
   const { accessToken, refreshToken } = generateTokens(user);
 
   setAuthCookies(res, accessToken, refreshToken);
@@ -145,6 +149,9 @@ export const refreshAccessToken = asyncHandler(async (req, res, next) => {
         message: "Invalid refresh token",
       });
     }
+
+    user.lastDashboardLoginAt = new Date();
+    await user.save();
 
     const { accessToken, refreshToken } = generateTokens(user);
 
@@ -238,6 +245,9 @@ export const resetPassword = asyncHandler(async (req, res) => {
 });
 
 export const googleAuthCallback = asyncHandler(async (req, res, next) => {
+  req.user.lastDashboardLoginAt = new Date();
+  await req.user.save();
+
   const { accessToken, refreshToken } = generateTokens(req.user);
 
   setAuthCookies(res, accessToken, refreshToken);

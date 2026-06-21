@@ -7,7 +7,9 @@ export const updateRoleSchema = z.object({
 });
 
 export const updatePlanSchema = z.object({
-  plan: z.enum(["Free", "Pro", "Enterprise"], {
-    errorMap: () => ({ message: 'Plan must be "Free", "Pro", or "Enterprise"' }),
+  plan: z.enum(["Free", "Pro", "Enterprise", "Unlimited"], {
+    errorMap: () => ({
+      message: 'Plan must be "Free", "Pro", "Enterprise", or "Unlimited"',
+    }),
   }),
 });

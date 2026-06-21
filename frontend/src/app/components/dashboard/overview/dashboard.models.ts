@@ -9,6 +9,7 @@ export interface StatCard {
   sparkline?: number[];
   icon: string;
   color?: 'indigo' | 'emerald' | 'cyan' | 'violet' | 'amber';
+  miniChartType?: 'line' | 'pie' | 'bar' | 'scatter';
   progressValue?: number;
 }
 

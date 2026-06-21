@@ -126,8 +126,17 @@ export const userUpdateSubscription = asyncHandler(async (req, res) => {
     });
   }
 
-  user.plan = plan;
-  user.maxToken = PLANS[plan].maxToken;
+  if (user.role === "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Admin plan is locked to Unlimited and cannot be changed",
+    });
+  }
+
+  const targetPlan = plan;
+
+  user.plan = targetPlan;
+  user.maxToken = PLANS[targetPlan].maxToken;
 
   await user.save();
 
@@ -144,6 +153,13 @@ export const payWithPaymob = asyncHandler(async (req, res) => {
 
   if (!PLANS[plan]) {
     return res.status(400).json({ success: false, message: "Invalid plan" });
+  }
+
+  if (user.role === "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Admin plan is locked to Unlimited and cannot be changed",
+    });
   }
 
   const amount = PLANS[plan].price;
@@ -201,9 +217,12 @@ export const paymobWebhook = asyncHandler(async (req, res) => {
 
     const foundUser = await User.findById(payment.user);
     if (foundUser) {
-      foundUser.plan = payment.plan;
+      const targetPlan =
+        foundUser.role === "admin" ? PLANS.Unlimited.name : payment.plan;
+
+      foundUser.plan = targetPlan;
       foundUser.tokenUsage = 0;
-      foundUser.maxToken = PLANS[payment.plan].maxToken;
+      foundUser.maxToken = PLANS[targetPlan].maxToken;
       await foundUser.save();
     }
   } else {

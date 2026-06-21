@@ -216,6 +216,7 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
         free: plans["Free"] ?? 0,
         pro: plans["Pro"] ?? 0,
         enterprise: plans["Enterprise"] ?? 0,
+        unlimited: plans["Unlimited"] ?? 0,
       },
 
       // ── CV status breakdown
@@ -333,7 +334,12 @@ export const updateUserRole = asyncHandler(async (req, res, next) => {
     });
   }
 
-  const user = await User.findByIdAndUpdate(id, { role }, { new: true }).select(
+  const updateData =
+    role === "admin"
+      ? { role, plan: PLANS.Unlimited.name, maxToken: PLANS.Unlimited.maxToken }
+      : { role };
+
+  const user = await User.findByIdAndUpdate(id, updateData, { new: true }).select(
     "-password",
   );
 
@@ -592,7 +598,6 @@ export const updateUserPlan = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const { plan } = req.body;
 
-  const maxToken = PLANS[plan].maxToken;
   const before = await User.findById(id).select("-password");
   if (!before) {
     return res.status(404).json({
@@ -601,9 +606,19 @@ export const updateUserPlan = asyncHandler(async (req, res, next) => {
     });
   }
 
+  if (before.role === "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Admin plan is locked to Unlimited and cannot be changed",
+    });
+  }
+
+  const targetPlan = plan;
+  const maxToken = PLANS[targetPlan].maxToken;
+
   const user = await User.findByIdAndUpdate(
     id,
-    { plan, maxToken },
+    { plan: targetPlan, maxToken },
     { new: true },
   ).select("-password");
 
@@ -617,7 +632,7 @@ export const updateUserPlan = asyncHandler(async (req, res, next) => {
   await logAdminAction(req, {
     action: "update_user_plan",
     targetUser: user,
-    details: `Plan changed from ${before.plan} to ${plan}`,
+    details: `Plan changed from ${before.plan} to ${targetPlan}`,
   });
 
   res.status(200).json({

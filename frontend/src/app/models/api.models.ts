@@ -21,6 +21,7 @@ export interface ApiOverviewMetric {
 
 export interface ApiOverviewStats {
   totalUsers: ApiOverviewMetric;
+  totalAdmins: ApiOverviewMetric;
   totalCompanies: ApiOverviewMetric;
   totalCVs: ApiOverviewMetric;
   avgAtsScore: { value: number };

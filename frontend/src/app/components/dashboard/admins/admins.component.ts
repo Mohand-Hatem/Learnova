@@ -2,7 +2,6 @@ import {
   Component,
   computed,
   effect,
-  HostListener,
   inject,
   OnInit,
   signal,
@@ -20,9 +19,8 @@ import {
   FileText,
   FileX,
   Eye,
-  ArrowUp,
   ChevronDown,
-  Check,
+  Star,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-angular';
@@ -30,7 +28,6 @@ import { AdminService } from '../../../services/admin.service';
 import { ToastrService } from 'ngx-toastr';
 import { SessionNotificationsService } from '../../../services/session-notifications.service';
 import { USERS_DIALOG_PANEL } from '../users/users-theme';
-import { PlanUpdateDialogComponent } from '../users/plan-update-dialog/plan-update-dialog.component';
 import { CreateAccountDialogData, CreateAccountPayload, CreateAdminDialogComponent } from './create-admin-dialog/create-admin-dialog.component';
 
 @Component({
@@ -53,22 +50,13 @@ export class AdminsComponent implements OnInit {
   readonly search    = signal('');
   readonly planFilter = signal('');
   readonly hasCvFilter = signal('');
-  readonly planDraft = signal<Record<string, string>>({});
-  readonly upgradingId = signal<string | null>(null);
   readonly creatingAdmin = signal(false);
-  readonly openPlanMenuId = signal<string | null>(null);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
-  readonly plans = ['Free', 'Pro', 'Enterprise'];
-  readonly planMeta: Record<string, { subtitle: string; tokenLabel: string }> = {
-    Free: { subtitle: 'Basic access for getting started', tokenLabel: '1,000 tokens' },
-    Pro: { subtitle: 'Higher usage for active candidates', tokenLabel: '2,000 tokens' },
-    Enterprise: { subtitle: 'Maximum allowance for heavy usage', tokenLabel: '4,000 tokens' },
-  };
 
   readonly icons = {
-    ShieldCheck, ShieldPlus, Search, RefreshCw, UserX, FileText, FileX, Eye, ArrowUp,
-    ChevronDown, Check, ChevronLeft, ChevronRight,
+    ShieldCheck, ShieldPlus, Search, RefreshCw, UserX, FileText, FileX, Eye,
+    ChevronDown, Star, ChevronLeft, ChevronRight,
   };
 
   readonly admins = computed(() => {
@@ -175,107 +163,41 @@ export class AdminsComponent implements OnInit {
   }
 
   currentPlanChoice(admin: any): string {
-    return this.planDraft()[admin._id] ?? admin.plan;
+    return admin?.role === 'admin' ? 'Unlimited' : admin.plan;
   }
 
-  setPlanChoice(adminId: string, plan: string): void {
-    this.planDraft.update((draft) => ({ ...draft, [adminId]: plan }));
-  }
-
-  getPlanSubtitle(plan: string): string {
-    return this.planMeta[plan]?.subtitle ?? 'Plan option';
-  }
-
-  getPlanTokenLabel(plan: string): string {
-    return this.planMeta[plan]?.tokenLabel ?? '—';
+  isUnlimitedAdmin(admin: any): boolean {
+    return admin?.role === 'admin' || this.currentPlanChoice(admin) === 'Unlimited';
   }
 
   getPlanTextClass(plan: string): string {
+    if (plan === 'Unlimited') return 'text-amber-700 dark:text-amber-300';
     if (plan === 'Enterprise') return 'text-purple-700 dark:text-purple-300';
     if (plan === 'Pro') return 'text-emerald-700 dark:text-emerald-300';
     return 'text-blue-700 dark:text-blue-300';
   }
 
-  togglePlanMenu(adminId: string, event: Event): void {
-    event.stopPropagation();
-    this.openPlanMenuId.update((id) => (id === adminId ? null : adminId));
-  }
-
-  closePlanMenu(): void {
-    this.openPlanMenuId.set(null);
-  }
-
-  selectPlanFromMenu(adminId: string, plan: string, event: Event): void {
-    event.stopPropagation();
-    this.setPlanChoice(adminId, plan);
-    this.closePlanMenu();
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.openPlanMenuId()) return;
-    const target = event.target as HTMLElement;
-    if (
-      target.closest('[data-admin-plan-menu]') ||
-      target.closest('[data-admin-plan-trigger]')
-    ) {
-      return;
+  getPlanBadgeClass(plan: string): string {
+    if (plan === 'Unlimited') {
+      return 'bg-amber-100 text-amber-800 dark:bg-amber-500/25 dark:text-amber-200';
     }
-    this.closePlanMenu();
-  }
-
-  canUpgrade(admin: any): boolean {
-    return this.currentPlanChoice(admin) !== admin.plan;
+    if (plan === 'Enterprise') {
+      return 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300';
+    }
+    if (plan === 'Pro') {
+      return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300';
+    }
+    return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300';
   }
 
   requestUpgradePlan(admin: any): void {
+    if (admin?.role === 'admin') {
+      this.toastr.info('Admin plan is locked to Unlimited.', 'Plan locked');
+      return;
+    }
     const newPlan = this.currentPlanChoice(admin);
     if (newPlan === admin.plan) return;
-
-    const dialogRef = this.dialog.open(PlanUpdateDialogComponent, {
-      width: '420px',
-      panelClass: USERS_DIALOG_PANEL,
-      data: {
-        user: admin,
-        newPlan,
-        isEnterprise: newPlan === 'Enterprise',
-      },
-    });
-
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      if (!confirmed) return;
-      this.upgradePlan(admin);
-    });
-  }
-
-  private upgradePlan(admin: any): void {
-    const newPlan = this.currentPlanChoice(admin);
-    if (newPlan === admin.plan) return;
-
-    this.upgradingId.set(admin._id);
-    this.adminService.updatePlan(admin._id, newPlan).subscribe({
-      next: (res) => {
-        const updatedMaxToken = res?.data?.maxToken;
-        this.allUsers.update((list) =>
-          list.map((u) =>
-            u._id === admin._id
-              ? { ...u, plan: newPlan, maxToken: updatedMaxToken ?? u.maxToken }
-              : u,
-          ),
-        );
-        this.planDraft.update((draft) => ({ ...draft, [admin._id]: newPlan }));
-        this.toastr.success(`${this.getName(admin)} plan upgraded to ${newPlan}.`, 'Plan updated');
-        this.sessionNotifications.add(
-          `Admin changed plan for ${this.getName(admin)} to ${newPlan}`,
-          'info',
-        );
-        this.upgradingId.set(null);
-      },
-      error: (err) => {
-        this.toastr.error(err?.error?.message || 'Could not upgrade admin plan.', 'Update failed');
-        this.upgradingId.set(null);
-      },
-    });
+    this.toastr.info('Admin plan is locked to Unlimited.', 'Plan locked');
   }
 
   getName(user: any): string {
@@ -303,6 +225,7 @@ export class AdminsComponent implements OnInit {
   }
 
   getTokenPct(user: any): number {
+    if (this.isUnlimitedAdmin(user)) return 0;
     const tokenLimit = Number(user?.maxToken) || 0;
     if (!tokenLimit) return 0;
     const usage = Number(user?.tokenUsage) || 0;
@@ -312,6 +235,18 @@ export class AdminsComponent implements OnInit {
   formatTokens(value: unknown): string {
     const tokens = Number(value) || 0;
     return tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}k` : String(tokens);
+  }
+
+  formatLastLogin(value: unknown): string {
+    if (!value) return 'Never';
+    const date = new Date(value as string);
+    if (Number.isNaN(date.getTime())) return 'Never';
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
   isDefaultAvatar(url: string): boolean {

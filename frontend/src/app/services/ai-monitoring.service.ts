@@ -89,6 +89,12 @@ export class AiMonitoringService {
 
   private mapStatCards(data: ApiAiStatsPayload): StatCard[] {
     const stats = data.stats;
+    const monthly = Array.isArray(data.charts?.monthly) ? [...data.charts.monthly] : [];
+    const orderedMonthly = monthly.sort((a, b) => a._id.localeCompare(b._id));
+    const sparkCalls = orderedMonthly.map((m) => Number(m.aiCalls) || 0).slice(-12);
+    const sparkTokens = orderedMonthly.map((m) => Number(m.totalTokens) || 0).slice(-12);
+    const sparkResponse = orderedMonthly.map((m) => Number(m.avgResponseTimeMs) || 0).slice(-12);
+    const sparkSuccess = orderedMonthly.map((m) => Number(m.successRate) || 0).slice(-12);
     const trend = (value: number) => ({
       trendPercent: `${value > 0 ? '+' : ''}${value}%`,
       trendUp: value >= 0,
@@ -99,29 +105,37 @@ export class AiMonitoringService {
         title: 'AI Calls',
         value: this.formatCompact(stats.totalAiCalls.value),
         ...trend(stats.totalAiCalls.changePercent),
+        sparkline: sparkCalls.length ? sparkCalls : [8, 9, 10, 12, 13, 14, 15, 16, 17, 18],
         icon: 'activity',
         color: 'indigo',
+        miniChartType: 'line',
       },
       {
         title: 'Token Spend',
         value: this.formatCompact(stats.tokenSpend.value),
         ...trend(stats.tokenSpend.changePercent),
+        sparkline: sparkTokens.length ? sparkTokens : [24, 28, 30, 35, 34, 38, 42, 40, 45, 48],
         icon: 'zap',
         color: 'cyan',
+        miniChartType: 'bar',
       },
       {
         title: 'Avg Response Time',
         value: this.formatDuration(stats.avgResponseTime.valueMs),
         ...trend(-stats.avgResponseTime.changePercent),
+        sparkline: sparkResponse.length ? sparkResponse : [900, 860, 810, 780, 740, 710, 690, 660, 640, 620],
         icon: 'clock',
         color: 'violet',
+        miniChartType: 'scatter',
       },
       {
         title: 'Success Rate',
         value: `${(Number(stats.successRate.value) || 0).toFixed(1)}%`,
         ...trend(stats.successRate.changePercent),
+        sparkline: sparkSuccess.length ? sparkSuccess : [78, 80, 81, 83, 84, 86, 87, 88, 89, 91],
         icon: 'shield',
         color: 'emerald',
+        miniChartType: 'pie',
       },
     ];
   }

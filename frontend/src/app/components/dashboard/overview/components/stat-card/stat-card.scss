@@ -1,3 +1,23 @@
 :host {
   display: block;
 }
+
+.stat-card__chart {
+  opacity: 0.92;
+  animation: breatheChart 4.8s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+:host-context(.dark) .stat-card__chart {
+  opacity: 0.86;
+}
+
+@keyframes breatheChart {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1px) scale(1.01);
+  }
+}

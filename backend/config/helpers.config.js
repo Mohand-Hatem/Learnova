@@ -14,6 +14,11 @@ export const PLANS = {
     maxToken: 4000,
     price: 1000,
   },
+  Unlimited: {
+    name: "Unlimited",
+    maxToken: 999999,
+    price: 0,
+  },
 };
 
 export const IMAGE_FORMATS = ["jpg", "jpeg", "png"];

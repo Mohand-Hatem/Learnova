@@ -132,17 +132,17 @@
               <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[12%]">
                 Plan
               </th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[10%]">
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[10%] whitespace-nowrap">
                 Search Count
               </th>
               <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[22%]">
                 Tokens
               </th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[13%]">
-                Joined
-              </th>
               <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[10%]">
                 Status
+              </th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[13%] whitespace-nowrap">
+                Joined
               </th>
               <th class="w-[5%]"></th>
             </tr>
@@ -201,10 +201,6 @@
                   </div>
                 </td>
 
-                <td class="px-5 py-4 text-[12px] text-text-muted font-medium">
-                  {{ c.createdAt | date: 'MMM dd, yyyy' }}
-                </td>
-
                 <td class="px-5 py-4">
                   <span
                     class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
@@ -216,6 +212,10 @@
                     ></span>
                     {{ c.isBlocked ? 'Banned' : 'Active' }}
                   </span>
+                </td>
+
+                <td class="px-5 py-4 text-[12px] text-text-muted font-medium whitespace-nowrap">
+                  {{ c.createdAt | date: 'MMM dd, yyyy' }}
                 </td>
 
                 <td class="px-4 py-4">

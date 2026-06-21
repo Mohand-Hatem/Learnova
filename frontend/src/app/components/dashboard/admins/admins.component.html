@@ -36,6 +36,7 @@
         (change)="planFilter.set($any($event.target).value)"
       >
         <option value="">Plan (All)</option>
+        <option value="Unlimited">Unlimited</option>
         <option value="Free">Free</option>
         <option value="Pro">Pro</option>
         <option value="Enterprise">Enterprise</option>
@@ -105,22 +106,22 @@
     <!-- Admin list -->
     @else {
       <div class="overflow-x-auto overflow-y-visible">
-        <table class="w-full min-w-[860px] text-sm">
+        <table class="w-full min-w-[760px] xl:min-w-full text-sm">
           <thead>
             <tr class="border-b border-theme bg-bg-secondary">
-              <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              <th class="px-5 py-3 align-middle text-left text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 Admin
               </th>
-              <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              <th class="px-5 py-3 align-middle text-left text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 Plan
               </th>
-              <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              <th class="px-5 py-3 align-middle text-left text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 CV
               </th>
-              <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              <th class="px-5 py-3 align-middle text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-text-secondary">
                 Max Tokens
               </th>
-              <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              <th class="px-5 py-3 align-middle text-right text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 Actions
               </th>
             </tr>
@@ -128,7 +129,7 @@
           <tbody>
             @for (admin of paginatedAdmins(); track admin._id; let i = $index) {
               <tr class="border-b border-theme transition-colors hover:bg-bg-secondary/70 dark:hover:bg-bg-primary">
-                <td class="px-5 py-4">
+                <td class="px-5 py-4 align-middle">
                   <div class="flex min-w-0 items-center gap-3">
                     @if (admin.avatar && !isDefaultAvatar(admin.avatar)) {
                       <img
@@ -151,161 +152,67 @@
                   </div>
                 </td>
 
-                <td class="px-5 py-4">
-                  <div class="relative">
-                    <button
-                      type="button"
-                      data-admin-plan-trigger
-                      class="inline-flex h-8 w-[170px] cursor-pointer items-center justify-between rounded-lg border border-theme bg-bg-card px-2.5 text-left transition-colors hover:border-violet-300 hover:bg-violet-50/40 dark:hover:border-violet-500/60 dark:hover:bg-violet-950/20"
-                      (click)="togglePlanMenu(admin._id, $event)"
-                      [attr.aria-expanded]="openPlanMenuId() === admin._id"
+                <td class="px-5 py-4 align-middle">
+                  <div class="inline-flex h-8 items-center gap-2 rounded-lg border border-theme bg-bg-card px-2.5">
+                    <span
+                      class="truncate text-[12px] font-semibold"
+                      [ngClass]="getPlanTextClass(currentPlanChoice(admin))"
                     >
-                      <span class="min-w-0 flex items-center gap-1.5">
-                        <span
-                          class="truncate text-[12px] font-semibold"
-                          [ngClass]="getPlanTextClass(currentPlanChoice(admin))"
-                        >
-                          {{ currentPlanChoice(admin) }}
-                        </span>
-                        <span
-                          class="truncate rounded-full px-1.5 py-0.5 text-[9px] font-semibold"
-                          [ngClass]="
-                            currentPlanChoice(admin) === 'Enterprise'
-                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'
-                              : currentPlanChoice(admin) === 'Pro'
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                                : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
-                          "
-                        >
-                          Current plan
-                        </span>
-                      </span>
-                      <lucide-angular
-                        [img]="icons.ChevronDown"
-                        size="13"
-                        class="shrink-0 text-text-muted transition-transform"
-                        [class.rotate-180]="openPlanMenuId() === admin._id"
-                      ></lucide-angular>
-                    </button>
-
-                    @if (openPlanMenuId() === admin._id) {
-                      <div
-                        data-admin-plan-menu
-                        class="absolute left-0 top-[calc(100%+6px)] z-1060 max-h-80 w-[260px] overflow-y-auto overscroll-contain rounded-xl border border-theme bg-white p-2 shadow-lg users-menu-enter dark:bg-bg-card"
-                        (click)="$event.stopPropagation()"
-                      >
-                        @for (plan of plans; track plan) {
-                          <button
-                            type="button"
-                            class="mb-1 w-full cursor-pointer rounded-lg border px-2.5 py-2 text-left transition-colors last:mb-0"
-                            [disabled]="plan === currentPlanChoice(admin)"
-                            [ngClass]="
-                              plan === currentPlanChoice(admin)
-                                ? 'cursor-not-allowed border-violet-300 bg-violet-50/80 dark:border-violet-500/50 dark:bg-violet-950/30'
-                                : 'border-theme bg-bg-primary hover:border-violet-300 hover:bg-violet-50/70 dark:hover:border-violet-500/60 dark:hover:bg-violet-950/30'
-                            "
-                            (click)="selectPlanFromMenu(admin._id, plan, $event)"
-                          >
-                            <div class="flex items-start justify-between gap-3">
-                              <div class="min-w-0">
-                                <p
-                                  class="truncate text-[13px] font-semibold"
-                                  [ngClass]="
-                                    plan === currentPlanChoice(admin)
-                                      ? getPlanTextClass(plan)
-                                      : 'text-text-primary'
-                                  "
-                                >
-                                  {{ plan }}
-                                </p>
-                                <p class="mt-0.5 text-[10px] leading-4 text-text-muted">
-                                  {{ getPlanSubtitle(plan) }}
-                                </p>
-                              </div>
-                              <div class="flex shrink-0 items-center gap-2">
-                                <span
-                                  class="rounded-full px-1.5 py-0.5 text-[9px] font-semibold"
-                                  [ngClass]="
-                                    plan === 'Enterprise'
-                                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'
-                                      : plan === 'Pro'
-                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                                        : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
-                                  "
-                                >
-                                  {{ getPlanTokenLabel(plan) }}
-                                </span>
-                                @if (plan === currentPlanChoice(admin)) {
-                                  <lucide-angular
-                                    [img]="icons.Check"
-                                    size="13"
-                                    [ngClass]="getPlanTextClass(plan)"
-                                  ></lucide-angular>
-                                }
-                              </div>
-                            </div>
-                          </button>
-                        }
-                      </div>
-                    }
+                      {{ currentPlanChoice(admin) }}
+                    </span>
+                    <span
+                      class="inline-flex items-center gap-1 truncate rounded-full px-1.5 py-0.5 text-[9px] font-semibold"
+                      [ngClass]="getPlanBadgeClass(currentPlanChoice(admin))"
+                    >
+                      <lucide-angular [img]="icons.Star" size="9"></lucide-angular>
+                      Locked
+                    </span>
                   </div>
                 </td>
 
-                <td class="px-5 py-4">
+                <td class="px-5 py-4 align-middle">
                   @if (hasCv(admin)) {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                    <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
                       <lucide-angular [img]="icons.FileText" size="11"></lucide-angular>
                       {{ cvCount(admin) }} CV{{ cvCount(admin) > 1 ? 's' : '' }}
                     </span>
                   } @else {
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-700/40 dark:text-slate-400">
+                    <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-700/40 dark:text-slate-400">
                       <lucide-angular [img]="icons.FileX" size="11"></lucide-angular>
                       No CV
                     </span>
                   }
                 </td>
 
-                <td class="px-5 py-4">
-                  <p class="mb-2 text-[11px] font-medium" [ngClass]="getPlanTextClass(admin.plan)">
-                    {{ formatTokens(admin.tokenUsage) }} / {{ formatTokens(admin.maxToken) }}
-                  </p>
-                  <div class="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                    <div
-                      class="h-full rounded-full transition-all duration-300"
-                      [ngClass]="
-                        admin.plan === 'Free'
-                          ? 'bg-slate-400 dark:bg-slate-500'
-                          : 'bg-linear-to-r from-brand to-info'
-                      "
-                      [style.width]="getTokenPct(admin) + '%'"
-                    ></div>
+                <td class="px-5 py-4 align-middle text-center">
+                  <div class="inline-flex items-center justify-center whitespace-nowrap rounded-lg border border-theme bg-bg-card px-2.5 py-1">
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold leading-none text-amber-700 dark:text-amber-300">
+                      <span
+                        class="inline-flex items-center justify-center text-[16px] leading-none font-extrabold text-transparent bg-linear-to-r from-amber-300 via-yellow-400 to-amber-600 bg-clip-text dark:from-amber-300 dark:via-yellow-300 dark:to-amber-500"
+                      >
+                        ∞
+                      </span>
+                      <span class="inline-flex items-center leading-none">Infinite</span>
+                    </span>
                   </div>
                 </td>
 
-                <td class="px-5 py-4">
-                  <div class="flex items-center justify-end gap-2">
+                <td class="px-5 py-4 align-middle">
+                  <div class="flex items-center justify-end gap-2 whitespace-nowrap">
                     <button
                       type="button"
-                      class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-theme bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300"
+                      class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border border-theme bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300"
                       (click)="openDetail(admin._id)"
                     >
                       <lucide-angular [img]="icons.Eye" size="12"></lucide-angular>
                       View profile
                     </button>
-                    <button
-                      type="button"
-                      class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
-                      [disabled]="!canUpgrade(admin) || upgradingId() === admin._id"
-                      [ngClass]="
-                        !canUpgrade(admin) || upgradingId() === admin._id
-                          ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
-                          : 'bg-indigo-600 text-white hover:bg-indigo-500'
-                      "
-                      (click)="requestUpgradePlan(admin)"
+                    <span
+                      class="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg border border-theme bg-bg-card px-2 py-1 text-[10px] font-medium text-text-secondary"
                     >
-                      <lucide-angular [img]="icons.ArrowUp" size="12"></lucide-angular>
-                      {{ upgradingId() === admin._id ? 'Updating...' : 'Upgrade plan' }}
-                    </button>
+                      Last login:
+                      <span class="text-text-primary text-[10px]">{{ formatLastLogin(admin.lastDashboardLoginAt) }}</span>
+                    </span>
                   </div>
                 </td>
               </tr>

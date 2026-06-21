@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Clock,
   Ban,
+  Star,
 } from 'lucide-angular';
 import { AdminService } from '../../../../services/admin.service';
 
@@ -48,7 +49,7 @@ export class AdminDetailComponent implements OnInit {
 
   readonly icons = {
     ChevronLeft, ShieldCheck, Mail, Calendar, FileText, FileX,
-    ExternalLink, CreditCard, Zap, CheckCircle, AlertTriangle, Clock, Ban,
+    ExternalLink, CreditCard, Zap, CheckCircle, AlertTriangle, Clock, Ban, Star,
   };
 
   ngOnInit(): void {
@@ -144,6 +145,7 @@ export class AdminDetailComponent implements OnInit {
   }
 
   planBadge(plan: string): string {
+    if (plan === 'Unlimited') return 'bg-amber-100 dark:bg-amber-500/25 text-amber-800 dark:text-amber-200';
     if (plan === 'Enterprise') return 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300';
     if (plan === 'Pro')        return 'bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300';
     return 'bg-slate-100 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300';

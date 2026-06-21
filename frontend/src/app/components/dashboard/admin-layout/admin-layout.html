@@ -19,6 +19,7 @@
   <!-- Main column (shifts right when sidebar open on desktop) -->
   <div
     class="box-border flex min-h-screen min-w-0 w-full max-w-full flex-col bg-bg-secondary transition-[margin,width,max-width] duration-300 ease-out"
+    (transitionend)="onMainLayoutTransitionEnd($event)"
     [ngClass]="
       sidebarOpen() && isDesktop()
         ? 'lg:ml-[280px] lg:w-[calc(100%-280px)] lg:max-w-[calc(100vw-280px)]'
