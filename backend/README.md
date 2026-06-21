@@ -1,4 +1,4 @@
-# 🚀 Learnova - Full-Controll Authentication & Admin Users Schema
+# 🚀 Learnova - Full-Controll Authentication & Admin Users Schema & AI Powerd
 
 Learnova is a production-ready backend system built with **Node.js**, **Express.js**, and **MongoDB** that provides secure authentication, user management, Google OAuth integration, file uploads, email services, and admin dashboard APIs.
 
