@@ -22,6 +22,7 @@ const app = express();
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(cors({ origin: [
+  "http://localhost:3000",
   "http://localhost:4200",
   "https://learnova-ruby.vercel.app",
   "https://learnova-dashboard-liard.vercel.app",
