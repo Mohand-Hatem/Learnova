@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
-import { generateTokens } from "../utils/generateTokens.js";
+import { generateTokens, verifyToken } from "../utils/generateTokens.js";
 import asyncHandler from "express-async-handler";
 import { sendWelcomeEmail } from "../utils/sendEmail.js";
 import Env from "../config/handelEnv.js";
@@ -167,12 +167,12 @@ export const logout = (req, res) => {
 };
 
 export const getMe = asyncHandler(async (req, res) => {
-  return res.status(200).json({
-    success: true,
-    data: {
-      user: await formatUser(req.user),
-    },
-  });
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json({ success: false, user: null });
+
+  const decoded = verifyToken(token); // your existing JWT verify util
+  const user = await User.findById(decoded.id).select("-password");
+  return res.json({ success: true, user });
 });
 
 export const forgotPassword = asyncHandler(async (req, res) => {
@@ -269,6 +269,6 @@ export const googleAuthCallback = asyncHandler(async (req, res, next) => {
 
   setAuthCookies(res, accessToken, refreshToken);
 
-  return res.redirect(`${Env.MAIN_SITE}/en`);
+return res.redirect(`${Env.MAIN_SITE}/auth/callback`);
 
 });
