@@ -269,6 +269,6 @@ export const googleAuthCallback = asyncHandler(async (req, res, next) => {
 
   setAuthCookies(res, accessToken, refreshToken);
 
-return res.redirect(`${Env.MAIN_SITE}/auth/callback`);
+return res.redirect(`${Env.MAIN_SITE}/en/auth/callback`);
 
 });
