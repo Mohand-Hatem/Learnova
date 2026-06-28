@@ -44,12 +44,13 @@ router.post("/verify-otp", validate(verifyOtpSchema), verifyOtp);
 router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
 
 if (isGoogleAuthEnabled) {
-  router.get(
-    "/google",
-    passport.authenticate("google", {
-      scope: ["profile", "email"],
-    }),
-  );
+router.get("/google", (req, res, next) => {
+  const role = req.query.role === "company" ? "company" : "user";
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    state: role, // saved through Google redirect
+  })(req, res, next);
+});
 
   router.get(
     "/google/callback",

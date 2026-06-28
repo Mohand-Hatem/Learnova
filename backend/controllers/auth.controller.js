@@ -269,11 +269,6 @@ export const googleAuthCallback = asyncHandler(async (req, res, next) => {
 
   setAuthCookies(res, accessToken, refreshToken);
 
-  return res.status(200).json({
-    success: true,
-    message: "Google login successful",
-    data: {
-      user: await formatUser(req.user),
-    },
-  });
+  return res.redirect(`${Env.FRONTEND_URL}/dashboard`);
+
 });
