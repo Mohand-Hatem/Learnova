@@ -19,6 +19,7 @@ import dns from "dns";
 
 dns.setServers(["8.8.8.8","8.8.4.4"])
 const app = express();
+app.set("trust proxy", 1); 
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(cors({ origin: [

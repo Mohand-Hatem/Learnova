@@ -12,7 +12,7 @@ if (isGoogleAuthEnabled) {
     {
       clientID: Env.GOOGLE_ID,
       clientSecret: Env.GOOGLE_SECRET,
-      callbackURL: "/auth/google/callback",
+      callbackURL: `${Env.BACKEND_URL}/auth/google/callback`,
       passReqToCallback: true,  // ← lets you read req.query.state
     },
     async (req, accessToken, refreshToken, profile, done) => {

@@ -138,6 +138,8 @@ export const userUpdateSubscription = asyncHandler(async (req, res) => {
   });
 });
 
+
+//Payment
 export const payWithPaymob = asyncHandler(async (req, res) => {
   const user = req.user;
   const { plan } = req.body;
@@ -213,6 +215,8 @@ export const paymobWebhook = asyncHandler(async (req, res) => {
 
   res.json({ ok: true });
 });
+
+//****** */
 
 export const getMyAiUsage = asyncHandler(async (req, res) => {
   const userId = req.user._id;

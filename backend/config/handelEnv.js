@@ -22,6 +22,7 @@ const Env = {
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   PINECONE_API_KEY: process.env.PINECONE_API_KEY,
   PINECONE_INDEX_NAME: process.env.PINECONE_INDEX_NAME,
+  BACKEND_URL: process.env.BACKEND_URL,
 };
 
 export default Env;
