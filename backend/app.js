@@ -26,7 +26,7 @@ app.use(cookieParser());
 app.use(cors({ origin: [
   "http://localhost:3000",
   "http://localhost:4200",
-  "https://aventra-five.vercel.app",
+  "https://aventra-eta.vercel.app",
   "https://learnova-ruby.vercel.app",
   "https://learnova-dashboard-liard.vercel.app",
 ], credentials: true }));
