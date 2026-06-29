@@ -175,7 +175,11 @@ export const payWithPaymob = asyncHandler(async (req, res) => {
     status: "Pending",
   });
 
-  res.json({ success: true, url });
+  res.json({
+  success: true,
+  url,
+  orderId: order.id,
+});
 });
 
 export const paymobWebhook = asyncHandler(async (req, res) => {
@@ -214,6 +218,25 @@ export const paymobWebhook = asyncHandler(async (req, res) => {
   }
 
   res.json({ ok: true });
+});
+
+export const getPaymentStatus = asyncHandler(async (req, res) => {
+
+    const payment = await Payment.findOne({
+        orderId: req.params.orderId,
+    });
+
+    if (!payment) {
+        return res.status(404).json({
+            success: false,
+        });
+    }
+
+    res.json({
+        success: true,
+        status: payment.status,
+    });
+
 });
 
 //****** */

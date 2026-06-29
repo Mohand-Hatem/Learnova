@@ -8,6 +8,7 @@ import {
   payWithPaymob,
   userUpdateSubscription,
   getMyAiUsage,
+  getPaymentStatus,
 } from "../controllers/user.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
@@ -48,5 +49,5 @@ router.post("/upload-file", protect, uploadFile, uploadUserFile);
 router.put("/subscription", protect, userUpdateSubscription);
 router.post("/pay", protect, payWithPaymob);
 router.post("/webhook", paymobWebhook);
-
+router.get("/payment-status/:orderId", getPaymentStatus);
 export default router;
