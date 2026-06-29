@@ -175,12 +175,30 @@ export const logout = (req, res) => {
 };
 
 export const getMe = asyncHandler(async (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) return res.status(401).json({ success: false, user: null });
+  try {
+    console.log("Cookies:", req.cookies);
 
-  const decoded = verifyToken(token); // your existing JWT verify util
-  const user = await User.findById(decoded.id).select("-password");
-  return res.json({ success: true, user });
+    const token = req.cookies.accessToken;
+    console.log("Token:", token);
+
+    const decoded = verifyToken(token);
+    console.log("Decoded:", decoded);
+
+    const user = await User.findById(decoded.id).select("-password");
+    console.log("User:", user);
+
+    return res.json({
+      success: true,
+      user,
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(401).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
 export const forgotPassword = asyncHandler(async (req, res) => {

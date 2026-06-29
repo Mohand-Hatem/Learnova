@@ -22,6 +22,7 @@ const app = express();
 app.set("trust proxy", 1); 
 app.use(helmet());
 app.use(morgan("dev"));
+app.use(cookieParser());
 app.use(cors({ origin: [
   "http://localhost:3000",
   "http://localhost:4200",
@@ -30,7 +31,6 @@ app.use(cors({ origin: [
   "https://learnova-dashboard-liard.vercel.app",
 ], credentials: true }));
 app.use(express.json());
-app.use(cookieParser());
 app.use(passport.initialize());
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
