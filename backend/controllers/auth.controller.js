@@ -28,8 +28,16 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
 };
 
 const clearAuthCookies = (res) => {
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  res.clearCookie("accessToken",{
+    httpOnly: true,
+    secure: Env.NODE_ENV === "production",
+    sameSite: Env.NODE_ENV === "production" ? "none" : "lax",
+  });
+  res.clearCookie("refreshToken",{
+    httpOnly: true,
+    secure: Env.NODE_ENV === "production",
+    sameSite: Env.NODE_ENV === "production" ? "none" : "lax",
+  });
 };
 
 const formatUser = async (user) => ({
