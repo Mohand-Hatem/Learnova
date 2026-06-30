@@ -35,6 +35,8 @@ import {
   USERS_MENU_FIXED,
   USERS_MENU_ITEM,
 } from '../users-theme';
+import { ToastrService } from 'ngx-toastr';
+import { SessionNotificationsService } from '../../../../services/session-notifications.service';
 interface CV {
   _id: string;
   atsScore: number;
@@ -47,7 +49,7 @@ interface CV {
     suggestions?: string[];
   };
   parsedData?: {
-    skills?: string[];
+    skills?: string[] | { technical?: string[]; soft?: string[]; missingRecommended?: string[] };
     experience?: { company: string; role: string; startDate: string; endDate: string }[];
     education?: { university: string; degree: string; field: string }[];
   };
@@ -148,6 +150,8 @@ export class UserDetailComponent implements OnInit {
   private router = inject(Router);
   private dialog = inject(MatDialog);
   private themeService = inject(ThemeService);
+  private toastr = inject(ToastrService);
+  private sessionNotifications = inject(SessionNotificationsService);
 
   icons = {
     ChevronLeft, Download, ArrowUp, Ban, Mail, MapPin, Calendar,
@@ -347,20 +351,50 @@ export class UserDetailComponent implements OnInit {
     };
   }
 
+  private normalizeStringList(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    if (!value || typeof value !== 'object') return [];
+
+    const maybeRecord = value as Record<string, unknown>;
+    return Object.values(maybeRecord).flatMap((entry) => this.normalizeStringList(entry));
+  }
+
+  private normalizeAnalysisList(value: unknown): string[] {
+    if (!Array.isArray(value)) return [];
+
+    return value
+      .flatMap((item) => {
+        if (typeof item === 'string') return [item];
+        if (!item || typeof item !== 'object') return [];
+        const record = item as Record<string, unknown>;
+        const title = typeof record['title'] === 'string' ? record['title'].trim() : '';
+        const detail = typeof record['detail'] === 'string' ? record['detail'].trim() : '';
+        const combined = [title, detail].filter(Boolean).join(' - ');
+        return combined ? [combined] : [];
+      })
+      .filter(Boolean);
+  }
+
   cvSkills(cv: CV | null): string[] {
-    return cv?.parsedData?.skills ?? [];
+    return this.normalizeStringList(cv?.parsedData?.skills);
   }
 
   cvStrengths(cv: CV): string[] {
-    return cv.aiAnalysis?.strengths ?? [];
+    return this.normalizeAnalysisList(cv.aiAnalysis?.strengths);
   }
 
   cvWeaknesses(cv: CV): string[] {
-    return cv.aiAnalysis?.weaknesses ?? [];
+    return this.normalizeAnalysisList(cv.aiAnalysis?.weaknesses);
   }
 
   cvSuggestions(cv: CV): string[] {
-    return cv.aiAnalysis?.suggestions ?? [];
+    return this.normalizeAnalysisList(cv.aiAnalysis?.suggestions);
   }
 
   getName(u: UserDetail): string {
@@ -387,7 +421,14 @@ export class UserDetailComponent implements OnInit {
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
       this.adminService.deleteUser(u._id).subscribe({
-        next: () => this.router.navigate(['/dashboard/users']),
+        next: () => {
+          this.toastr.success('User deleted successfully.', 'Deleted');
+          this.sessionNotifications.add(`Admin deleted user ${this.getName(u)}`, 'error');
+          this.router.navigate(['/dashboard/users']);
+        },
+        error: (err) => {
+          this.toastr.error(err.error?.message || 'Could not delete user.', 'Delete failed');
+        },
       });
     });
   }
@@ -457,7 +498,14 @@ export class UserDetailComponent implements OnInit {
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
       this.adminService.updatePlan(u._id, plan).subscribe({
-        next: () => this.user.update((s) => (s ? { ...s, plan } : s)),
+        next: () => {
+          this.user.update((s) => (s ? { ...s, plan } : s));
+          this.toastr.success(`Plan changed to ${plan}.`, 'Plan updated');
+          this.sessionNotifications.add(`Admin changed plan for ${this.getName(u)} to ${plan}`, 'info');
+        },
+        error: (err) => {
+          this.toastr.error(err.error?.message || 'Could not update user plan.', 'Update failed');
+        },
       });
     });
   }

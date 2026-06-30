@@ -5,30 +5,35 @@
     <h6 class="text-sm font-semibold text-text-primary">Top Searching Companies</h6>
   </div>
 
-  <!-- Companies list -->
-  <div class="flex flex-1 flex-col justify-between gap-2">
-    @for (company of companies(); track company.name) {
-      <div class="flex items-center gap-3 rounded-xl px-1 py-2 transition hover:bg-bg-secondary dark:hover:bg-bg-primary">
+  @if (companies().length > 0) {
+    <div class="flex flex-1 flex-col justify-between gap-2">
+      @for (company of companies(); track company.name) {
+        <div class="flex items-center gap-3 rounded-xl px-1 py-2 transition hover:bg-bg-secondary dark:hover:bg-bg-primary">
 
-        <div
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[0.65rem] font-bold text-white shadow-sm"
-          [style.background]="company.color"
-        >
-          {{ company.initials }}
-        </div>
+          <div
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[0.65rem] font-bold text-white shadow-sm"
+            [style.background]="company.color"
+          >
+            {{ company.initials }}
+          </div>
 
-        <div class="min-w-0 flex-1">
-          <div class="truncate text-sm font-semibold text-text-primary">{{ company.name }}</div>
-          <div class="truncate text-[0.65rem] text-text-muted">{{ company.searchType }}</div>
-        </div>
+          <div class="min-w-0 flex-1">
+            <div class="truncate text-sm font-semibold text-text-primary">{{ company.name }}</div>
+            <div class="truncate text-[0.65rem] text-text-muted">{{ company.searchType }}</div>
+          </div>
 
-        <div class="flex flex-col items-end shrink-0">
-          <span class="text-sm font-bold text-text-primary">{{ company.count.toLocaleString() }}</span>
-          <span class="text-[0.55rem] font-semibold uppercase tracking-[0.06em] text-text-muted">Searches</span>
+          <div class="flex flex-col items-end shrink-0">
+            <span class="text-sm font-bold text-text-primary">{{ company.count.toLocaleString() }}</span>
+            <span class="text-[0.55rem] font-semibold uppercase tracking-[0.06em] text-text-muted">Searches</span>
+          </div>
         </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  } @else {
+    <div class="flex flex-1 items-center justify-center rounded-xl border border-dashed border-theme text-sm text-text-muted">
+      No companies data available yet.
+    </div>
+  }
 
   <!-- Footer link -->
   <div class="mt-4 border-t border-theme pt-3">

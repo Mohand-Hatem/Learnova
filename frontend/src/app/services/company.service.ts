@@ -11,6 +11,20 @@ export class CompanyService {
     return this.http.get<any>(`${this.api}/all`, { withCredentials: true });
   }
 
+  registerCompanyAccount(payload: {
+    name: { en: string; ar: string };
+    email: string;
+    password: string;
+    role: 'admin' | 'user' | 'company';
+    skipLogin?: boolean;
+  }) {
+    return this.http.post<any>(
+      `${environment.apiUrl}/auth/register`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
   getCompanyById(id: string) {
     return this.http.get<any>(`${this.api}/${id}`, { withCredentials: true });
   }
@@ -26,20 +40,13 @@ export class CompanyService {
       { withCredentials: true },
     );
   }
-  blockCompany(id: string) {
-  return this.http.patch(
-    `${this.api}/user/${id}/block`,
-    {},
-    { withCredentials: true }
-  );
-}
 
-unblockCompany(id: string) {
-  return this.http.patch(
-    `${this.api}/user/${id}/unblock`,
-    {},
-    { withCredentials: true }
-  );
-}
+  toggleBan(id: string) {
+    return this.http.put<{ success: boolean; data: any }>(
+      `${this.api}/${id}/ban`,
+      {},
+      { withCredentials: true },
+    );
+  }
 
 }

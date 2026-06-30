@@ -28,8 +28,10 @@ import {
   Calendar,
   Activity,
   Zap,
+  Check,
   ChevronLeft,
   ChevronRight,
+  UserPlus,
 } from 'lucide-angular';
 import { AdminService } from '../../../services/admin.service';
 import { PlanUpdateDialogComponent } from './plan-update-dialog/plan-update-dialog.component';
@@ -46,6 +48,9 @@ import {
   USERS_MENU_ITEM,
   USERS_PLAN_SUBMENU,
 } from './users-theme';
+import { ToastrService } from 'ngx-toastr';
+import { SessionNotificationsService } from '../../../services/session-notifications.service';
+import { CreateAccountDialogData, CreateAccountPayload, CreateAdminDialogComponent } from '../admins/create-admin-dialog/create-admin-dialog.component';
 interface UserItem {
   _id: string;
   name: { en: string; ar: string } | string;
@@ -61,8 +66,11 @@ interface UserItem {
     atsScore: number;
     originalFile?: { url: string; fileName: string };
     processingStatus?: string;
+    createdAt?: string;
   }[];
 }
+
+type UserCv = NonNullable<UserItem['cvs']>[number];
 
 @Component({
   selector: 'app-users',
@@ -80,7 +88,8 @@ export class UsersComponent implements OnInit {
     planSubmenu: USERS_PLAN_SUBMENU,
   };
 
-  menuAnchor = signal<{ top: number; left: number; flipAbove: boolean } | null>(null);
+  menuAnchor = signal<{ top: number; left: number } | null>(null);
+  private readonly viewportPadding = 8;
 
   openMenuUser = computed(() => {
     const id = this.openMenuId();
@@ -92,11 +101,13 @@ export class UsersComponent implements OnInit {
 
   private adminService = inject(AdminService);
   private dialog = inject(MatDialog);
+  private toastr = inject(ToastrService);
+  private sessionNotifications = inject(SessionNotificationsService);
 
   icons = {
     Search, ChevronDown, MoreVertical, Eye, FileText,
     ArrowUp, Ban, Trash2, X, User, CreditCard,
-    Calendar, Activity, Zap, ChevronLeft, ChevronRight,
+    Calendar, Activity, Zap, Check, ChevronLeft, ChevronRight, UserPlus,
   };
 
   users = signal<UserItem[]>([]);
@@ -104,29 +115,40 @@ export class UsersComponent implements OnInit {
   searchQuery = signal('');
   planFilter = signal('');
   atsFilter = signal('');
-  typeFilter = signal('');
+  hasCvFilter = signal('');
+  bannedFilter = signal('');
   openMenuId = signal<string | null>(null);
   planSubmenuUserId = signal<string | null>(null);
   selectedUser = signal<UserItem | null>(null);
+  creatingUser = signal(false);
 
   // Pagination
   currentPage = signal(1);
   pageSize = signal(10);
 
   readonly plans = [...USER_PLANS];
+  readonly planMeta: Record<string, { subtitle: string; tokenLabel: string }> = {
+    Free: { subtitle: 'Basic access for getting started', tokenLabel: '1,000 tokens' },
+    Pro: { subtitle: 'Higher usage for active candidates', tokenLabel: '2,000 tokens' },
+    Enterprise: { subtitle: 'Maximum allowance for heavy usage', tokenLabel: '4,000 tokens' },
+  };
 
   filteredUsers = computed(() => {
     const q = this.searchQuery().toLowerCase();
     const plan = this.planFilter();
     const ats = this.atsFilter();
-    const type = this.typeFilter();
+    const hasCv = this.hasCvFilter();
+    const banned = this.bannedFilter();
 
     return this.users().filter((u) => {
        if (u.role === 'admin' ||  u.role === 'company' ) return false;
       const name = this.getName(u).toLowerCase();
       if (q && !name.includes(q) && !u.email.toLowerCase().includes(q)) return false;
       if (plan && u.plan !== plan) return false;
-      if (type && u.role !== type) return false;
+      if (hasCv === 'yes' && !this.hasCv(u)) return false;
+      if (hasCv === 'no' && this.hasCv(u)) return false;
+      if (banned === 'banned' && !u.isBlocked) return false;
+      if (banned === 'active' && u.isBlocked) return false;
       const score = this.getAts(u);
       if (ats === 'high' && score < 80) return false;
       if (ats === 'mid' && (score < 60 || score >= 80)) return false;
@@ -154,7 +176,8 @@ export class UsersComponent implements OnInit {
       this.searchQuery();
       this.planFilter();
       this.atsFilter();
-      this.typeFilter();
+      this.hasCvFilter();
+      this.bannedFilter();
       this.resetPagination();
     });
   }
@@ -166,6 +189,48 @@ export class UsersComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+  }
+
+  openCreateUserDialog(): void {
+    const dialogRef = this.dialog.open(CreateAdminDialogComponent, {
+      width: '520px',
+      panelClass: USERS_DIALOG_PANEL,
+      data: {
+        title: 'Create New User',
+        description: 'Add a new user account with the default user role.',
+        submitLabel: 'Create User',
+        role: 'user',
+      } as CreateAccountDialogData,
+    });
+
+    dialogRef.afterClosed().subscribe((payload) => {
+      if (!payload) return;
+      this.createUser(payload);
+    });
+  }
+
+  private createUser(payload: CreateAccountPayload): void {
+    this.creatingUser.set(true);
+    this.adminService.registerAccount({ ...payload, role: 'user', skipLogin: true }).subscribe({
+      next: (res) => {
+        const newUser = res?.data?.user;
+        if (newUser) {
+          this.users.update((list) => [newUser, ...list]);
+        } else {
+          this.adminService.getAllUsers().subscribe({
+            next: (listRes) => this.users.set(listRes.data ?? []),
+          });
+        }
+        this.toastr.success('New user account created successfully.', 'User created');
+        this.sessionNotifications.add(`Admin created user ${payload.name.en}`, 'success');
+        this.resetPagination();
+        this.creatingUser.set(false);
+      },
+      error: (err) => {
+        this.toastr.error(err?.error?.message || 'Could not create user account.', 'Create failed');
+        this.creatingUser.set(false);
+      },
     });
   }
 
@@ -185,10 +250,15 @@ export class UsersComponent implements OnInit {
   }
 
   getAts(u: UserItem): number {
-    if (!u.cvs || u.cvs.length === 0) return 0;
-    const scores = u.cvs.map((c) => c.atsScore).filter((s) => s > 0);
+    const cvs = this.getSortedCvs(u);
+    if (!cvs.length) return 0;
+    const scores = cvs.map((c) => Number(c.atsScore) || 0).filter((s) => s > 0);
     if (!scores.length) return 0;
     return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  }
+
+  hasCv(u: UserItem): boolean {
+    return this.getSortedCvs(u).length > 0;
   }
 
   getAtsClass(score: number): string {
@@ -211,13 +281,21 @@ export class UsersComponent implements OnInit {
   }
 
   getTokenPct(u: UserItem): number {
-    if (!u.maxToken) return 0;
-    return Math.round((u.tokenUsage / u.maxToken) * 100);
+    const tokenLimit = Number(u.maxToken) || 0;
+    if (!tokenLimit) return 0;
+    const usage = Number(u.tokenUsage) || 0;
+    return Math.min(100, Math.round((Math.max(0, usage) / tokenLimit) * 100));
   }
 
   formatTokens(n: number): string {
     if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
     return String(n);
+  }
+
+  getPlanTokenTextClass(plan: string): string {
+    if (plan === 'Enterprise') return 'text-purple-700 dark:text-purple-300';
+    if (plan === 'Pro') return 'text-emerald-700 dark:text-emerald-300';
+    return 'text-blue-700 dark:text-blue-300';
   }
 
   avatarColors = [
@@ -241,6 +319,7 @@ export class UsersComponent implements OnInit {
     this.planSubmenuUserId.set(null);
     this.openMenuId.set(id);
     this.menuAnchor.set(this.computeMenuAnchor(event.currentTarget as HTMLElement));
+    this.deferMenuRealign();
   }
 
   closeMenu() {
@@ -270,23 +349,62 @@ export class UsersComponent implements OnInit {
   private computeMenuAnchor(trigger: HTMLElement): {
     top: number;
     left: number;
-    flipAbove: boolean;
   } {
     const rect = trigger.getBoundingClientRect();
-    const menuWidth = 200;
-    const estimatedHeight = 280;
+    const menuWidth = 250;
+    const estimatedHeight = 360;
     const gap = 6;
+    const viewportPadding = this.viewportPadding;
     let left = rect.right - menuWidth;
-    left = Math.max(8, Math.min(left, window.innerWidth - menuWidth - 8));
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const flipAbove = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
-    const top = flipAbove ? rect.top - gap : rect.bottom + gap;
-    return { top, left, flipAbove };
+    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
+
+    const preferredBelowTop = rect.bottom + gap;
+    const preferredAboveTop = rect.top - gap - estimatedHeight;
+    const canOpenAbove = preferredAboveTop >= viewportPadding;
+    const shouldOpenAbove = preferredBelowTop + estimatedHeight > window.innerHeight - viewportPadding && canOpenAbove;
+    const rawTop = shouldOpenAbove ? preferredAboveTop : preferredBelowTop;
+    const maxTop = Math.max(viewportPadding, window.innerHeight - estimatedHeight - viewportPadding);
+    const top = Math.max(viewportPadding, Math.min(rawTop, maxTop));
+
+    return { top, left };
   }
 
   togglePlanSubmenu(userId: string, event: Event) {
     event.stopPropagation();
-    this.planSubmenuUserId.set(this.planSubmenuUserId() === userId ? null : userId);
+    const next = this.planSubmenuUserId() === userId ? null : userId;
+    this.planSubmenuUserId.set(next);
+    this.deferMenuRealign(next !== null);
+  }
+
+  private deferMenuRealign(expanded = false): void {
+    requestAnimationFrame(() => this.adjustMenuTop(expanded));
+  }
+
+  private adjustMenuTop(expanded = false): void {
+    const anchor = this.menuAnchor();
+    if (!anchor) return;
+
+    const viewportPadding = this.viewportPadding;
+    const menuHeight = this.getMenuElement()?.offsetHeight;
+    const estimatedHeight = menuHeight ?? (expanded ? 440 : 360);
+    const maxTop = Math.max(viewportPadding, window.innerHeight - estimatedHeight - viewportPadding);
+    const top = Math.max(viewportPadding, Math.min(anchor.top, maxTop));
+
+    if (top !== anchor.top) {
+      this.menuAnchor.set({ ...anchor, top });
+    }
+  }
+
+  private getMenuElement(): HTMLElement | null {
+    return document.querySelector('[data-users-menu]') as HTMLElement | null;
+  }
+
+  getPlanSubtitle(plan: string): string {
+    return this.planMeta[plan]?.subtitle ?? 'Plan option';
+  }
+
+  getPlanTokenLabel(plan: string): string {
+    return this.planMeta[plan]?.tokenLabel ?? '—';
   }
 
   openDetail(u: UserItem) {
@@ -299,17 +417,26 @@ export class UsersComponent implements OnInit {
   }
 
   openCV(u: UserItem) {
-  const cv = u.cvs?.[0];
-  if (cv?.originalFile?.url) {
-    window.open(cv.originalFile.url, '_blank');
-  } else {
-    this.dialog.open(NoCvDialogComponent, {
-      width: '360px',
-      panelClass: USERS_DIALOG_PANEL,
-      data: { userName: this.getName(u) },
+    const cv = this.getSortedCvs(u).find((item) => !!item.originalFile?.url);
+    if (cv?.originalFile?.url) {
+      window.open(cv.originalFile.url, '_blank');
+    } else {
+      this.dialog.open(NoCvDialogComponent, {
+        width: '360px',
+        panelClass: USERS_DIALOG_PANEL,
+        data: { userName: this.getName(u) },
+      });
+    }
+  }
+
+  private getSortedCvs(u: UserItem): UserCv[] {
+    const cvs = Array.isArray(u.cvs) ? [...u.cvs] : [];
+    return cvs.sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
     });
   }
-}
 
 banUser(u: UserItem) {
   const action = u.isBlocked ? 'unban' : 'ban';
@@ -330,6 +457,19 @@ banUser(u: UserItem) {
         this.users.update(list =>
           list.map(x => x._id === u._id ? { ...x, isBlocked: res.data.isBlocked } : x)
         );
+        this.toastr.success(
+          res.data.isBlocked ? `${this.getName(u)} has been banned.` : `${this.getName(u)} has been unbanned.`,
+          'User updated',
+        );
+        this.sessionNotifications.add(
+          res.data.isBlocked
+            ? `Admin banned user ${this.getName(u)}`
+            : `Admin unbanned user ${this.getName(u)}`,
+          'warning',
+        );
+      },
+      error: (err) => {
+        this.toastr.error(err.error?.message || 'Could not update user status.', 'Action failed');
       },
     });
   });
@@ -357,6 +497,11 @@ banUser(u: UserItem) {
           this.users.update((list) => list.filter((x) => x._id !== id));
           this.closeDetail();
           this.closeMenu();
+          this.toastr.success('User deleted successfully.', 'Deleted');
+          if (u) this.sessionNotifications.add(`Admin deleted user ${this.getName(u)}`, 'error');
+        },
+        error: (err) => {
+          this.toastr.error(err.error?.message || 'Could not delete user.', 'Delete failed');
         },
       });
     });
@@ -383,13 +528,27 @@ banUser(u: UserItem) {
 
   private updatePlanInBackend(userId: string, plan: string) {
     this.adminService.updatePlan(userId, plan).subscribe({
-      next: () => {
+      next: (res) => {
+        const updatedMaxToken = res?.data?.maxToken;
         this.users.update((list) =>
-          list.map((x) => (x._id === userId ? { ...x, plan } : x)),
+          list.map((x) =>
+            x._id === userId ? { ...x, plan, maxToken: updatedMaxToken ?? x.maxToken } : x,
+          ),
         );
         if (this.selectedUser()?._id === userId) {
-          this.selectedUser.update((s) => (s ? { ...s, plan } : s));
+          this.selectedUser.update((s) =>
+            s ? { ...s, plan, maxToken: updatedMaxToken ?? s.maxToken } : s,
+          );
         }
+        this.toastr.success(`Plan changed to ${plan}.`, 'Plan updated');
+        const changedUser = this.users().find((x) => x._id === userId);
+        this.sessionNotifications.add(
+          `Admin changed plan for ${changedUser ? this.getName(changedUser) : 'a user'} to ${plan}`,
+          'info',
+        );
+      },
+      error: (err) => {
+        this.toastr.error(err.error?.message || 'Could not update user plan.', 'Update failed');
       },
     });
   }

@@ -4,6 +4,8 @@ import type {
   RecentCv,
   SkillItem,
   StatCard,
+  TopCompany,
+  TopPlan,
 } from '../components/dashboard/overview/dashboard.models';
 
 export interface ApiResponse<T> {
@@ -12,33 +14,69 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export interface ApiStatCard extends StatCard {
-  key?: string;
-  source?: 'dynamic' | 'static';
+export interface ApiOverviewMetric {
+  value: number;
+  changePercent?: number;
 }
 
-export interface ApiRecentCv extends RecentCv {
-  source?: 'dynamic' | 'static';
+export interface ApiOverviewStats {
+  totalUsers: ApiOverviewMetric;
+  totalAdmins: ApiOverviewMetric;
+  totalCompanies: ApiOverviewMetric;
+  totalCVs: ApiOverviewMetric;
+  avgAtsScore: { value: number };
+  aiMatchRate: { value: number };
 }
 
-export interface ApiSkillItem extends SkillItem {
-  source?: 'dynamic' | 'static';
+export interface ApiPlanBreakdown {
+  free: number;
+  pro: number;
+  enterprise: number;
+}
+
+export interface ApiCvStatusBreakdown {
+  uploaded: number;
+  processing: number;
+  analyzed: number;
+  failed: number;
+}
+
+export interface ApiMonthlyCount {
+  _id: string;
+  count: number;
+}
+
+export interface ApiOverviewCharts {
+  activeUsersPerMonth: ApiMonthlyCount[];
+  aiAnalysesPerMonth: ApiMonthlyCount[];
+}
+
+export interface ApiOverviewSkill {
+  skill: string;
+  count: number;
+}
+
+export interface ApiOverviewRecentCv {
+  candidate: { en?: string; ar?: string } | string;
+  avatar?: string | null;
+  fileName?: string;
+  atsScore: number;
+  analyzedAt?: string;
+}
+
+export interface ApiOverviewCompany {
+  name: { en?: string; ar?: string } | string;
+  cvCount: number;
 }
 
 export interface ApiDashboardPayload {
-  stats: ApiStatCard[];
-  recentCvs: ApiRecentCv[];
-  topSkills: ApiSkillItem[] | null;
-  platformActivity: PlatformActivity & { source?: 'dynamic' | 'static' };
-  aiHealth: {
-    items: AiHealthItem[];
-    source: 'static' | 'dynamic';
-    reason?: string;
-  };
-  meta?: {
-    generatedAt?: string;
-    endpoints?: Record<string, string>;
-  };
+  stats: ApiOverviewStats;
+  byPlan: ApiPlanBreakdown;
+  cvsByStatus: ApiCvStatusBreakdown;
+  charts: ApiOverviewCharts;
+  topSkills: ApiOverviewSkill[];
+  recentCVs: ApiOverviewRecentCv[];
+  topCompanies: ApiOverviewCompany[];
 }
 
 export interface DashboardViewModel {
@@ -47,13 +85,60 @@ export interface DashboardViewModel {
   topSkills: SkillItem[];
   platformActivity: PlatformActivity;
   aiHealth: AiHealthItem[];
+  topPlans: TopPlan[];
+  topPlansTotal: number;
+  topCompanies: TopCompany[];
+  aiInsight: string;
   userName: string;
-  isLive: boolean;
   sources: {
-    stats: boolean;
-    recentCvs: boolean;
-    topSkills: boolean;
-    platformActivity: boolean;
-    aiHealth: boolean;
+    hasStats: boolean;
+    hasRecentCvs: boolean;
+    hasTopSkills: boolean;
+    hasPlatformActivity: boolean;
+    hasTopPlans: boolean;
+    hasTopCompanies: boolean;
   };
+}
+
+export interface ApiAiMetric {
+  value: number;
+  changePercent: number;
+}
+
+export interface ApiAiStats {
+  totalAiCalls: ApiAiMetric;
+  tokenSpend: ApiAiMetric & { estimatedCostUSD: number };
+  avgResponseTime: { valueMs: number; changePercent: number };
+  successRate: ApiAiMetric;
+}
+
+export interface ApiAiTokenBreakdown {
+  embedding: number;
+  prompt: number;
+  completion: number;
+}
+
+export interface ApiAiMonthlyPoint {
+  _id: string;
+  aiCalls: number;
+  totalTokens: number;
+  avgResponseTimeMs: number;
+  successRate: number;
+}
+
+export interface ApiAiTopUser {
+  name: { en?: string; ar?: string } | string;
+  email?: string;
+  plan?: string;
+  avatar?: string | null;
+  totalTokens: number;
+  aiCalls: number;
+  avgResponseTimeMs: number;
+}
+
+export interface ApiAiStatsPayload {
+  stats: ApiAiStats;
+  tokenBreakdown: ApiAiTokenBreakdown;
+  charts: { monthly: ApiAiMonthlyPoint[] };
+  topUsers: ApiAiTopUser[];
 }

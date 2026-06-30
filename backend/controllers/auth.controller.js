@@ -42,6 +42,7 @@ const clearAuthCookies = (res) => {
 
 const formatUser = async (user) => ({
   id: user._id,
+  _id: user._id,
   name: user.name,
   email: user.email,
   role: user.role,
@@ -50,13 +51,14 @@ const formatUser = async (user) => ({
   maxToken: user.maxToken,
   tokenUsage: user.tokenUsage,
   googleId: user.googleId,
+  lastDashboardLoginAt: user.lastDashboardLoginAt,
   cvs: await CV.find({ userId: user._id }).sort({ createdAt: -1 }),
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
 });
 
 export const register = asyncHandler(async (req, res, next) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, skipLogin } = req.body;
 
   const existingUser = await User.findOne({ email });
 
@@ -74,9 +76,10 @@ export const register = asyncHandler(async (req, res, next) => {
     role: role || "user",
   });
 
-  const { accessToken, refreshToken } = generateTokens(user);
-
-  setAuthCookies(res, accessToken, refreshToken);
+  if (!skipLogin) {
+    const { accessToken, refreshToken } = generateTokens(user);
+    setAuthCookies(res, accessToken, refreshToken);
+  }
 
   sendWelcomeEmail(user.email, user.name).catch((err) => {
     console.error("Error sending welcome email:", err);
@@ -110,6 +113,9 @@ export const login = asyncHandler(async (req, res, next) => {
       message: "Invalid email or password",
     });
   }
+
+  user.lastDashboardLoginAt = new Date();
+  await user.save();
 
   const { accessToken, refreshToken } = generateTokens(user);
 
@@ -147,6 +153,9 @@ export const refreshAccessToken = asyncHandler(async (req, res, next) => {
         message: "Invalid refresh token",
       });
     }
+
+    user.lastDashboardLoginAt = new Date();
+    await user.save();
 
     const { accessToken, refreshToken } = generateTokens(user);
 
@@ -222,39 +231,6 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
   res.json({ message: "OTP sent to your email. It expires in 10 minutes." });
 });
-
-
-
-export const verifyOtp = asyncHandler(async (req, res) => {
-  const { email, otp } = req.body;
- 
-  const user = await User.findOne({ email }).select("+resetOtp +resetOtpExpires");
- 
-  if (!user || !user.resetOtp || !user.resetOtpExpires) {
-    res.status(400);
-    throw new Error("No password reset was requested for this account");
-  }
- 
-  if (user.resetOtpExpires < new Date()) {
-    user.resetOtp = null;
-    user.resetOtpExpires = null;
-    await user.save();
-    res.status(400);
-    throw new Error("OTP has expired. Please request a new one.");
-  }
- 
-  const isMatch = await bcrypt.compare(otp, user.resetOtp);
-  if (!isMatch) {
-    res.status(400);
-    throw new Error("Invalid OTP");
-  }
- 
-
-  res.json({ success: true, message: "OTP verified successfully" });
-});
- 
-
-
 
 export const resetPassword = asyncHandler(async (req, res) => {
   const { email, otp, newPassword } = req.body;

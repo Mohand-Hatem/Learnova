@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { PLANS } from "../config/helpers.config.js";
 
+const PLAN_NAMES = Object.keys(PLANS);
+const PLAN_TOKEN_LIMITS = Object.values(PLANS).map((plan) => plan.maxToken);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -21,14 +24,14 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minlength: 3,
+      minlength: 8,
       maxlength: 128,
     },
 
     maxToken: {
       type: Number,
-      enum: [1000, 2000, 4000],
-      default: 1000,
+      enum: PLAN_TOKEN_LIMITS,
+      default: PLANS.Free.maxToken,
     },
 
     tokenUsage: {
@@ -43,7 +46,7 @@ const userSchema = new mongoose.Schema(
 
     plan: {
       type: String,
-      enum: ["Free", "Pro", "Enterprise"],
+      enum: PLAN_NAMES,
       default: "Free",
     },
 
@@ -60,6 +63,10 @@ const userSchema = new mongoose.Schema(
 
     googleId: {
       type: String,
+      default: null,
+    },
+    lastDashboardLoginAt: {
+      type: Date,
       default: null,
     },
     isBlocked: {
@@ -83,6 +90,12 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", async function () {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
+  }
+
+  if (this.role === "admin") {
+    this.plan = PLANS.Unlimited.name;
+    this.maxToken = PLANS.Unlimited.maxToken;
+    return;
   }
 
   if (this.isModified("plan")) {

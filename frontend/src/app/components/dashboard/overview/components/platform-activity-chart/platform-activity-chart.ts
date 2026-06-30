@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
 import type { PlatformActivity } from '../../dashboard.models';
-import { PLATFORM_ACTIVITY } from '../../dashboard.models';
 import { ThemeService } from '../../../../../services/theme.service';
 
 @Component({
@@ -14,13 +13,16 @@ import { ThemeService } from '../../../../../services/theme.service';
   styleUrls: ['./platform-activity-chart.scss'],
 })
 export class PlatformActivityChart {
-  readonly activity = input<PlatformActivity>(PLATFORM_ACTIVITY);
-  readonly isLive = input(false);
+  readonly activity = input.required<PlatformActivity>();
   private readonly themeService = inject(ThemeService);
+  readonly hasData = computed(() => {
+    const data = this.activity();
+    return data.labels.length > 0 && (data.activeUsers.length > 0 || data.aiAnalyses.length > 0);
+  });
 
   readonly chartOptions = computed((): EChartsOption => {
     const data = this.activity();
-    const maxVal = Math.max(...data.activeUsers, ...data.aiAnalyses, 10);
+    const maxVal = Math.max(10, ...data.activeUsers, ...data.aiAnalyses);
     const dark = this.themeService.isDark();
 
     const textColor             = dark ? '#94a3b8' : '#64748b';
@@ -65,7 +67,6 @@ export class PlatformActivityChart {
         right: '4%',
         bottom: '3%',
         top: '15%',
-        containLabel: true,
         borderColor: gridColor,
       },
       xAxis: {

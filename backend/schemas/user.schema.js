@@ -41,12 +41,6 @@ export const forgotPasswordSchema = z.object({
   email: z.string().trim().toLowerCase().email("Please provide a valid email"),
 });
 
-export const verifyOtpSchema = z.object({
-  email: z.string().trim().toLowerCase().email("Please provide a valid email"),
-  otp: z.string().length(6, "OTP must be exactly 6 digits"),
-});
-
-
 export const resetPasswordSchema = z.object({
   otp: z.string().min(1, "OTP is required"),
   email: z.string().trim().toLowerCase().email("Please provide a valid email"),

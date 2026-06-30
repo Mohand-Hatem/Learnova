@@ -10,7 +10,6 @@ import {
   type LucideIconData,
 } from 'lucide-angular';
 import type { SkillItem } from '../../dashboard.models';
-import { TOP_SKILLS } from '../../dashboard.models';
 
 @Component({
   selector: 'app-skills-bar-chart',
@@ -20,8 +19,7 @@ import { TOP_SKILLS } from '../../dashboard.models';
   host: { class: 'block h-full' },
 })
 export class SkillsBarChart {
-  readonly skills = input<SkillItem[]>(TOP_SKILLS);
-  readonly isLive = input(false);
+  readonly skills = input.required<SkillItem[]>();
 
   readonly iconMap: Record<string, LucideIconData> = {
     code:     Code2,

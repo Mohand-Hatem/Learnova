@@ -148,6 +148,13 @@ export const payWithPaymob = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid plan" });
   }
 
+  if (user.role === "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Admin plan is locked to Unlimited and cannot be changed",
+    });
+  }
+
   const amount = PLANS[plan].price;
 
   if (amount === 0) {

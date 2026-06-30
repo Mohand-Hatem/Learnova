@@ -8,13 +8,13 @@ export const USERS_INPUT =
 
 /** Fixed popover — avoids clipping inside table overflow containers */
 export const USERS_MENU_FIXED =
-  'fixed z-[1050] min-w-[200px] max-h-[min(20rem,calc(100dvh-1.5rem))] overflow-y-auto overscroll-contain rounded-xl border border-theme bg-white dark:bg-bg-card py-1 shadow-lg';
+  'fixed z-[1050] min-w-[250px] max-w-[min(92vw,300px)] max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-xl border border-theme bg-white dark:bg-bg-card py-1 shadow-lg users-menu-enter';
 
 export const USERS_PLAN_SUBMENU =
-  'max-h-36 overflow-y-auto overscroll-contain border-t border-b border-theme bg-bg-secondary py-1';
+  'border-t border-b border-theme bg-bg-secondary px-2 py-1.5 users-plan-submenu-enter';
 
 export const USERS_MENU_ITEM =
-  'flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-secondary transition-colors hover:bg-violet-50 hover:text-violet-700 dark:hover:bg-violet-950/30 dark:hover:text-violet-200';
+  'flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-sm text-text-secondary transition-colors hover:bg-violet-50 hover:text-violet-700 dark:hover:bg-violet-950/30 dark:hover:text-violet-200';
 
 export const USERS_DEMO_BADGE =
   'rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300';
@@ -24,11 +24,11 @@ export const USERS_DIALOG_PANEL = 'users-dialog-panel';
 export function planBadgeClass(plan: string): string {
   switch (plan) {
     case 'Pro':
-      return 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300';
+      return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300';
     case 'Enterprise':
       return 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300';
     default:
-      return 'bg-slate-100 text-slate-700 dark:bg-slate-700/50 dark:text-slate-300';
+      return 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300';
   }
 }
 

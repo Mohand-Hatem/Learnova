@@ -5,27 +5,34 @@
     <h6 class="text-sm font-semibold text-text-primary">Top Plans</h6>
   </div>
 
-  <!-- Donut chart -->
-  <div class="flex flex-1 items-center justify-center">
-    <div
-      echarts
-      class="block h-[200px] w-full min-w-0"
-      [options]="chartOptions()"
-      [autoResize]="true"
-    ></div>
-  </div>
+  @if (hasData()) {
+    <div class="flex flex-1 items-center justify-center">
+      <div
+        echarts
+        class="block h-[200px] w-full min-w-0"
+        [options]="chartOptions()"
+        [autoResize]="true"
+      ></div>
+    </div>
 
-  <!-- Legend -->
-  <div class="mt-2 space-y-2.5 border-t border-theme pt-3">
-    @for (plan of plans(); track plan.name) {
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="inline-block h-2.5 w-2.5 rounded-full" [style.background]="plan.color"></span>
-          <span class="text-sm text-text-secondary">{{ plan.name }}</span>
+    <div class="mt-2 space-y-2.5 border-t border-theme pt-3">
+      @for (plan of plans(); track plan.name) {
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="inline-block h-2.5 w-2.5 rounded-full" [style.background]="plan.color"></span>
+            <span class="text-sm text-text-secondary">{{ plan.name }}</span>
+          </div>
+          <span class="text-sm font-semibold text-text-primary">{{ plan.percentage }}%</span>
         </div>
-        <span class="text-sm font-semibold text-text-primary">{{ plan.percentage }}%</span>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  } @else {
+    <div class="flex flex-1 items-center justify-center rounded-xl border border-dashed border-theme text-sm text-text-muted">
+      No plan distribution data available yet.
+    </div>
+    <div class="mt-2 border-t border-theme pt-3 text-xs text-text-muted">
+      Waiting for users and plan subscriptions.
+    </div>
+  }
 
 </div>

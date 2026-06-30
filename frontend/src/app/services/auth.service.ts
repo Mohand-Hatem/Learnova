@@ -5,11 +5,13 @@ import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { User, ApiResponse, LoginData } from '../models/user.model';
 import { Observable, of } from 'rxjs';
+import { SessionNotificationsService } from './session-notifications.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private sessionNotifications = inject(SessionNotificationsService);
 
   currentUser = signal<User | null>(null);
   isInitialized = signal<boolean>(false);
@@ -29,10 +31,15 @@ export class AuthService {
   }
 
   logout() {
+    // Clear user immediately so guards and interceptor see logged-out state at once
+    this.currentUser.set(null);
+    // Session notifications should survive refresh, but not logout.
+    this.sessionNotifications.clear();
     return this.http.post(`${environment.apiUrl}/auth/logout`, {}, { withCredentials: true }).pipe(
-      tap(() => {
-        this.currentUser.set(null);
+      tap(() => this.router.navigate(['/login'])),
+      catchError(() => {
         this.router.navigate(['/login']);
+        return of(null);
       }),
     );
   }

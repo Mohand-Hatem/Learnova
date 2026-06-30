@@ -27,6 +27,8 @@ import {
   animate,
 } from '@angular/animations';
 import { ThemeService } from '../../services/theme.service';
+import { ToastrService } from 'ngx-toastr';
+import { SessionNotificationsService } from '../../services/session-notifications.service';
 
 type ForgotStep = 'email' | 'otp' | 'newPassword';
 
@@ -49,6 +51,8 @@ export class LoginComponent {
   themeService = inject(ThemeService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private toastr = inject(ToastrService);
+  private sessionNotifications = inject(SessionNotificationsService);
 
   readonly icons = {
     User, Bot, Search, AtSign, KeyRound,
@@ -115,13 +119,23 @@ export class LoginComponent {
       next: (res) => {
         if (res.data.user.role !== 'admin') {
           this.errorMessage.set('Access denied. Admins only.');
+          this.toastr.error('Access denied. Admins only.', 'Login failed');
           this.isLoading.set(false);
           return;
         }
+        const rawName = res.data.user.name;
+        const displayName =
+          typeof rawName === 'string'
+            ? rawName
+            : rawName?.en || rawName?.ar || 'Admin';
+        this.toastr.info(`Welcome back ${displayName}`, 'Login successful', { timeOut: 2000 });
+        this.sessionNotifications.clear();
+        this.sessionNotifications.add(`Welcome back admin ${displayName}`, 'info');
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.errorMessage.set(err.error?.message || 'Invalid email or password');
+        this.toastr.error(err.error?.message || 'Invalid email or password', 'Login failed');
         this.isLoading.set(false);
       },
     });

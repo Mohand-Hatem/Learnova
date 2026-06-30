@@ -9,6 +9,7 @@ import {
   getAiStats,
   getOverviewStats,
   toggleBanUser,
+  getAdminActionHistory,
 } from "../controllers/admin.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
@@ -24,6 +25,7 @@ router.use(roleMiddleware("admin"));
 router.get("/all", getAllUsers);
 router.get("/stats/overview", getOverviewStats);
 router.get("/stats/ai", getAiStats);
+router.get("/:id/actions", getAdminActionHistory);
 router.get("/:id", getOneUser);
 
 router.delete("/user/:id", deleteUser);

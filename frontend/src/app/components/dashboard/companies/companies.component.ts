@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Ban,
+  Check,
 } from 'lucide-angular';
 
 import { CompanyService } from '../../../services/company.service';
@@ -42,6 +43,9 @@ import {
   COMPANIES_MENU_ITEM,
   COMPANIES_PLAN_SUBMENU,
 } from './companies-theme';
+import { ToastrService } from 'ngx-toastr';
+import { SessionNotificationsService } from '../../../services/session-notifications.service';
+import { CreateAccountDialogData, CreateAccountPayload, CreateAdminDialogComponent } from '../admins/create-admin-dialog/create-admin-dialog.component';
 
 @Component({
   selector: 'app-companies',
@@ -58,6 +62,7 @@ import {
 })
 export class CompaniesComponent implements OnInit {
   Math = Math;
+  private readonly viewportPadding = 8;
 
   // =========================
   // UI CONFIGURATION
@@ -80,10 +85,12 @@ export class CompaniesComponent implements OnInit {
   private readonly companyService = inject(CompanyService);
   private readonly dialog         = inject(MatDialog);
   private readonly fb             = inject(FormBuilder);
+  private readonly toastr         = inject(ToastrService);
+  private readonly sessionNotifications = inject(SessionNotificationsService);
 
   icons = {
     Search, ChevronDown, MoreVertical, Eye, ArrowUp,
-    Trash2, Building2, ChevronLeft, ChevronRight, Ban,
+    Trash2, Building2, ChevronLeft, ChevronRight, Ban, Check,
   };
 
   // =========================
@@ -93,6 +100,7 @@ export class CompaniesComponent implements OnInit {
     searchQuery:  [''],
     planFilter:   [''],
     statusFilter: [''],
+    searchCountFilter: [''],
   });
 
   // =========================
@@ -100,9 +108,10 @@ export class CompaniesComponent implements OnInit {
   // =========================
   companies            = signal<CompanyItem[]>([]);
   loading              = signal(true);
+  creatingCompany      = signal(false);
   openMenuId           = signal<string | null>(null);
   planSubmenuCompanyId = signal<string | null>(null);
-  menuAnchor           = signal<{ top: number; left: number; flipAbove: boolean } | null>(null);
+  menuAnchor           = signal<{ top: number; left: number } | null>(null);
 
   currentPage = signal(1);
   pageSize    = signal(10);
@@ -110,8 +119,14 @@ export class CompaniesComponent implements OnInit {
   private searchQuery  = signal('');
   private planFilter   = signal('');
   private statusFilter = signal('');
+  private searchCountFilter = signal('');
 
   readonly plans = [...COMPANY_PLANS];
+  readonly planMeta: Record<string, { subtitle: string; tokenLabel: string }> = {
+    Free: { subtitle: 'Basic access for getting started', tokenLabel: '1,000 tokens' },
+    Pro: { subtitle: 'Higher usage for active teams', tokenLabel: '2,000 tokens' },
+    Enterprise: { subtitle: 'Maximum allowance for heavy usage', tokenLabel: '4,000 tokens' },
+  };
 
   // =========================
   // COMPUTED VALUES
@@ -127,6 +142,7 @@ export class CompaniesComponent implements OnInit {
     const q      = this.searchQuery().toLowerCase();
     const plan   = this.planFilter();
     const status = this.statusFilter();
+    const searchCount = this.searchCountFilter();
 
     return this.companies().filter((c) => {
       if (c.role !== 'company') return false;
@@ -138,6 +154,11 @@ export class CompaniesComponent implements OnInit {
 
       if (status === 'active'  && c.isBlocked)  return false;
       if (status === 'blocked' && !c.isBlocked) return false;
+      const count = this.getSearchCount(c);
+      if (searchCount === 'none' && count !== 0) return false;
+      if (searchCount === 'low' && (count < 1 || count > 50)) return false;
+      if (searchCount === 'mid' && (count < 51 || count > 200)) return false;
+      if (searchCount === 'high' && count < 201) return false;
 
       return true;
     });
@@ -162,6 +183,7 @@ export class CompaniesComponent implements OnInit {
       this.searchQuery();
       this.planFilter();
       this.statusFilter();
+      this.searchCountFilter();
       this.resetPagination();
     });
   }
@@ -179,6 +201,49 @@ export class CompaniesComponent implements OnInit {
       this.searchQuery.set(vals.searchQuery   ?? '');
       this.planFilter.set(vals.planFilter     ?? '');
       this.statusFilter.set(vals.statusFilter ?? '');
+      this.searchCountFilter.set(vals.searchCountFilter ?? '');
+    });
+  }
+
+  openCreateCompanyDialog(): void {
+    const dialogRef = this.dialog.open(CreateAdminDialogComponent, {
+      width: '520px',
+      panelClass: COMPANIES_DIALOG_PANEL,
+      data: {
+        title: 'Create New Company',
+        description: 'Add a new company account with company permissions.',
+        submitLabel: 'Create Company',
+        role: 'company',
+      } as CreateAccountDialogData,
+    });
+
+    dialogRef.afterClosed().subscribe((payload) => {
+      if (!payload) return;
+      this.createCompany(payload);
+    });
+  }
+
+  private createCompany(payload: CreateAccountPayload): void {
+    this.creatingCompany.set(true);
+    this.companyService.registerCompanyAccount({ ...payload, role: 'company', skipLogin: true }).subscribe({
+      next: (res) => {
+        const newCompany = res?.data?.user;
+        if (newCompany) {
+          this.companies.update((list) => [newCompany, ...list]);
+        } else {
+          this.companyService.getAllCompanies().subscribe({
+            next: (listRes) => this.companies.set(listRes.data ?? []),
+          });
+        }
+        this.toastr.success('New company account created successfully.', 'Company created');
+        this.sessionNotifications.add(`Admin created company ${payload.name.en}`, 'success');
+        this.resetPagination();
+        this.creatingCompany.set(false);
+      },
+      error: (err) => {
+        this.toastr.error(err?.error?.message || 'Could not create company account.', 'Create failed');
+        this.creatingCompany.set(false);
+      },
     });
   }
 
@@ -202,12 +267,30 @@ export class CompaniesComponent implements OnInit {
   }
 
   getTokenPct(c: CompanyItem): number {
-    if (!c.maxToken) return 0;
-    return Math.round((c.tokenUsage / c.maxToken) * 100);
+    const tokenLimit = Number(c.maxToken) || 0;
+    if (!tokenLimit) return 0;
+    const usage = Number(c.tokenUsage) || 0;
+    return Math.min(100, Math.round((Math.max(0, usage) / tokenLimit) * 100));
   }
 
   formatTokens(n: number): string {
     return n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
+  }
+
+  getPlanTokenTextClass(plan: string): string {
+    if (plan === 'Enterprise') return 'text-purple-700 dark:text-purple-300';
+    if (plan === 'Pro') return 'text-emerald-700 dark:text-emerald-300';
+    return 'text-blue-700 dark:text-blue-300';
+  }
+
+  getAiCallCount(c: CompanyItem): number {
+    const raw = c.aiCallsCount ?? c.searches ?? 0;
+    return Number(raw) || 0;
+  }
+
+  getSearchCount(c: CompanyItem): number {
+    const raw = c.searches ?? c.aiCallsCount ?? 0;
+    return Number(raw) || 0;
   }
 
   // =========================
@@ -240,6 +323,7 @@ export class CompaniesComponent implements OnInit {
     this.planSubmenuCompanyId.set(null);
     this.openMenuId.set(id);
     this.menuAnchor.set(this.computeMenuAnchor(event.currentTarget as HTMLElement));
+    this.deferMenuRealign();
   }
 
   closeMenu(): void {
@@ -267,59 +351,103 @@ export class CompaniesComponent implements OnInit {
   }
 
   private computeMenuAnchor(trigger: HTMLElement) {
-    const rect       = trigger.getBoundingClientRect();
-    const menuWidth  = 200;
-    const estimatedH = 180;
-    const gap        = 6;
+    const rect = trigger.getBoundingClientRect();
+    const menuWidth = 250;
+    const estimatedHeight = 360;
+    const gap = 6;
+    const viewportPadding = this.viewportPadding;
 
     let left = rect.right - menuWidth;
-    left = Math.max(8, Math.min(left, window.innerWidth - menuWidth - 8));
+    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
 
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const flipAbove  = spaceBelow < estimatedH && rect.top > estimatedH;
-    const top        = flipAbove ? rect.top - gap : rect.bottom + gap;
+    const preferredBelowTop = rect.bottom + gap;
+    const preferredAboveTop = rect.top - gap - estimatedHeight;
+    const canOpenAbove = preferredAboveTop >= viewportPadding;
+    const shouldOpenAbove =
+      preferredBelowTop + estimatedHeight > window.innerHeight - viewportPadding && canOpenAbove;
+    const rawTop = shouldOpenAbove ? preferredAboveTop : preferredBelowTop;
+    const maxTop = Math.max(viewportPadding, window.innerHeight - estimatedHeight - viewportPadding);
+    const top = Math.max(viewportPadding, Math.min(rawTop, maxTop));
 
-    return { top, left, flipAbove };
+    return { top, left };
   }
 
   togglePlanSubmenu(companyId: string, event: Event): void {
     event.stopPropagation();
-    this.planSubmenuCompanyId.set(
-      this.planSubmenuCompanyId() === companyId ? null : companyId
-    );
+    const next = this.planSubmenuCompanyId() === companyId ? null : companyId;
+    this.planSubmenuCompanyId.set(next);
+    this.deferMenuRealign(next !== null);
   }
 
-  toggleBlockStatus(company: CompanyItem): void {
-    const isBlocking = !company.isBlocked;
+  private deferMenuRealign(expanded = false): void {
+    requestAnimationFrame(() => this.adjustMenuTop(expanded));
+  }
+
+  private adjustMenuTop(expanded = false): void {
+    const anchor = this.menuAnchor();
+    if (!anchor) return;
+
+    const viewportPadding = this.viewportPadding;
+    const menuHeight = this.getMenuElement()?.offsetHeight;
+    const estimatedHeight = menuHeight ?? (expanded ? 440 : 360);
+    const maxTop = Math.max(viewportPadding, window.innerHeight - estimatedHeight - viewportPadding);
+    const top = Math.max(viewportPadding, Math.min(anchor.top, maxTop));
+
+    if (top !== anchor.top) {
+      this.menuAnchor.set({ ...anchor, top });
+    }
+  }
+
+  private getMenuElement(): HTMLElement | null {
+    return document.querySelector('[data-companies-menu]') as HTMLElement | null;
+  }
+
+  getPlanSubtitle(plan: string): string {
+    return this.planMeta[plan]?.subtitle ?? 'Plan option';
+  }
+
+  getPlanTokenLabel(plan: string): string {
+    return this.planMeta[plan]?.tokenLabel ?? '—';
+  }
+
+  banCompany(company: CompanyItem): void {
+    const action = company.isBlocked ? 'unban' : 'ban';
 
     const dialogRef = this.dialog.open(CompanyConfirmDialogComponent, {
       width: '420px',
       panelClass: COMPANIES_DIALOG_PANEL,
       data: {
-        title: isBlocking ? 'Block company' : 'Unblock company',
-        message: isBlocking
-          ? `Are you sure you want to block ${this.getName(company)}?`
-          : `Are you sure you want to unblock ${this.getName(company)}?`,
-        confirmLabel: isBlocking ? 'Block' : 'Unblock',
-        confirmDanger: isBlocking,
+        title: company.isBlocked ? 'Unban Company' : 'Ban Company',
+        message: `Are you sure you want to ${action} ${this.getName(company)}?`,
+        confirmLabel: company.isBlocked ? 'Unban' : 'Ban',
+        confirmDanger: !company.isBlocked,
       },
     });
 
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
-
-      const request = isBlocking
-        ? this.companyService.blockCompany(company._id)
-        : this.companyService.unblockCompany(company._id);
-
-      request.subscribe({
-        next: () => {
+      this.companyService.toggleBan(company._id).subscribe({
+        next: (res) => {
           this.companies.update((list) =>
             list.map((c) =>
-              c._id === company._id ? { ...c, isBlocked: isBlocking } : c
-            )
+              c._id === company._id ? { ...c, isBlocked: res.data.isBlocked } : c,
+            ),
           );
-          this.closeMenu();
+          this.toastr.success(
+            res.data.isBlocked
+              ? `${this.getName(company)} has been banned.`
+              : `${this.getName(company)} has been unbanned.`,
+            'Company updated',
+          );
+          this.sessionNotifications.add(
+            res.data.isBlocked
+              ? `Admin banned company ${this.getName(company)}`
+              : `Admin unbanned company ${this.getName(company)}`,
+            'warning',
+          );
+        },
+        error: (err) => {
+          this.toastr.error(err.error?.message || 'Could not update company status.', 'Action failed');
         },
       });
     });
@@ -371,10 +499,23 @@ export class CompaniesComponent implements OnInit {
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
       this.companyService.updateCompanyPlan(c._id, plan).subscribe({
-        next: () =>
+        next: (res) => {
+          const updatedMaxToken = res?.data?.maxToken;
           this.companies.update((list) =>
-            list.map((x) => (x._id === c._id ? { ...x, plan } : x))
-          ),
+            list.map((x) =>
+              x._id === c._id ? { ...x, plan, maxToken: updatedMaxToken ?? x.maxToken } : x,
+            )
+          );
+          this.toastr.success(`Plan changed to ${plan}.`, 'Plan updated');
+          this.sessionNotifications.add(
+            `Admin changed plan for company ${this.getName(c)} to ${plan}`,
+            'info',
+          );
+          this.closeMenu();
+        },
+        error: (err) => {
+          this.toastr.error(err.error?.message || 'Could not update company plan.', 'Update failed');
+        },
       });
     });
   }
