@@ -30,9 +30,13 @@ const documentStorage = new CloudinaryStorage({
       file.mimetype ===
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
+    let folder = "learnova/images";
+    if (isPDF) folder = "learnova/pdfs";
+    else if (isDoc) folder = "learnova/docs";
+
     return {
-      folder: isPDF || isDoc ? "learnova/docs" : "learnova/images",
-      resource_type: isPDF || isDoc ? "raw" : "image",
+      folder,
+      resource_type: isPDF || isDoc ? "auto" : "image",
       // allowed_formats: DOCUMENT_FORMATS,
       public_id: `file_${Date.now()}`,
     };
