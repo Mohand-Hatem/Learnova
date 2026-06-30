@@ -1,5 +1,5 @@
 import express from "express";
-import passport from "../config/passport.js";
+import passport, { isGoogleAuthEnabled } from "../config/passport.js";
 import {
   register,
   login,
@@ -51,10 +51,19 @@ if (isGoogleAuthEnabled) {
       googleAuthCallback,
     );
   } else {
-    router.get("/google", googleAuthUnavailable);
-    router.get("/google/callback", googleAuthUnavailable);
+    router.get("/google", (req, res) =>{
+      return res.status(503).json({
+        success: false,
+        message: "Google authentication is not configured on this server.",
+      });
+    });
+    router.get("/google/callback", (req, res) =>{
+      return res.status(503).json({
+        success: false,
+        message: "Google authentication is not configured on this server.",
+      });
+    });
   }
-
   router.get("/google/failure", (req, res) => {
     return res.status(401).json({
       success: false,

@@ -16,7 +16,7 @@ const Env = {
   NODE_ENV: process.env.NODE_ENV,
   EMAIL: process.env.EMAIL,
   EMAIL_PASS: process.env.EMAIL_PASS,
-  FRONTEND_URL: process.env.FRONTEND_URL,
+  DASHBOARD: process.env.DASHBOARD,
   PAYMOB_API_KEY: process.env.PAYMOB_API_KEY,
   PAYMOB_INTEGRATION_ID: process.env.PAYMOB_INTEGRATION_ID,
   PAYMOB_IFRAME_ID: process.env.PAYMOB_IFRAME_ID,
