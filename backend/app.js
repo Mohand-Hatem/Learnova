@@ -15,18 +15,22 @@ import adminRoutes from "./routes/admin.routes.js";
 import cvRoutes from "./routes/cv.routes.js";
 import aiRoutes from "./routes/ai.routes.js";
 import "./utils/cron.js";
+import dns from "dns";
 
+dns.setServers(["8.8.8.8","8.8.4.4"])
 const app = express();
+app.set("trust proxy", 1); 
 app.use(helmet());
 app.use(morgan("dev"));
+app.use(cookieParser());
 app.use(cors({ origin: [
-  "http://localhost:3000"
+  "http://localhost:3000",
   "http://localhost:4200",
+  "https://aventra-eta.vercel.app",
   "https://learnova-ruby.vercel.app",
   "https://learnova-dashboard-liard.vercel.app",
 ], credentials: true }));
 app.use(express.json());
-app.use(cookieParser());
 app.use(passport.initialize());
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);

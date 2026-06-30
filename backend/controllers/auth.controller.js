@@ -8,21 +8,17 @@ import bcrypt from "bcryptjs";
 import sendResetPasswordEmail from "../utils/sendResetPasswordEmail.js";
 import CV from "../models/Cv.model.js";
 
-const isProduction = Env.NODE_ENV === "production";
-
-const sharedCookieOptions = {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
-};
-
 const accessCookieOptions = {
-  ...sharedCookieOptions,
+  httpOnly: true,
+  secure: Env.NODE_ENV === "production",
+  sameSite: Env.NODE_ENV === "production" ? "none" : "lax", 
   maxAge: 30 * 60 * 1000,
 };
 
 const refreshCookieOptions = {
-  ...sharedCookieOptions,
+  httpOnly: true,
+  secure: Env.NODE_ENV === "production",
+  sameSite: Env.NODE_ENV === "production" ? "none" : "lax",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -32,8 +28,16 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
 };
 
 const clearAuthCookies = (res) => {
-  res.clearCookie("accessToken", sharedCookieOptions);
-  res.clearCookie("refreshToken", sharedCookieOptions);
+  res.clearCookie("accessToken",{
+    httpOnly: true,
+    secure: Env.NODE_ENV === "production",
+    sameSite: Env.NODE_ENV === "production" ? "none" : "lax",
+  });
+  res.clearCookie("refreshToken",{
+    httpOnly: true,
+    secure: Env.NODE_ENV === "production",
+    sameSite: Env.NODE_ENV === "production" ? "none" : "lax",
+  });
 };
 
 const formatUser = async (user) => ({
@@ -180,12 +184,30 @@ export const logout = (req, res) => {
 };
 
 export const getMe = asyncHandler(async (req, res) => {
-  return res.status(200).json({
-    success: true,
-    data: {
-      user: await formatUser(req.user),
-    },
-  });
+  try {
+    console.log("Cookies:", req.cookies);
+
+    const token = req.cookies.accessToken;
+    console.log("Token:", token);
+
+    const decoded = verifyToken(token);
+    console.log("Decoded:", decoded);
+
+    const user = await User.findById(decoded.id).select("-password");
+    console.log("User:", user);
+
+    return res.json({
+      success: true,
+      user,
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(401).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
 export const forgotPassword = asyncHandler(async (req, res) => {
@@ -245,18 +267,10 @@ export const resetPassword = asyncHandler(async (req, res) => {
 });
 
 export const googleAuthCallback = asyncHandler(async (req, res, next) => {
-  req.user.lastDashboardLoginAt = new Date();
-  await req.user.save();
-
   const { accessToken, refreshToken } = generateTokens(req.user);
 
   setAuthCookies(res, accessToken, refreshToken);
 
-  return res.status(200).json({
-    success: true,
-    message: "Google login successful",
-    data: {
-      user: await formatUser(req.user),
-    },
-  });
-});
+return res.redirect(`${Env.MAIN_SITE}/en/auth/callback`);
+
+})

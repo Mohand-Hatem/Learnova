@@ -8,7 +8,7 @@ export const generateAccessToken = (user) => {
       role: user.role,
     },
     Env.JWT_SECRET,
-    { expiresIn: "15m" },
+    { expiresIn: "60m" },
   );
 };
 
@@ -28,3 +28,11 @@ export const generateTokens = (user) => {
     refreshToken: generateRefreshToken(user),
   };
 };
+
+export const verifyToken = (token) => {
+  try {
+    return jwt.verify(token, Env.JWT_SECRET);
+  } catch (error) {
+    throw new Error("Invalid or expired token");
+  }
+}

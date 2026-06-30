@@ -4,11 +4,9 @@ import { health, analyzeCVHandler, getCVById, deleteCV } from "../controllers/ai
 
 const router = express.Router();
 
-// Health — public, no auth required
-router.get("/health", health);
-
 router.use(protect);
 
+router.get("/health", health);
 router.post("/:cvId", analyzeCVHandler);
 router.get("/:cvId", getCVById);
 router.delete("/:cvId", deleteCV);

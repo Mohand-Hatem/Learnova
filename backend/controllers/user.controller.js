@@ -126,17 +126,8 @@ export const userUpdateSubscription = asyncHandler(async (req, res) => {
     });
   }
 
-  if (user.role === "admin") {
-    return res.status(403).json({
-      success: false,
-      message: "Admin plan is locked to Unlimited and cannot be changed",
-    });
-  }
-
-  const targetPlan = plan;
-
-  user.plan = targetPlan;
-  user.maxToken = PLANS[targetPlan].maxToken;
+  user.plan = plan;
+  user.maxToken = PLANS[plan].maxToken;
 
   await user.save();
 
@@ -147,6 +138,8 @@ export const userUpdateSubscription = asyncHandler(async (req, res) => {
   });
 });
 
+
+//Payment
 export const payWithPaymob = asyncHandler(async (req, res) => {
   const user = req.user;
   const { plan } = req.body;
@@ -189,7 +182,11 @@ export const payWithPaymob = asyncHandler(async (req, res) => {
     status: "Pending",
   });
 
-  res.json({ success: true, url });
+  res.json({
+  success: true,
+  url,
+  orderId: order.id,
+});
 });
 
 export const paymobWebhook = asyncHandler(async (req, res) => {
@@ -217,12 +214,9 @@ export const paymobWebhook = asyncHandler(async (req, res) => {
 
     const foundUser = await User.findById(payment.user);
     if (foundUser) {
-      const targetPlan =
-        foundUser.role === "admin" ? PLANS.Unlimited.name : payment.plan;
-
-      foundUser.plan = targetPlan;
+      foundUser.plan = payment.plan;
       foundUser.tokenUsage = 0;
-      foundUser.maxToken = PLANS[targetPlan].maxToken;
+      foundUser.maxToken = PLANS[payment.plan].maxToken;
       await foundUser.save();
     }
   } else {
@@ -232,6 +226,27 @@ export const paymobWebhook = asyncHandler(async (req, res) => {
 
   res.json({ ok: true });
 });
+
+export const getPaymentStatus = asyncHandler(async (req, res) => {
+
+    const payment = await Payment.findOne({
+        orderId: req.params.orderId,
+    });
+
+    if (!payment) {
+        return res.status(404).json({
+            success: false,
+        });
+    }
+
+    res.json({
+        success: true,
+        status: payment.status,
+    });
+
+});
+
+//****** */
 
 export const getMyAiUsage = asyncHandler(async (req, res) => {
   const userId = req.user._id;
