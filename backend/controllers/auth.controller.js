@@ -42,7 +42,6 @@ const clearAuthCookies = (res) => {
 
 const formatUser = async (user) => ({
   id: user._id,
-  _id: user._id,
   name: user.name,
   email: user.email,
   role: user.role,
@@ -51,7 +50,6 @@ const formatUser = async (user) => ({
   maxToken: user.maxToken,
   tokenUsage: user.tokenUsage,
   googleId: user.googleId,
-  lastDashboardLoginAt: user.lastDashboardLoginAt,
   cvs: await CV.find({ userId: user._id }).sort({ createdAt: -1 }),
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,

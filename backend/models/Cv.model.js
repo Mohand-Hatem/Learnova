@@ -48,8 +48,24 @@ const cvSchema = new mongoose.Schema(
 
         missingRecommended: [{ type: String, trim: true }],
       },
+      certifications: [
+        {
+          name: {
+            type: String,
+            trim: true,
+          },
 
-      certifications: [{ type: String, trim: true }],
+          issuer: {
+            type: String,
+            trim: true,
+          },
+
+          date: {
+            type: String,
+            trim: true,
+          },
+        },
+      ],
 
       experience: [
         {

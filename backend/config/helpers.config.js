@@ -1,17 +1,17 @@
 export const PLANS = {
   Free: {
     name: "Free",
-    maxToken: 1000,
+    maxToken: 10000,
     price: 0,
   },
   Pro: {
     name: "Pro",
-    maxToken: 2000,
+    maxToken: 15000,
     price: 500,
   },
   Enterprise: {
     name: "Enterprise",
-    maxToken: 4000,
+    maxToken: 20000,
     price: 1000,
   },
   Unlimited: {

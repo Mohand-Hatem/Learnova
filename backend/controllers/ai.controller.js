@@ -8,7 +8,7 @@ import {
   embedAndStore,
   queryCV,
   analyzeCV,
-  pineconeIndex,
+  vectorIndex
 } from "../Vector/cv.ai.js";
 
 export const health = (_, res) => {
@@ -78,8 +78,36 @@ export const analyzeCVHandler = asyncHandler(async (req, res) => {
 
   const context = await queryCV(cvId);
 
+  // ✅ نحسب الرصيد المتبقي بعد أي استهلاك حصل فوق (زي الـ embedding)
+  // عشان analyzeCV تعرف تحدد max_tokens المناسب من غير ما تتخطى رصيد اليوزر
+  const freshUser = await User.findById(userId).select("tokenUsage maxToken");
+  const remainingQuota = freshUser
+    ? freshUser.maxToken - freshUser.tokenUsage
+    : null;
+
+  let analysisResult;
+  try {
+    analysisResult = await analyzeCV(context, remainingQuota);
+  } catch (err) {
+    if (err.code === "INSUFFICIENT_QUOTA") {
+      return res.status(403).json({
+        success: false,
+        message: "Token quota too low to complete a full analysis. Please upgrade your plan.",
+        tokenUsage: freshUser?.tokenUsage,
+        maxToken: freshUser?.maxToken,
+      });
+    }
+    if (err.code === "EMPTY_ANALYSIS") {
+      return res.status(502).json({
+        success: false,
+        message: "AI model failed to generate a proper analysis after multiple attempts. Please try again.",
+      });
+    }
+    throw err;
+  }
+
   const { report, promptTokens, completionTokens, totalTokens, responseTimeMs } =
-    await analyzeCV(context);
+    analysisResult;
 
   const { atsScore, scoreBreakdown, parsedData, aiAnalysis } = report;
 
@@ -132,7 +160,7 @@ export const deleteCV = asyncHandler(async (req, res) => {
   }
 
   if (cv.pineconeVectorIds?.length) {
-    await pineconeIndex.deleteMany(cv.pineconeVectorIds);
+    await vectorIndex.delete(cv.pineconeVectorIds);
   }
 
   await CV.findByIdAndDelete(req.params.cvId);
