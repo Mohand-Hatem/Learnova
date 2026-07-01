@@ -9,6 +9,7 @@ import {
   queryCV,
   analyzeCV,
   pineconeIndex,
+  searchCandidates
 } from "../Vector/cv.ai.js";
 
 export const health = (_, res) => {
@@ -139,3 +140,74 @@ export const deleteCV = asyncHandler(async (req, res) => {
 
   return res.status(200).json({ success: true, message: "CV deleted successfully" });
 });
+export const searchCandidatesHandler = asyncHandler(async (req, res) => {
+  const { query, topK = 10 } = req.body;
+
+  if (!query || typeof query !== "string" || query.trim().length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Search query is required",
+    });
+  }
+
+  // 1. Search Pinecone for matching CVs
+  const matches = await searchCandidates(query.trim(), topK);
+
+  if (!matches.length) {
+    return res.status(200).json({
+      success: true,
+      data: { candidates: [], total: 0 },
+    });
+  }
+
+  // 2. Fetch CV + User data from MongoDB
+  const cvIds = matches.map((m) => m.cvId);
+
+  const cvs = await CV.find({ _id: { $in: cvIds } })
+    .select("userId atsScore parsedData aiAnalysis originalFile processingStatus createdAt")
+    .lean();
+
+  const userIds = cvs.map((cv) => cv.userId);
+  const users = await User.find({ _id: { $in: userIds } })
+    .select("name email avatar plan role")
+    .lean();
+
+  const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+  const scoreMap = new Map(matches.map((m) => [m.cvId, m.score]));
+
+  // 3. Build response
+  const candidates = cvs
+    .map((cv) => {
+      const user = userMap.get(cv.userId?.toString());
+      if (!user || user.role === "admin") return null;
+
+      return {
+        cvId: cv._id,
+        userId: cv.userId,
+        matchScore: Math.round((scoreMap.get(cv._id.toString()) ?? 0) * 100),
+        atsScore: cv.atsScore ?? 0,
+        processingStatus: cv.processingStatus,
+        user: {
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          plan: user.plan,
+        },
+        skills: cv.parsedData?.skills?.technical ?? [],
+        summary: cv.aiAnalysis?.summary ?? "",
+        originalFile: {
+          url: cv.originalFile?.url,
+          fileName: cv.originalFile?.fileName,
+        },
+        createdAt: cv.createdAt,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.matchScore - a.matchScore);
+
+  return res.status(200).json({
+    success: true,
+    data: { candidates, total: candidates.length },
+  });
+});
+
