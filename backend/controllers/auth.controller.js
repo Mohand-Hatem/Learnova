@@ -8,17 +8,20 @@ import bcrypt from "bcryptjs";
 import sendResetPasswordEmail from "../utils/sendResetPasswordEmail.js";
 import CV from "../models/Cv.model.js";
 
-const accessCookieOptions = {
-  httpOnly: true,
-  secure: Env.NODE_ENV === "production",
-  sameSite: Env.NODE_ENV === "production" ? "none" : "lax", 
-  maxAge: 30 * 60 * 1000,
-};
-
-const refreshCookieOptions = {
+const baseCookieOptions = {
   httpOnly: true,
   secure: Env.NODE_ENV === "production",
   sameSite: Env.NODE_ENV === "production" ? "none" : "lax",
+  path: "/",
+};
+
+const accessCookieOptions = {
+  ...baseCookieOptions,
+  maxAge: 60 * 60 * 1000,
+};
+
+const refreshCookieOptions = {
+  ...baseCookieOptions,
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -28,16 +31,8 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
 };
 
 const clearAuthCookies = (res) => {
-  res.clearCookie("accessToken",{
-    httpOnly: true,
-    secure: Env.NODE_ENV === "production",
-    sameSite: Env.NODE_ENV === "production" ? "none" : "lax",
-  });
-  res.clearCookie("refreshToken",{
-    httpOnly: true,
-    secure: Env.NODE_ENV === "production",
-    sameSite: Env.NODE_ENV === "production" ? "none" : "lax",
-  });
+  res.clearCookie("accessToken", baseCookieOptions);
+  res.clearCookie("refreshToken", baseCookieOptions);
 };
 
 const formatUser = async (user) => ({

@@ -18,6 +18,12 @@ export class AuthService {
   isLoggedIn = computed(() => !!this.currentUser());
   isAdmin = computed(() => this.currentUser()?.role === 'admin');
 
+  private setAuthenticatedUser(response: ApiResponse | null | undefined): void {
+    const payload = response as (ApiResponse & { user?: User | null }) | null | undefined;
+    const user = payload?.data?.user ?? payload?.user ?? null;
+    this.currentUser.set(user);
+  }
+
   login(loginData: LoginData): Observable<ApiResponse> {
     return this.http
       .post<ApiResponse>(`${environment.apiUrl}/auth/login`, loginData, {
@@ -25,7 +31,7 @@ export class AuthService {
       })
       .pipe(
         tap((response) => {
-          this.currentUser.set(response?.data?.user);
+          this.setAuthenticatedUser(response);
         }),
       );
   }
@@ -47,32 +53,43 @@ export class AuthService {
   refresh() {
     return this.http
       .post<ApiResponse>(`${environment.apiUrl}/auth/refresh`, {}, { withCredentials: true })
-      .pipe(tap((res) => this.currentUser.set(res.data.user)));
+      .pipe(tap((res) => this.setAuthenticatedUser(res)));
   }
 
   getMe() {
     return this.http
       .get<ApiResponse>(`${environment.apiUrl}/auth/me`, { withCredentials: true })
-      .pipe(tap((res) => this.currentUser.set(res.data.user)));
+      .pipe(tap((res) => this.setAuthenticatedUser(res)));
   }
+
   initializeAuth(): Observable<unknown> {
     return this.getMe().pipe(
-      catchError(() => of(null)),
+      catchError((error) => {
+        if (error?.status === 401 || error?.status === 403) {
+          return this.refresh().pipe(
+            catchError(() => {
+              this.currentUser.set(null);
+              return of(null);
+            }),
+          );
+        }
+
+        this.currentUser.set(null);
+        return of(null);
+      }),
       tap(() => this.isInitialized.set(true)),
     );
   }
 
-forgotPassword(email: string): Observable<any> {
-  return this.http.post(`${environment.apiUrl}/auth/forgot-password`, { email });
-}
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/auth/forgot-password`, { email });
+  }
 
   verifyOtp(data: { email: string; otp: string }): Observable<any> {
     return this.http.post(`${environment.apiUrl}/auth/verify-otp`, data);
   }
 
-
-resetPassword(data: { email: string; otp: string; newPassword: string }): Observable<any> {
-  return this.http.post(`${environment.apiUrl}/auth/reset-password`, data);
-}
-
+  resetPassword(data: { email: string; otp: string; newPassword: string }): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/auth/reset-password`, data);
+  }
 }
