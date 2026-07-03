@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import { searchCVsByQuery } from "../Vector/company.ai.js";
-import CompanySearch from "../models/CompanySearch.model.js";
+import CompanySearch from "../models/Companysearch.model.js";
 import User from "../models/User.model.js";
 
 // ══════════════════════════════════════════════════════════════════════════════
