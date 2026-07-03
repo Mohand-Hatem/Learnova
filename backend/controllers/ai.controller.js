@@ -77,6 +77,12 @@ export const analyzeCVHandler = asyncHandler(async (req, res) => {
   }
 
   const context = await queryCV(cvId);
+  if (!context || !context.trim()) {
+  return res.status(422).json({
+    success: false,
+    message: "Failed to retrieve CV content for analysis. Please try again in a moment.",
+  });
+}
 
   // ✅ نحسب الرصيد المتبقي بعد أي استهلاك حصل فوق (زي الـ embedding)
   // عشان analyzeCV تعرف تحدد max_tokens المناسب من غير ما تتخطى رصيد اليوزر

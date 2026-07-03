@@ -4,7 +4,7 @@ const companySearchSchema = new mongoose.Schema(
   {
     company: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "User", 
       required: true,
     },
 
@@ -14,14 +14,14 @@ const companySearchSchema = new mongoose.Schema(
       trim: true,
     },
 
-
     results: [
       {
         cvId: { type: mongoose.Schema.Types.ObjectId, ref: "CV" },
         name: { type: String, trim: true },
-        track: { type: String, trim: true },
+        topSkills: [{ type: String, trim: true }],
         atsScore: { type: Number, default: 0 },
         matchScore: { type: Number, default: 0 },
+        cvFileUrl: { type: String, default: null },
       },
     ],
 
@@ -30,7 +30,7 @@ const companySearchSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true } 
+  { timestamps: true } // createdAt = وقت البحث بالظبط
 );
 
 companySearchSchema.index({ company: 1, createdAt: -1 });

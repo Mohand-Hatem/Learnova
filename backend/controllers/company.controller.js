@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { searchCVsByQuery } from "../Vector/company.ai.js";
-import CompanySearch from "../models/Companysearch.model.js";
+import CompanySearch from "../models/CompanySearch.model.js";
+import User from "../models/User.model.js";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // COMPANY CHAT SEARCH
@@ -23,7 +24,49 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
     });
   }
 
-  const searchResult = await searchCVsByQuery(message);
+  // ✅ فحص الـ quota قبل أي استدعاء AI — لو الشركة خلصت رصيدها، منبدأش أصلاً
+  const company = await User.findById(companyId).select("tokenUsage maxToken");
+
+  if (!company) {
+    return res.status(404).json({ success: false, message: "Company account not found" });
+  }
+
+  if (company.tokenUsage >= company.maxToken) {
+    return res.status(403).json({
+      success: false,
+      message: "Token quota exceeded. Please upgrade your plan.",
+      tokenUsage: company.tokenUsage,
+      maxToken: company.maxToken,
+    });
+  }
+
+  const remainingQuota = company.maxToken - company.tokenUsage;
+
+  let searchResult;
+  try {
+    searchResult = await searchCVsByQuery(message, { remainingQuota });
+  } catch (err) {
+    if (err.code === "INSUFFICIENT_QUOTA") {
+      return res.status(403).json({
+        success: false,
+        message: "Token quota too low to complete a search. Please upgrade your plan.",
+        tokenUsage: company.tokenUsage,
+        maxToken: company.maxToken,
+      });
+    }
+    throw err;
+  }
+
+  const { usage } = searchResult;
+
+  // ✅ نحدث رصيد الشركة بالتوكنز اللي اتستهلكت فعلياً في البحث ده
+  // (بيحصل حتى لو كانت الرسالة greeting/reject، لأن intent classification
+  // نفسها بتستهلك توكنز)
+  if (usage?.totalTokens) {
+    await User.findByIdAndUpdate(companyId, {
+      $inc: { tokenUsage: usage.totalTokens, aiCallsCount: 1 },
+    });
+  }
 
   // ✅ لو الرسالة بس تحية (Hello, Hi, مرحبا) — رد ترحيبي مختلف عن الـ reject
   if (searchResult.intent === "greeting") {
@@ -34,11 +77,11 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
       isOffTopic: false,
       message: searchResult.message,
       results: [],
+      usage,
     });
   }
 
   // ✅ لو الرسالة مش بحث عن CVs (زي "إيه الطقس النهاردة؟")
-  // نرجع رد ثابت من غير ما نعمل vector search أو نخزن سجل بحث
   if (searchResult.intent === "reject") {
     return res.status(200).json({
       success: true,
@@ -47,6 +90,7 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
       isOffTopic: true,
       message: searchResult.message,
       results: [],
+      usage,
     });
   }
 
@@ -59,9 +103,10 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
     results: results.map((r) => ({
       cvId: r.cvId,
       name: r.name?.en ?? "Unknown",
-      track: r.track,
+      topSkills: r.topSkills,
       atsScore: r.atsScore,
       matchScore: r.matchScore,
+      cvFileUrl: r.cvFileUrl ?? null,
     })),
     resultsCount: results.length,
   });
@@ -73,6 +118,7 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
     isOffTopic: false,
     resultsCount: results.length,
     results,
+    usage,
   });
 });
 
