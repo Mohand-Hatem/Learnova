@@ -109,7 +109,11 @@ export async function searchCVsByQuery(userQuery, { topK = 30 } = {}) {
   }
 
   const effectiveQuery = intentResult.cleanedQuery?.trim() || userQuery;
+  
 
+  console.log("[DEBUG] intentResult:", JSON.stringify(intentResult));
+  console.log("[DEBUG] effectiveQuery being sent to embeddings:", JSON.stringify(effectiveQuery));
+  console.log("[DEBUG] effectiveQuery length:", effectiveQuery?.length);
   // 2) نحول الرسالة لـ embedding واحد (من غير chunking)
   const embData = await getEmbeddings([effectiveQuery], "query");
   const vector = embData.embeddings[0];
