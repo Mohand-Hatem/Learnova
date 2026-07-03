@@ -352,7 +352,7 @@ const CHAT_MODEL = "openai/gpt-oss-20b";        // chat / تحليل الـ CV �
 // NVIDIA HELPERS
 // ══════════════════════════════════════════════════════════════════════════════
 
-async function getEmbeddings(texts, inputType = "passage") {
+export async function getEmbeddings(texts, inputType = "passage") {
   try {
     const response = await fetch(`${NVIDIA_BASE_URL}/embeddings`, {
       method: "POST",
