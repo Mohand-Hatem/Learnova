@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import User from "../models/User.model.js";
 
-cron.schedule("0 0 1 * *", async () => {
+export async function runMonthlyTokenReset() {
   try {
     await User.updateMany(
       {},
@@ -12,9 +12,10 @@ cron.schedule("0 0 1 * *", async () => {
         },
       },
     );
-
     console.log("Token usage and AI calls count reset successfully");
   } catch (error) {
     console.log(error);
   }
-});
+}
+
+cron.schedule("0 0 1 * *", runMonthlyTokenReset);

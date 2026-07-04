@@ -11,6 +11,9 @@ import {
   vectorIndex
 } from "../Vector/cv.ai.js";
 
+const TOKEN_LIMIT_REACHED_MESSAGE =
+  "Token limit reached. Your monthly token quota has been exhausted. Please wait for the monthly reset or upgrade your plan.";
+
 export const health = (_, res) => {
   res.json({ success: true, message: "Server running" });
 };
@@ -21,18 +24,22 @@ export const analyzeCVHandler = asyncHandler(async (req, res) => {
 
   const [cv, user] = await Promise.all([
     CV.findById(cvId),
-    User.findById(userId).select("tokenUsage maxToken aiCallsCount"),
+    User.findById(userId).select("tokenUsage maxToken"),
   ]);
 
   if (!cv) {
     return res.status(404).json({ success: false, message: "CV not found" });
   }
 
-  // token quota check — block if user exceeded their plan limit
-  if (user && user.tokenUsage >= user.maxToken) {
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User account not found" });
+  }
+
+  if (user.tokenUsage >= user.maxToken) {
     return res.status(403).json({
       success: false,
-      message: "Token quota exceeded. Please upgrade your plan.",
+      code: "TOKEN_LIMIT_REACHED",
+      message: TOKEN_LIMIT_REACHED_MESSAGE,
       tokenUsage: user.tokenUsage,
       maxToken: user.maxToken,
     });
@@ -71,38 +78,45 @@ export const analyzeCVHandler = asyncHandler(async (req, res) => {
       $inc: { "aiUsage.totalTokens": embeddingTokens },
     });
 
-    await User.findByIdAndUpdate(userId, {
-      $inc: { tokenUsage: embeddingTokens },
+    if (embeddingTokens > 0) {
+      await User.findByIdAndUpdate(userId, {
+        $inc: { tokenUsage: Math.round(embeddingTokens) },
+      });
+    }
+  }
+
+  const { context, queryTokens } = await queryCV(cvId);
+
+  if (queryTokens > 0) {
+    await Promise.all([
+      CV.findByIdAndUpdate(cvId, {
+        $inc: {
+          "aiUsage.totalTokens": queryTokens,
+        },
+      }),
+      User.findByIdAndUpdate(userId, {
+        $inc: { tokenUsage: Math.round(queryTokens) },
+      }),
+    ]);
+  }
+
+  if (!context || !context.trim()) {
+    return res.status(422).json({
+      success: false,
+      message: "Failed to retrieve CV content for analysis. Please try again in a moment.",
     });
   }
 
-  const context = await queryCV(cvId);
-  if (!context || !context.trim()) {
-  return res.status(422).json({
-    success: false,
-    message: "Failed to retrieve CV content for analysis. Please try again in a moment.",
-  });
-}
-
-  // ✅ نحسب الرصيد المتبقي بعد أي استهلاك حصل فوق (زي الـ embedding)
-  // عشان analyzeCV تعرف تحدد max_tokens المناسب من غير ما تتخطى رصيد اليوزر
-  const freshUser = await User.findById(userId).select("tokenUsage maxToken");
-  const remainingQuota = freshUser
-    ? freshUser.maxToken - freshUser.tokenUsage
-    : null;
-
   let analysisResult;
   try {
-    analysisResult = await analyzeCV(context, remainingQuota);
+    analysisResult = await analyzeCV(context);
   } catch (err) {
-    if (err.code === "INSUFFICIENT_QUOTA") {
-      return res.status(403).json({
-        success: false,
-        message: "Token quota too low to complete a full analysis. Please upgrade your plan.",
-        tokenUsage: freshUser?.tokenUsage,
-        maxToken: freshUser?.maxToken,
+    if (err.usage?.totalTokens) {
+      await User.findByIdAndUpdate(userId, {
+        $inc: { tokenUsage: Math.round(err.usage.totalTokens) },
       });
     }
+
     if (err.code === "EMPTY_ANALYSIS") {
       return res.status(502).json({
         success: false,
@@ -130,9 +144,15 @@ export const analyzeCVHandler = asyncHandler(async (req, res) => {
     "aiUsage.analyzedAt": new Date(),
   });
 
-  await User.findByIdAndUpdate(userId, {
-    $inc: { tokenUsage: totalTokens, aiCallsCount: 1 },
-  });
+  if (totalTokens > 0) {
+    await User.findByIdAndUpdate(userId, {
+      $inc: { tokenUsage: Math.round(totalTokens), aiCallsCount: 1 },
+    });
+  } else {
+    await User.findByIdAndUpdate(userId, {
+      $inc: { aiCallsCount: 1 },
+    });
+  }
 
   return res.status(200).json({
     success: true,

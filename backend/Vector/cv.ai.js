@@ -427,6 +427,7 @@ export async function queryCV(cvId, { maxRetries = 4, retryDelayMs = 1000 } = {}
 
   const embData = await getEmbeddings([query], "query");
   const vector = embData.embeddings[0];
+  const queryTokens = embData.usage?.total_tokens ?? 0;
 
   let result = [];
 
@@ -460,7 +461,7 @@ export async function queryCV(cvId, { maxRetries = 4, retryDelayMs = 1000 } = {}
   console.log("[queryCV] context length (chars):", context.length);
   console.log("[queryCV] context preview:", context.slice(0, 200));
 
-  return context;
+  return { context, queryTokens };
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -564,65 +565,35 @@ whatever information is available, and give non-zero scores based on it.
 `;
 
 // ══════════════════════════════════════════════════════════════════════════════
-// DYNAMIC MAX_TOKENS
+// CHAT COMPLETION CONFIG
 // ══════════════════════════════════════════════════════════════════════════════
-// بدل ما نثبّت max_tokens على رقم واحد، بنحسبه على حسب رصيد اليوزر المتبقي
-// عشان: (1) منستهلكش رصيده كله في تحليل واحد، (2) نضمن رد كامل مش مقطوع.
+// بنستخدم قيمة ثابتة هنا لأن سياسة الـ quota دلوقتي بتسمح لآخر request يبدأ
+// وهو لسه تحت الحد إنه يكمل للنهاية، وبعدها نخزن الاستهلاك الحقيقي حتى لو
+// عدّى maxToken ونوقف الطلبات اللي بعده لحد الـ monthly reset.
 
-const IDEAL_MAX_TOKENS = 4000;  // أفضل قيمة عشان الرد يخرج كامل من غير قطع
-const MIN_MAX_TOKENS = 800;     // أقل قيمة تقدر تدي رد JSON مفيد
-const SAFETY_BUFFER = 200;      // هامش أمان عشان الحسبة تكون تقريبية مش دقيقة 100%
-
-// تقدير تقريبي لعدد التوكنز (rule of thumb: ~4 حروف = توكن واحد في الإنجليزي)
-function estimateTokens(str) {
-  return Math.ceil((str?.length ?? 0) / 4);
-}
-
-/**
- * بيحسب max_tokens المناسب بناءً على رصيد اليوزر المتبقي.
- * لو الرصيد قليل جداً، بيرجع null يعني "منعش نكمل، الرصيد مش كافي".
- */
-function calculateDynamicMaxTokens(resumeText, remainingQuota) {
-  // لو مفيش remainingQuota (يعني الفنكشن اتنادت من غير الباراميتر ده)،
-  // استخدم القيمة المثالية مباشرة من غير حسابات
-  if (remainingQuota == null) return IDEAL_MAX_TOKENS;
-
-  const estimatedPromptTokens =
-    estimateTokens(ATS_SYSTEM_PROMPT) + estimateTokens(resumeText);
-
-  const availableForCompletion =
-    remainingQuota - estimatedPromptTokens - SAFETY_BUFFER;
-
-  if (availableForCompletion < MIN_MAX_TOKENS) {
-    return null; // الرصيد مش كافي حتى لأقل رد مفيد
-  }
-
-  return Math.min(IDEAL_MAX_TOKENS, availableForCompletion);
-}
+const ANALYSIS_MAX_TOKENS = 4000;
 
 /**
  * @param {string} text - الـ context المستخرج من الـ CV
- * @param {number|null} remainingQuota - رصيد اليوزر المتبقي (user.maxToken - user.tokenUsage)
- *   لو مبعتتش الباراميتر ده، هيستخدم IDEAL_MAX_TOKENS بشكل ثابت.
  */
-export async function analyzeCV(text, remainingQuota = null) {
+export async function analyzeCV(text) {
   const startTime = Date.now();
   const MAX_RETRIES = 3;
   const TIMEOUT_MS = 90_000;
+  const accumulatedUsage = {
+    promptTokens: 0,
+    completionTokens: 0,
+    totalTokens: 0,
+  };
 
-  const dynamicMaxTokens = calculateDynamicMaxTokens(text, remainingQuota);
-
-  if (dynamicMaxTokens === null) {
-    const err = new Error(
-      "INSUFFICIENT_QUOTA: رصيد التوكنز المتبقي مش كافي لعمل تحليل كامل. رجاءً upgrade الـ plan."
-    );
-    err.code = "INSUFFICIENT_QUOTA";
-    throw err;
-  }
+  const addUsage = (usage = {}) => {
+    accumulatedUsage.promptTokens += usage.prompt_tokens ?? 0;
+    accumulatedUsage.completionTokens += usage.completion_tokens ?? 0;
+    accumulatedUsage.totalTokens += usage.total_tokens ?? 0;
+  };
 
   console.log(
-    `[analyzeCV] using max_tokens: ${dynamicMaxTokens}` +
-      (remainingQuota != null ? ` (remainingQuota: ${remainingQuota})` : " (fixed, no quota passed)")
+    `[analyzeCV] using max_tokens: ${ANALYSIS_MAX_TOKENS} (fixed policy-compatible limit)`
   );
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -642,7 +613,7 @@ export async function analyzeCV(text, remainingQuota = null) {
             { role: "system", content: ATS_SYSTEM_PROMPT },
             { role: "user", content: `Resume Text:\n\n${text}` },
           ],
-          max_tokens: dynamicMaxTokens,
+          max_tokens: ANALYSIS_MAX_TOKENS,
           temperature: 0.3,
           response_format: { type: "json_object" },
         }),
@@ -670,16 +641,16 @@ export async function analyzeCV(text, remainingQuota = null) {
       const usage = data.usage ?? {};
       const promptTokens = usage.prompt_tokens ?? 0;
       const completionTokens = usage.completion_tokens ?? 0;
-      const totalTokens = usage.total_tokens ?? 0;
+      addUsage(usage);
 
       const finishReason = data.choices?.[0]?.finish_reason;
       console.log("[analyzeCV] finish_reason:", finishReason);
-      console.log("[analyzeCV] completionTokens:", completionTokens, "/ max_tokens:", dynamicMaxTokens);
+      console.log("[analyzeCV] completionTokens:", completionTokens, "/ max_tokens:", ANALYSIS_MAX_TOKENS);
       console.log("[analyzeCV] resume text length (chars):", text.length);
 
       if (finishReason === "length") {
         console.warn(
-          "[analyzeCV] ⚠️ الرد اتقطع لأنه وصل لحد max_tokens الديناميكي! يمكن رصيد اليوزر قليل."
+          "[analyzeCV] ⚠️ الرد اتقطع لأنه وصل لحد max_tokens الثابت."
         );
       }
 
@@ -728,15 +699,26 @@ export async function analyzeCV(text, remainingQuota = null) {
           "EMPTY_ANALYSIS: الموديل رجّع رد فاضي بعد كل المحاولات. جرب تاني أو راجع نص الـ CV."
         );
         err.code = "EMPTY_ANALYSIS";
+        err.usage = { ...accumulatedUsage };
         throw err;
       }
 
-      return { report, promptTokens, completionTokens, totalTokens, responseTimeMs };
+      return {
+        report,
+        promptTokens: accumulatedUsage.promptTokens,
+        completionTokens: accumulatedUsage.completionTokens,
+        totalTokens: accumulatedUsage.totalTokens,
+        responseTimeMs,
+      };
     } catch (err) {
       const isTimeout = err.name === "AbortError";
       console.error("ANALYZE CV FETCH ERROR NAME:", isTimeout ? "TimeoutError" : err.name);
       console.error("ANALYZE CV FETCH ERROR MESSAGE:", err.message);
       console.error("ANALYZE CV FETCH ERROR CAUSE:", err.cause);
+
+      if (!err.usage && accumulatedUsage.totalTokens > 0) {
+        err.usage = { ...accumulatedUsage };
+      }
 
       if (err.code === "EMPTY_ANALYSIS") throw err; 
 

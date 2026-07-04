@@ -3,6 +3,9 @@ import { searchCVsByQuery } from "../Vector/company.ai.js";
 import CompanySearch from "../models/Companysearch.model.js";
 import User from "../models/User.model.js";
 
+const TOKEN_LIMIT_REACHED_MESSAGE =
+  "Token limit reached. Your monthly token quota has been exhausted. Please wait for the monthly reset or upgrade your plan.";
+
 // ══════════════════════════════════════════════════════════════════════════════
 // COMPANY CHAT SEARCH
 // ══════════════════════════════════════════════════════════════════════════════
@@ -24,7 +27,6 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
     });
   }
 
-  // ✅ فحص الـ quota قبل أي استدعاء AI — لو الشركة خلصت رصيدها، منبدأش أصلاً
   const company = await User.findById(companyId).select("tokenUsage maxToken");
 
   if (!company) {
@@ -34,28 +36,14 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
   if (company.tokenUsage >= company.maxToken) {
     return res.status(403).json({
       success: false,
-      message: "Token quota exceeded. Please upgrade your plan.",
+      code: "TOKEN_LIMIT_REACHED",
+      message: TOKEN_LIMIT_REACHED_MESSAGE,
       tokenUsage: company.tokenUsage,
       maxToken: company.maxToken,
     });
   }
 
-  const remainingQuota = company.maxToken - company.tokenUsage;
-
-  let searchResult;
-  try {
-    searchResult = await searchCVsByQuery(message, { remainingQuota });
-  } catch (err) {
-    if (err.code === "INSUFFICIENT_QUOTA") {
-      return res.status(403).json({
-        success: false,
-        message: "Token quota too low to complete a search. Please upgrade your plan.",
-        tokenUsage: company.tokenUsage,
-        maxToken: company.maxToken,
-      });
-    }
-    throw err;
-  }
+  const searchResult = await searchCVsByQuery(message);
 
   const { usage } = searchResult;
 
@@ -64,7 +52,11 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
   // نفسها بتستهلك توكنز)
   if (usage?.totalTokens) {
     await User.findByIdAndUpdate(companyId, {
-      $inc: { tokenUsage: usage.totalTokens, aiCallsCount: 1 },
+      $inc: { tokenUsage: Math.round(usage.totalTokens), aiCallsCount: 1 },
+    });
+  } else {
+    await User.findByIdAndUpdate(companyId, {
+      $inc: { aiCallsCount: 1 },
     });
   }
 

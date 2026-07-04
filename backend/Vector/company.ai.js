@@ -16,10 +16,6 @@ const RELATIVE_GAP_CUTOFF = 0.08;
 // ✅ أقصى عدد نتايج نرجعها للشركة، حتى لو فيه أكتر من كده فوق الـ threshold
 const MAX_RESULTS = 10;
 
-// ✅ أقل رصيد توكنز لازم يكون متاح قبل ما نبدأ بحث (3 استدعاءات: intent +
-// embedding + rerank). هامش أمان تقريبي، لو الرصيد أقل من كده منبدأش أصلاً.
-const MIN_SEARCH_QUOTA = 800;
-
 // الرسالة اللي بترجع للشركة لو سألت حاجة برة نطاق النظام
 const OUT_OF_SCOPE_MESSAGE =
   "I don't have knowledge about that — I'm only here to search our CV database and help you find the best candidates for your company. Try asking me about a role, skill, or experience you're looking for.";
@@ -212,6 +208,7 @@ async function rerankByRelevance(queryText, candidates) {
     topSkills: c.topSkills,
     snippet: c.matchedSnippet,
   }));
+  let responseUsage = null;
 
   try {
     const response = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
@@ -243,21 +240,22 @@ async function rerankByRelevance(queryText, candidates) {
     }
 
     const data = await response.json();
+    responseUsage = data.usage ?? null;
     let raw = data.choices?.[0]?.message?.content ?? "{}";
     raw = raw.replace(/```json|```/g, "").trim();
 
     const { relevantCvIds } = JSON.parse(raw);
-    if (!Array.isArray(relevantCvIds)) return { candidates, usage: data.usage };
+    if (!Array.isArray(relevantCvIds)) return { candidates, usage: responseUsage };
 
     const relevantSet = new Set(relevantCvIds);
     const filtered = candidates.filter((c) => relevantSet.has(c.cvId));
 
     // لو الـ LLM شال الكل بالغلط (edge case)، أحسن نرجع النتايج الأصلية
     // بدل ما نرجع فاضي تماماً
-    return { candidates: filtered.length ? filtered : candidates, usage: data.usage };
+    return { candidates: filtered.length ? filtered : candidates, usage: responseUsage };
   } catch (err) {
     console.warn("[rerankByRelevance] error, returning unfiltered candidates:", err.message);
-    return { candidates, usage: null };
+    return { candidates, usage: responseUsage };
   }
 }
 
@@ -269,25 +267,13 @@ async function rerankByRelevance(queryText, candidates) {
  * @param {string} userQuery - رسالة الشركة
  * @param {object} options
  * @param {number} options.topK
- * @param {number|null} options.remainingQuota - رصيد التوكنز المتبقي للشركة
- *   (company.maxToken - company.tokenUsage). لو null، منعملش فحص quota خالص.
  * @returns {{ intent: "search"|"greeting"|"reject", message?: string, results: Array, usage: object }}
  */
-export async function searchCVsByQuery(userQuery, { topK = 50, remainingQuota = null } = {}) {
+export async function searchCVsByQuery(userQuery, { topK = 50 } = {}) {
   const usageAcc = createUsageAccumulator();
 
   if (!userQuery || !userQuery.trim()) {
     return { intent: "reject", message: OUT_OF_SCOPE_MESSAGE, results: [], usage: usageAcc.get() };
-  }
-
-  // ✅ فحص الرصيد الأول — قبل أي استدعاء فعلي، عشان منستهلكش توكنز في
-  // استدعاء هيفشل نصه بسبب نفاد الرصيد
-  if (remainingQuota != null && remainingQuota < MIN_SEARCH_QUOTA) {
-    const err = new Error(
-      "INSUFFICIENT_QUOTA: رصيد التوكنز المتبقي مش كافي لعمل بحث. رجاءً upgrade الـ plan."
-    );
-    err.code = "INSUFFICIENT_QUOTA";
-    throw err;
   }
 
   // 1) نفهم قصد الرسالة الأول
