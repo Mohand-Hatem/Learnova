@@ -251,29 +251,95 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
   });
 });
 
+// export const getAllUsers = asyncHandler(async (req, res) => {
+//   const users = await User.find().select("-password").lean();
+
+//   const userIds = users.map((user) => user._id);
+
+//   const cvs = await CV.find({
+//     userId: { $in: userIds },
+//   })
+//     .select("userId atsScore processingStatus originalFile createdAt")
+//     .lean();
+
+//   const usersWithCVs = users.map((user) => ({
+//     ...user,
+
+//     cvs: cvs.filter((cv) => cv.userId.toString() === user._id.toString()),
+//   }));
+
+//   res.status(200).json({
+//     success: true,
+//     count: usersWithCVs.length,
+//     data: usersWithCVs,
+//   });
+// });
+
+
 export const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("-password").lean();
+  const {
+    search = "",
+    plan = "",
+    hasCV = "",
+    isBanned = "",
+    page = 1,
+    limit = 10,
+  } = req.query;
 
-  const userIds = users.map((user) => user._id);
+  const query = {};
 
-  const cvs = await CV.find({
-    userId: { $in: userIds },
-  })
+  // Search by name or email
+  if (search) {
+    query.$or = [
+      { "name.en": { $regex: search, $options: "i" } },
+      { "name.ar": { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  // Filter by plan
+  if (plan) query.plan = plan;
+
+  // Filter by banned status
+  if (isBanned === "true") query.isBlocked = true;
+  if (isBanned === "false") query.isBlocked = false;
+
+  const skip = (Number(page) - 1) * Number(limit);
+  const total = await User.countDocuments(query);
+
+  const users = await User.find(query)
+    .select("-password")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(Number(limit))
+    .lean();
+
+  const userIds = users.map((u) => u._id);
+
+  const cvs = await CV.find({ userId: { $in: userIds } })
     .select("userId atsScore processingStatus originalFile createdAt")
     .lean();
 
-  const usersWithCVs = users.map((user) => ({
+  // Filter by hasCV
+  let usersWithCVs = users.map((user) => ({
     ...user,
-
     cvs: cvs.filter((cv) => cv.userId.toString() === user._id.toString()),
   }));
+
+  if (hasCV === "true") usersWithCVs = usersWithCVs.filter((u) => u.cvs.length > 0);
+  if (hasCV === "false") usersWithCVs = usersWithCVs.filter((u) => u.cvs.length === 0);
 
   res.status(200).json({
     success: true,
     count: usersWithCVs.length,
+    total,
+    page: Number(page),
+    totalPages: Math.ceil(total / Number(limit)),
     data: usersWithCVs,
   });
 });
+
+
 
 export const getOneUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
