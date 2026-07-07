@@ -176,6 +176,7 @@ export class UsersComponent implements OnInit {
     const params: Record<string, string> = {
       page: String(this.currentPage()),
       limit: String(this.pageSize()),
+      role: 'user',
     };
 
     if (this.searchQuery()) params['search'] = this.searchQuery();
@@ -349,23 +350,105 @@ export class UsersComponent implements OnInit {
     if (this.openMenuId()) this.closeMenu();
   }
 
-  private computeMenuAnchor(trigger: HTMLElement): { top: number; left: number } {
-    const rect = trigger.getBoundingClientRect();
-    const menuWidth = 250;
-    const estimatedHeight = 360;
-    const gap = 6;
-    const viewportPadding = this.viewportPadding;
-    let left = rect.right - menuWidth;
-    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
-    const preferredBelowTop = rect.bottom + gap;
-    const preferredAboveTop = rect.top - gap - estimatedHeight;
-    const canOpenAbove = preferredAboveTop >= viewportPadding;
-    const shouldOpenAbove = preferredBelowTop + estimatedHeight > window.innerHeight - viewportPadding && canOpenAbove;
-    const rawTop = shouldOpenAbove ? preferredAboveTop : preferredBelowTop;
-    const maxTop = Math.max(viewportPadding, window.innerHeight - estimatedHeight - viewportPadding);
-    const top = Math.max(viewportPadding, Math.min(rawTop, maxTop));
-    return { top, left };
-  }
+  // private computeMenuAnchor(trigger: HTMLElement): { top: number; left: number } {
+  //   const rect = trigger.getBoundingClientRect();
+  //   const menuWidth = 250;
+  //   const estimatedHeight = 360;
+  //   const gap = 6;
+  //   const viewportPadding = this.viewportPadding;
+  //   let left = rect.right - menuWidth;
+  //   left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
+  //   const preferredBelowTop = rect.bottom + gap;
+  //   const preferredAboveTop = rect.top - gap - estimatedHeight;
+  //   const canOpenAbove = preferredAboveTop >= viewportPadding;
+  //   const shouldOpenAbove = preferredBelowTop + estimatedHeight > window.innerHeight - viewportPadding && canOpenAbove;
+  //   const rawTop = shouldOpenAbove ? preferredAboveTop : preferredBelowTop;
+  //   const maxTop = Math.max(viewportPadding, window.innerHeight - estimatedHeight - viewportPadding);
+  //   const top = Math.max(viewportPadding, Math.min(rawTop, maxTop));
+  //   return { top, left };
+  // }
+//  private computeMenuAnchor(trigger: HTMLElement): { top: number; left: number } {
+//   const rect = trigger.getBoundingClientRect();
+//   const menuWidth = 250;
+//   const estimatedHeight = 360;
+//   const gap = 4;
+//   const viewportPadding = this.viewportPadding;
+
+//   // محاذاة يمين الـ menu مع يمين الزرار
+//   let left = rect.right - menuWidth;
+//   left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
+
+//   // تحت الزرار مباشرة
+//   const preferredBelowTop = rect.bottom + gap;
+//   const preferredAboveTop = rect.top - gap - estimatedHeight;
+//   const canOpenAbove = preferredAboveTop >= viewportPadding;
+//   const shouldOpenAbove = preferredBelowTop + estimatedHeight > window.innerHeight - viewportPadding && canOpenAbove;
+//   const rawTop = shouldOpenAbove ? preferredAboveTop : preferredBelowTop;
+//   const maxTop = Math.max(viewportPadding, window.innerHeight - estimatedHeight - viewportPadding);
+//   const top = Math.max(viewportPadding, Math.min(rawTop, maxTop));
+
+//   return { top, left };
+// }
+
+// private computeMenuAnchor(trigger: HTMLElement): { top: number; left: number } {
+//   const rect = trigger.getBoundingClientRect();
+//   const menuWidth = 250;
+//   const estimatedHeight = 360;
+//   const gap = 4;
+//   const viewportPadding = this.viewportPadding;
+
+//   let left = rect.right - menuWidth;
+//   left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
+
+//   const preferredBelowTop = rect.bottom + gap + window.scrollY;
+//   const preferredAboveTop = rect.top - gap - estimatedHeight + window.scrollY;
+//   const canOpenAbove = rect.top - estimatedHeight >= viewportPadding;
+//   const shouldOpenAbove = rect.bottom + estimatedHeight > window.innerHeight - viewportPadding && canOpenAbove;
+//   const top = shouldOpenAbove ? preferredAboveTop : preferredBelowTop;
+
+//   return { top, left };
+// }
+// private computeMenuAnchor(trigger: HTMLElement): { top: number; left: number } {
+//   const rect = trigger.getBoundingClientRect();
+//   const menuWidth = 250;
+//   const estimatedHeight = 360;
+//   const gap = 4;
+//   const viewportPadding = this.viewportPadding;
+
+//   let left = rect.right - menuWidth;
+//   left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
+
+//   const spaceBelow = window.innerHeight - rect.bottom;
+//   const spaceAbove = rect.top;
+//   const shouldOpenAbove = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+
+//   const top = shouldOpenAbove
+//     ? rect.top - estimatedHeight - gap
+//     : rect.bottom + gap;
+
+//   return { top, left };
+// }
+
+private computeMenuAnchor(trigger: HTMLElement): { top: number; left: number } {
+  const rect = trigger.getBoundingClientRect();
+  const menuWidth = 250;
+  const estimatedHeight = 360;
+  const gap = 4;
+  const viewportPadding = this.viewportPadding;
+
+  let left = rect.right - menuWidth;
+  left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
+
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const shouldOpenAbove = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
+
+  const top = shouldOpenAbove
+    ? rect.top - estimatedHeight - gap
+    : rect.bottom + gap;
+
+  return { top, left };
+}
+
 
   togglePlanSubmenu(userId: string, event: Event) {
     event.stopPropagation();
@@ -375,7 +458,7 @@ export class UsersComponent implements OnInit {
   }
 
   private deferMenuRealign(expanded = false): void {
-    requestAnimationFrame(() => this.adjustMenuTop(expanded));
+    // requestAnimationFrame(() => this.adjustMenuTop(expanded));
   }
 
   private adjustMenuTop(expanded = false): void {

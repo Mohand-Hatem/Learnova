@@ -1,4 +1,4 @@
-<div class="flex w-full min-w-0 max-w-full flex-col gap-6 text-text-primary" [formGroup]="filterForm">
+<div class="flex w-full min-w-0 max-w-full flex-col gap-6 text-text-primary">
 
   <!-- Page header -->
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -18,20 +18,14 @@
   </div>
 
   <div class="flex flex-wrap items-center gap-3 px-1">
-    <div
-      class="flex items-center gap-2 flex-1 min-w-[240px] px-4 py-2.5 shadow-sm"
-      [class]="ui.input"
-    >
-      <lucide-angular
-        [img]="icons.Search"
-        size="16"
-        class="text-text-muted shrink-0"
-      ></lucide-angular>
+    <div class="flex items-center gap-2 flex-1 min-w-[240px] px-4 py-2.5 shadow-sm" [class]="ui.input">
+      <lucide-angular [img]="icons.Search" size="16" class="text-text-muted shrink-0"></lucide-angular>
       <input
         type="text"
         placeholder="Search by name or email..."
         class="bg-transparent flex-1 outline-none"
-        formControlName="searchQuery"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
       />
     </div>
 
@@ -39,84 +33,49 @@
       <select
         class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm"
         [class]="ui.input"
-        formControlName="planFilter"
+        [ngModel]="planFilter()"
+        (ngModelChange)="planFilter.set($event); onFilterChange()"
       >
         <option value="">All plans</option>
         <option value="Free">Free</option>
         <option value="Pro">Pro</option>
         <option value="Enterprise">Enterprise</option>
       </select>
-      <lucide-angular
-        [img]="icons.ChevronDown"
-        size="14"
-        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-      >
-      </lucide-angular>
+      <lucide-angular [img]="icons.ChevronDown" size="14" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
     </div>
 
     <div class="relative">
       <select
         class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm"
         [class]="ui.input"
-        formControlName="statusFilter"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event); onFilterChange()"
       >
         <option value="">Banned Status (All)</option>
         <option value="active">Active</option>
         <option value="blocked">Banned</option>
       </select>
-      <lucide-angular
-        [img]="icons.ChevronDown"
-        size="14"
-        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-      >
-      </lucide-angular>
-    </div>
-
-    <div class="relative">
-      <select
-        class="appearance-none pl-4 pr-9 py-2.5 cursor-pointer shadow-sm"
-        [class]="ui.input"
-        formControlName="searchCountFilter"
-      >
-        <option value="">Search Count (All)</option>
-        <option value="none">None (0)</option>
-        <option value="low">Low (1-50)</option>
-        <option value="mid">Medium (51-200)</option>
-        <option value="high">High (200+)</option>
-      </select>
-      <lucide-angular
-        [img]="icons.ChevronDown"
-        size="14"
-        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-      >
-      </lucide-angular>
+      <lucide-angular [img]="icons.ChevronDown" size="14" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"></lucide-angular>
     </div>
   </div>
 
   <div [class]="ui.card">
-    <!-- Card header -->
     <div class="flex items-center justify-between border-b border-theme px-5 py-4">
       <h6 class="text-sm font-semibold text-text-primary">All Companies</h6>
-      <span class="text-xs text-text-muted">{{ filteredCompanies().length }} total</span>
+      <span class="text-xs text-text-muted">{{ total() }} total</span>
     </div>
 
     @if (loading()) {
       <div class="flex items-center justify-center py-20 text-text-secondary text-sm font-medium">
         <div class="flex flex-col items-center">
-          <div
-            class="w-8 h-8 border-3 border-violet-200 dark:border-violet-500/30 border-t-brand rounded-full animate-spin mb-3"
-          ></div>
+          <div class="w-8 h-8 border-3 border-violet-200 dark:border-violet-500/30 border-t-brand rounded-full animate-spin mb-3"></div>
           Loading companies...
         </div>
       </div>
-    } @else if (filteredCompanies().length === 0) {
+    } @else if (total() === 0) {
       <div class="flex items-center justify-center py-20 text-text-secondary text-sm">
         <div class="text-center">
-          <lucide-angular
-            [img]="icons.Building2"
-            size="32"
-            class="text-text-muted mx-auto mb-3"
-          ></lucide-angular>
+          <lucide-angular [img]="icons.Building2" size="32" class="text-text-muted mx-auto mb-3"></lucide-angular>
           <p class="font-medium text-text-primary">No companies found</p>
           <p class="text-xs text-text-muted mt-1">Try adjusting your filters</p>
         </div>
@@ -126,32 +85,18 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-bg-secondary border-b border-theme">
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[28%]">
-                Company
-              </th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[12%]">
-                Plan
-              </th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[10%] whitespace-nowrap">
-                Search Count
-              </th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[22%]">
-                Tokens
-              </th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[10%]">
-                Status
-              </th>
-              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[13%] whitespace-nowrap">
-                Joined
-              </th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[28%]">Company</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[12%]">Plan</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[10%] whitespace-nowrap">Search Count</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[22%]">Tokens</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[10%]">Status</th>
+              <th class="text-left text-xs text-text-secondary font-semibold px-5 py-4 w-[13%] whitespace-nowrap">Joined</th>
               <th class="w-[5%]"></th>
             </tr>
           </thead>
           <tbody>
             @for (c of paginatedCompanies(); track c._id; let i = $index) {
-              <tr
-                class="border-b border-theme transition-colors duration-200 hover:bg-violet-50/50 dark:hover:bg-slate-800/50"
-              >
+              <tr class="border-b border-theme transition-colors duration-200 hover:bg-violet-50/50 dark:hover:bg-slate-800/50">
                 <td class="px-5 py-4">
                   <div class="flex items-center gap-3">
                     <div
@@ -166,58 +111,32 @@
                     </div>
                   </div>
                 </td>
-
                 <td class="px-5 py-4">
-                  <span
-                    class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold"
-                    [ngClass]="planBadgeClass(c.plan)"
-                    >{{ c.plan }}</span
-                  >
+                  <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold" [ngClass]="planBadgeClass(c.plan)">{{ c.plan }}</span>
                 </td>
-
-                <td class="px-5 py-4 text-text-secondary font-medium text-[13px]">
-                  {{ getAiCallCount(c) | number }}
-                </td>
-
+                <td class="px-5 py-4 text-text-secondary font-medium text-[13px]">{{ getAiCallCount(c) | number }}</td>
                 <td class="px-5 py-4">
-                  <p
-                    class="mb-2 text-[11px] font-medium"
-                    [ngClass]="getPlanTokenTextClass(c.plan)"
-                  >
+                  <p class="mb-2 text-[11px] font-medium" [ngClass]="getPlanTokenTextClass(c.plan)">
                     {{ formatTokens(c.tokenUsage) }} / {{ formatTokens(c.maxToken) }}
                   </p>
-                  <div
-                    class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden w-24"
-                  >
+                  <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden w-24">
                     <div
                       class="h-full rounded-full transition-all duration-300"
-                      [ngClass]="
-                        c.plan === 'Free'
-                          ? 'bg-slate-400 dark:bg-slate-500'
-                          : 'bg-linear-to-r from-brand to-info'
-                      "
+                      [ngClass]="c.plan === 'Free' ? 'bg-slate-400 dark:bg-slate-500' : 'bg-linear-to-r from-brand to-info'"
                       [style.width]="getTokenPct(c) + '%'"
                     ></div>
                   </div>
                 </td>
-
                 <td class="px-5 py-4">
                   <span
                     class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
                     [ngClass]="statusBadgeClass(!c.isBlocked)"
                   >
-                    <span
-                      class="w-1.5 h-1.5 rounded-full"
-                      [ngClass]="c.isBlocked ? 'bg-red-400' : 'bg-emerald-400'"
-                    ></span>
+                    <span class="w-1.5 h-1.5 rounded-full" [ngClass]="c.isBlocked ? 'bg-red-400' : 'bg-emerald-400'"></span>
                     {{ c.isBlocked ? 'Banned' : 'Active' }}
                   </span>
                 </td>
-
-                <td class="px-5 py-4 text-[12px] text-text-muted font-medium whitespace-nowrap">
-                  {{ c.createdAt | date: 'MMM dd, yyyy' }}
-                </td>
-
+                <td class="px-5 py-4 text-[12px] text-text-muted font-medium whitespace-nowrap">{{ c.createdAt | date: 'MMM dd, yyyy' }}</td>
                 <td class="px-4 py-4">
                   <button
                     type="button"
@@ -236,21 +155,13 @@
         </table>
       </div>
 
-      <div
-        class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 bg-bg-secondary border-t border-theme"
-      >
+      <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 bg-bg-secondary border-t border-theme">
         <div class="text-sm text-text-secondary font-medium">
           Showing
-          <span class="font-bold text-text-primary">{{
-            (currentPage() - 1) * pageSize() + 1
-          }}</span>
+          <span class="font-bold text-text-primary">{{ (currentPage() - 1) * pageSize() + 1 }}</span>
           to
-          <span class="font-bold text-text-primary">{{
-            Math.min(currentPage() * pageSize(), filteredCompanies().length)
-          }}</span>
-          of
-          <span class="font-bold text-text-primary">{{ filteredCompanies().length }}</span>
-          companies
+          <span class="font-bold text-text-primary">{{ Math.min(currentPage() * pageSize(), total()) }}</span>
+          of <span class="font-bold text-text-primary">{{ total() }}</span> companies
         </div>
 
         <div class="flex items-center gap-2">
@@ -265,19 +176,15 @@
 
           <div class="flex items-center gap-1">
             @for (p of pageNumbers(); track p) {
-              @if (p === 1 || p === totalPages() || Math.abs(p - currentPage()) <= 1) {
+              @if (p === 1 || p === totalPagesCount() || Math.abs(p - currentPage()) <= 1) {
                 <button
                   (click)="goToPage(p)"
                   class="w-8 h-8 flex cursor-pointer items-center justify-center rounded-lg border text-sm font-medium transition-colors"
-                  [ngClass]="
-                    currentPage() === p
-                      ? 'bg-brand text-white border-brand'
-                      : 'border-theme bg-bg-primary text-text-secondary hover:border-violet-400'
-                  "
+                  [ngClass]="currentPage() === p ? 'bg-brand text-white border-brand' : 'border-theme bg-bg-primary text-text-secondary hover:border-violet-400'"
                 >
                   {{ p }}
                 </button>
-              } @else if (p === 2 || p === totalPages() - 1) {
+              } @else if (p === 2 || p === totalPagesCount() - 1) {
                 <span class="text-text-muted">...</span>
               }
             }
@@ -285,7 +192,7 @@
 
           <button
             (click)="nextPage()"
-            [disabled]="currentPage() === totalPages()"
+            [disabled]="currentPage() === totalPagesCount()"
             class="flex cursor-pointer items-center gap-1 px-3 py-2 rounded-lg border border-theme text-sm font-medium text-text-secondary hover:bg-violet-50 hover:border-violet-400 dark:hover:bg-violet-950/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span class="hidden sm:inline">Next</span>
@@ -302,35 +209,20 @@
         data-companies-menu
         role="menu"
         [class]="ui.menu"
-        [style.top.px]="anchor.top"
-        [style.left.px]="anchor.left"
+        [style.top]="anchor.top + 'px'"
+        [style.left]="anchor.left + 'px'"
+        [style.position]="'fixed'"
         (click)="$event.stopPropagation()"
       >
-        <button
-          type="button"
-          [class]="ui.menuItem"
-          [routerLink]="['/dashboard/companies', c._id]"
-          (click)="closeMenu()"
-        >
+        <button type="button" [class]="ui.menuItem" [routerLink]="['/dashboard/companies', c._id]" (click)="closeMenu()">
           <lucide-angular [img]="icons.Eye" size="14"></lucide-angular> View details
         </button>
-
-        <button
-          type="button"
-          [class]="ui.menuItem + ' justify-between'"
-          (click)="togglePlanSubmenu(c._id, $event)"
-        >
+        <button type="button" [class]="ui.menuItem + ' justify-between'" (click)="togglePlanSubmenu(c._id, $event)">
           <span class="flex items-center gap-2">
             <lucide-angular [img]="icons.ArrowUp" size="14"></lucide-angular>
             Change plan
           </span>
-          <lucide-angular
-            [img]="icons.ChevronDown"
-            size="14"
-            class="text-text-muted transition-transform shrink-0"
-            [class.rotate-180]="planSubmenuCompanyId() === c._id"
-          >
-          </lucide-angular>
+          <lucide-angular [img]="icons.ChevronDown" size="14" class="text-text-muted transition-transform shrink-0" [class.rotate-180]="planSubmenuCompanyId() === c._id"></lucide-angular>
         </button>
         @if (planSubmenuCompanyId() === c._id) {
           <div [class]="ui.planSubmenu">
@@ -339,48 +231,23 @@
                 type="button"
                 class="mb-1 w-full cursor-pointer rounded-lg border px-2.5 py-2 text-left transition-colors last:mb-0"
                 [disabled]="plan === c.plan"
-                [ngClass]="
-                  plan === c.plan
-                    ? 'cursor-not-allowed border-violet-300 bg-violet-50/80 dark:border-violet-500/50 dark:bg-violet-950/30'
-                    : 'border-theme bg-bg-primary hover:border-violet-300 hover:bg-violet-50/70 dark:hover:border-violet-500/60 dark:hover:bg-violet-950/30'
-                "
+                [ngClass]="plan === c.plan ? 'cursor-not-allowed border-violet-300 bg-violet-50/80 dark:border-violet-500/50 dark:bg-violet-950/30' : 'border-theme bg-bg-primary hover:border-violet-300 hover:bg-violet-50/70 dark:hover:border-violet-500/60 dark:hover:bg-violet-950/30'"
                 (click)="requestPlanChange(c, plan, $event)"
               >
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <p
-                      class="truncate text-[13px] font-semibold"
-                      [ngClass]="
-                        plan === c.plan
-                          ? getPlanTokenTextClass(plan)
-                          : 'text-text-primary'
-                      "
-                    >
-                      {{ plan }}
-                    </p>
-                    <p class="mt-0.5 text-[10px] text-text-muted leading-4">
-                      {{ getPlanSubtitle(plan) }}
-                    </p>
+                    <p class="truncate text-[13px] font-semibold" [ngClass]="plan === c.plan ? getPlanTokenTextClass(plan) : 'text-text-primary'">{{ plan }}</p>
+                    <p class="mt-0.5 text-[10px] text-text-muted leading-4">{{ getPlanSubtitle(plan) }}</p>
                   </div>
                   <div class="flex shrink-0 items-center gap-2">
                     <span
                       class="rounded-full px-1.5 py-0.5 text-[9px] font-semibold"
-                      [ngClass]="
-                        plan === 'Enterprise'
-                          ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'
-                          : plan === 'Pro'
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                            : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
-                      "
+                      [ngClass]="plan === 'Enterprise' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300' : plan === 'Pro' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'"
                     >
                       {{ getPlanTokenLabel(plan) }}
                     </span>
                     @if (plan === c.plan) {
-                      <lucide-angular
-                        [img]="icons.Check"
-                        size="13"
-                        [ngClass]="getPlanTokenTextClass(plan)"
-                      ></lucide-angular>
+                      <lucide-angular [img]="icons.Check" size="13" [ngClass]="getPlanTokenTextClass(plan)"></lucide-angular>
                     }
                   </div>
                 </div>
@@ -388,23 +255,15 @@
             }
           </div>
         }
-
         <hr class="border-theme my-1" />
-
         <button
           type="button"
-          [class]="
-            ui.menuItem +
-            (c.isBlocked
-              ? ' text-success hover:bg-green-50'
-              : ' text-warning hover:bg-amber-50 dark:hover:bg-amber-500/10')
-          "
+          [class]="ui.menuItem + (c.isBlocked ? ' text-success hover:bg-green-50' : ' text-warning hover:bg-amber-50 dark:hover:bg-amber-500/10')"
           (click)="banCompany(c)"
         >
           <lucide-angular [img]="icons.Ban" size="14"></lucide-angular>
           {{ c.isBlocked ? 'Unban company' : 'Ban company' }}
         </button>
-
         <button
           type="button"
           [class]="ui.menuItem + ' text-error hover:bg-red-50 dark:hover:bg-red-500/10'"

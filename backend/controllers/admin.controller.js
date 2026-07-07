@@ -300,6 +300,9 @@ export const getAllUsers = asyncHandler(async (req, res) => {
   // Filter by plan
   if (plan) query.plan = plan;
 
+  // Filter by role
+if (req.query.role) query.role = req.query.role;
+
   // Filter by banned status
   if (isBanned === "true") query.isBlocked = true;
   if (isBanned === "false") query.isBlocked = false;

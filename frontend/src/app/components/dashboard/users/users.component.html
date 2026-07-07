@@ -243,7 +243,7 @@
     }
   </div>
 
-  @if (openMenuUser(); as u) {
+  <!-- @if (openMenuUser(); as u) {
     @if (menuAnchor(); as anchor) {
       <div
         data-users-menu
@@ -252,7 +252,19 @@
         [style.top.px]="anchor.top"
         [style.left.px]="anchor.left"
         (click)="$event.stopPropagation()"
-      >
+      > -->
+
+      @if (openMenuUser(); as u) {
+  @if (menuAnchor(); as anchor) {
+    <div
+      data-users-menu
+      role="menu"
+      [class]="ui.menu"
+      [style.top]="anchor.top + 'px'"
+      [style.left]="anchor.left + 'px'"
+      [style.position]="'fixed'"
+      (click)="$event.stopPropagation()"
+    >
         <button type="button" [class]="ui.menuItem" [routerLink]="['/dashboard/users', u._id]" (click)="closeMenu()">
           <lucide-angular [img]="icons.Eye" size="14"></lucide-angular> View profile
         </button>
