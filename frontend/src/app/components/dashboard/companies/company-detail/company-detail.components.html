@@ -56,7 +56,7 @@
                   <div class="flex items-center justify-between w-full">
                     <span class="font-semibold">{{ plan }}</span>
                     @if (plan === c.plan) {
-                      <span class="text-xs text-theme font-bold">Current</span>
+                      <span class="text-xs text-brand font-bold">Current</span>
                     }
                   </div>
                 </button>
@@ -101,7 +101,7 @@
             <div class="flex items-center gap-3 text-text-secondary text-sm">
               <lucide-angular [img]="icons.Globe" size="15" class="shrink-0 text-text-muted"></lucide-angular>
               @if (c.website) {
-                <a [href]="c.website" target="_blank" class="hover:text-theme transition-colors truncate">{{ c.website }}</a>
+                <a [href]="c.website" target="_blank" class="hover:text-brand transition-colors truncate">{{ c.website }}</a>
               } @else {
                 <span>No website available</span>
               }
@@ -133,7 +133,7 @@
           </div>
           <div class="h-2 rounded-full overflow-hidden bg-bg-secondary mb-2">
             <div
-              class="h-full rounded-full bg-theme transition-all duration-500"
+              class="h-full rounded-full bg-brand transition-all duration-500"
               [style.width.%]="getTokenPct()"
             ></div>
           </div>
@@ -259,6 +259,10 @@
 
       </div>
 
+      <!-- ── Search History Table ────────────────────────────── -->
+      <div class="xl:col-span-3 mt-6">
+        <app-search-history-table [history]="searchHistory()" [showCompany]="false"></app-search-history-table>
+      </div>
 
     </div>
 

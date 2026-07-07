@@ -108,22 +108,60 @@
         >{{ user()!.plan }} Plan</span
       >
       <div class="w-full space-y-3 text-left border-t border-theme pt-5">
+        @if (latestCv()?.parsedData?.contact?.linkedin; as linkedin) {
+          <div class="flex items-center gap-2 text-sm text-text-secondary">
+            <lucide-angular
+              [img]="icons.Linkedin"
+              size="14"
+              class="text-indigo-500 shrink-0"
+            ></lucide-angular>
+            <a
+              [href]="linkedin"
+              target="_blank"
+              class="hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline truncate"
+            >LinkedIn Profile</a>
+          </div>
+        }
+        @if (latestCv()?.parsedData?.contact?.github; as github) {
+          <div class="flex items-center gap-2 text-sm text-text-secondary">
+            <lucide-angular
+              [img]="icons.Github"
+              size="14"
+              class="text-text-primary dark:text-text-secondary shrink-0"
+            ></lucide-angular>
+            <a
+              [href]="github"
+              target="_blank"
+              class="hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline truncate"
+            >GitHub Profile</a>
+          </div>
+        }
         <div class="flex items-center gap-2 text-sm text-text-secondary">
           <lucide-angular
             [img]="icons.Mail"
             size="14"
             class="text-text-muted shrink-0"
           ></lucide-angular>
-          <span class="truncate">{{ user()!.email }}</span>
+          <span class="truncate">{{ latestCv()?.parsedData?.contact?.email || user()!.email }}</span>
         </div>
-        @if (user()!.location) {
+        @if (latestCv()?.parsedData?.contact?.phone; as phone) {
+          <div class="flex items-center gap-2 text-sm text-text-secondary">
+            <lucide-angular
+              [img]="icons.Phone"
+              size="14"
+              class="text-text-muted shrink-0"
+            ></lucide-angular>
+            <span>{{ phone }}</span>
+          </div>
+        }
+        @if (latestCv()?.parsedData?.contact?.location || user()!.location; as loc) {
           <div class="flex items-center gap-2 text-sm text-text-secondary">
             <lucide-angular
               [img]="icons.MapPin"
               size="14"
               class="text-text-muted shrink-0"
             ></lucide-angular>
-            {{ user()!.location }}
+            <span>{{ loc }}</span>
           </div>
         }
         <div class="flex items-center gap-2 text-sm text-text-secondary">
@@ -332,7 +370,6 @@
     <div [class]="ui.card + ' p-6 min-w-0'">
       <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
         <h6 class="text-sm font-semibold text-text-primary">Skills Analytics</h6>
-        <span [class]="ui.demoBadge">Demo</span>
       </div>
       @if (skillsChartOptions(); as skillOpts) {
         <div
@@ -350,7 +387,6 @@
     <div [class]="ui.card + ' p-6 min-w-0'">
       <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
         <h6 class="text-sm font-semibold text-text-primary">Token Usage</h6>
-        <span [class]="ui.demoBadge">Demo</span>
       </div>
       @if (tokenChartOptions(); as tokOpts) {
         <div
@@ -367,7 +403,6 @@
   <div [class]="ui.card + ' p-6 mb-6 min-w-0'">
     <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
       <h6 class="text-sm font-semibold text-text-primary">ATS Performance</h6>
-      <span [class]="ui.demoBadge">Demo</span>
     </div>
     @if (atsChartOptions(); as atsOpts) {
       <div

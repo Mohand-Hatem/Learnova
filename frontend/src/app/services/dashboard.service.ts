@@ -271,7 +271,7 @@ export class DashboardService {
       const count = Number(company.cvCount) || 0;
       return {
         name,
-        searchType: 'Uploaded CVs',
+        searchType: 'AI Talent Searches',
         count,
         initials: this.extractInitials(name),
         color: this.companyColors[index % this.companyColors.length],

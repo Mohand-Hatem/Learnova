@@ -56,6 +56,7 @@ import {
 import { CompanyService } from '../../../../services/company.service';
 import { ThemeService } from '../../../../services/theme.service';
 import { CompanyDetail } from '../../../../models/company.model';
+import { SearchHistoryTable } from '../../search-history-table/search-history-table';
 
 import { CompanyPlanUpdateDialogComponent } from '../plan-update-dialog/company-plan-update-dialog';
 import { CompanyConfirmDialogComponent } from '../confirm-dialog/Company-confirm-dialog';
@@ -126,6 +127,7 @@ function baseGrid(): EChartsOption['grid'] {
     MatDialogModule,
     // MatButtonModule removed — not used in template
     NgxEchartsDirective,
+    SearchHistoryTable,
   ],
   templateUrl: './company-detail.components.html',
 })
@@ -166,6 +168,7 @@ export class CompanyDetailComponent implements OnInit {
   company  = signal<CompanyDetail | null>(null);
   loading  = signal(true);
   error    = signal<string | null>(null);
+  searchHistory = signal<any[]>([]);
 
   showPlanDropdown = signal(false);
   planMenuAnchor   = signal<{ top: number; left: number; flipAbove: boolean } | null>(null);
@@ -206,6 +209,15 @@ export class CompanyDetailComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => { this.error.set('Failed to load company'); this.loading.set(false); },
+    });
+
+    this.companyService.getSearchHistory(id).subscribe({
+      next: (res) => {
+        this.searchHistory.set(res.history || []);
+      },
+      error: (err) => {
+        console.error('Failed to load company search history', err);
+      },
     });
   }
 

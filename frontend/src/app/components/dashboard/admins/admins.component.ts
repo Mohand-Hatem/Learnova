@@ -1,14 +1,18 @@
 import {
   Component,
   computed,
-  effect,
   inject,
   OnInit,
   signal,
+  DestroyRef,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   LucideAngularModule,
   ShieldCheck,
@@ -35,6 +39,7 @@ import { CreateAccountDialogData, CreateAccountPayload, CreateAdminDialogCompone
   standalone: true,
   imports: [CommonModule, RouterModule, LucideAngularModule, MatDialogModule],
   templateUrl: './admins.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminsComponent implements OnInit {
   Math = Math;
@@ -53,66 +58,73 @@ export class AdminsComponent implements OnInit {
   readonly creatingAdmin = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly total = signal(0);
+  readonly totalPagesCount = signal(0);
+
+  private readonly destroyRef = inject(DestroyRef);
+  private searchSubject = new Subject<string>();
 
   readonly icons = {
     ShieldCheck, ShieldPlus, Search, RefreshCw, UserX, FileText, FileX, Eye,
     ChevronDown, Star, ChevronLeft, ChevronRight,
   };
 
-  readonly admins = computed(() => {
-    const q = this.search().trim().toLowerCase();
-    const plan = this.planFilter();
-    const hasCv = this.hasCvFilter();
-    return this.allUsers()
-      .filter((u) => u.role === 'admin')
-      .filter((u) => {
-        if (!q) return true;
-        const name = this.getName(u).toLowerCase();
-        return name.includes(q) || (u.email ?? '').toLowerCase().includes(q);
-      })
-      .filter((u) => {
-        if (plan && u.plan !== plan) return false;
-        if (hasCv === 'yes' && !this.hasCv(u)) return false;
-        if (hasCv === 'no' && this.hasCv(u)) return false;
-        return true;
-      });
-  });
-  readonly paginatedAdmins = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return this.admins().slice(start, start + this.pageSize());
-  });
-  readonly totalPages = computed(() => Math.ceil(this.admins().length / this.pageSize()));
+  readonly admins = computed(() => this.allUsers());
+  readonly paginatedAdmins = computed(() => this.allUsers());
+  readonly totalPages = computed(() => this.totalPagesCount());
   readonly pageNumbers = computed(() =>
     Array.from({ length: this.totalPages() }, (_, i) => i + 1),
   );
 
-  constructor() {
-    effect(() => {
-      this.search();
-      this.planFilter();
-      this.hasCvFilter();
-      this.resetPagination();
-    });
-  }
   ngOnInit(): void {
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      this.currentPage.set(1);
+      this.load();
+    });
+
     this.load();
   }
 
   load(): void {
     this.loading.set(true);
     this.error.set('');
-    this.adminService.getAllUsers().subscribe({
+
+    const params: Record<string, string> = {
+      page: String(this.currentPage()),
+      limit: String(this.pageSize()),
+      role: 'admin',
+    };
+
+    if (this.search()) params['search'] = this.search();
+    if (this.planFilter()) params['plan'] = this.planFilter();
+    if (this.hasCvFilter()) params['hasCV'] = this.hasCvFilter() === 'yes' ? 'true' : 'false';
+
+    this.adminService.getAllUsers(params).subscribe({
       next: (res: any) => {
-        const list = Array.isArray(res) ? res : (res?.data ?? res?.users ?? []);
-        this.allUsers.set(list);
+        this.allUsers.set(res.data || []);
+        this.total.set(res.total || 0);
+        this.totalPagesCount.set(res.totalPages || 0);
         this.loading.set(false);
-        if (this.currentPage() > this.totalPages()) this.resetPagination();
       },
       error: () => {
         this.error.set('Failed to load admins. Please try again.');
         this.loading.set(false);
       },
     });
+  }
+
+  onSearchChange(value: string) {
+    this.search.set(value);
+    this.searchSubject.next(value);
+  }
+
+  onFilterChange() {
+    this.currentPage.set(1);
+    this.load();
   }
 
   openCreateAdminDialog(): void {
@@ -267,18 +279,21 @@ export class AdminsComponent implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
+      this.load();
     }
   }
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update((p) => p + 1);
+      this.load();
     }
   }
 
   prevPage(): void {
     if (this.currentPage() > 1) {
       this.currentPage.update((p) => p - 1);
+      this.load();
     }
   }
 

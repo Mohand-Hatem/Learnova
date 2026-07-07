@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Download, Bot } from 'lucide-angular';
 import { StatCardComponent } from './components/stat-card/stat-card';
@@ -25,6 +25,7 @@ import { DashboardService } from '../../../services/dashboard.service';
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
   host: { class: 'block w-full min-w-0 max-w-full' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dashboard implements OnInit {
   private readonly dashboardService = inject(DashboardService);

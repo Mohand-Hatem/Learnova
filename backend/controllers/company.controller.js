@@ -30,7 +30,9 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
   const company = await User.findById(companyId).select("tokenUsage maxToken");
 
   if (!company) {
-    return res.status(404).json({ success: false, message: "Company account not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Company account not found" });
   }
 
   if (company.tokenUsage >= company.maxToken) {
@@ -48,8 +50,6 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
   const { usage } = searchResult;
 
   // ✅ نحدث رصيد الشركة بالتوكنز اللي اتستهلكت فعلياً في البحث ده
-  // (بيحصل حتى لو كانت الرسالة greeting/reject، لأن intent classification
-  // نفسها بتستهلك توكنز)
   if (usage?.totalTokens) {
     await User.findByIdAndUpdate(companyId, {
       $inc: { tokenUsage: Math.round(usage.totalTokens), aiCallsCount: 1 },
@@ -60,7 +60,7 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
     });
   }
 
-  // ✅ لو الرسالة بس تحية (Hello, Hi, مرحبا) — رد ترحيبي مختلف عن الـ reject
+  // ✅ لو الرسالة بس تحية (Hello, Hi, مرحبا)
   if (searchResult.intent === "greeting") {
     return res.status(200).json({
       success: true,
@@ -88,7 +88,23 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
 
   const { results } = searchResult;
 
-  // نخزن سجل البحث ده بس لما يكون بحث حقيقي
+  // ✅ بحث حقيقي بس مفيش أي مرشح مرتبط فعلياً — نرجع فاضي مع رسالة واضحة،
+  // ومنخزنش سجل بحث فاضي (مفيش داعي)
+  if (!results.length) {
+    return res.status(200).json({
+      success: true,
+      query: message,
+      isGreeting: false,
+      isOffTopic: false,
+      resultsCount: 0,
+      message:
+        searchResult.message ?? "No matching candidates found for that search.",
+      results: [],
+      usage,
+    });
+  }
+
+  // نخزن سجل البحث ده بس لما يكون فيه نتايج فعلية
   await CompanySearch.create({
     company: companyId,
     query: message,
@@ -118,11 +134,28 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
 // GET COMPANY SEARCH HISTORY
 // ══════════════════════════════════════════════════════════════════════════════
 export const getSearchHistory = asyncHandler(async (req, res) => {
-  const companyId = req.user?._id;
+  if (req.user?.role !== "admin" && req.user?.role !== "company") {
+    return res.status(403).json({
+      success: false,
+      message: "Access restricted to company or admin accounts",
+    });
+  }
 
-  const history = await CompanySearch.find({ company: companyId })
+  let query = {};
+
+  if (req.user.role === "admin") {
+    if (req.query.companyId) {
+      query.company = req.query.companyId;
+    }
+  } else {
+    query.company = req.user._id;
+  }
+
+  const history = await CompanySearch.find(query)
+    .populate("company", "name email avatar")
     .sort({ createdAt: -1 })
-    .limit(50);
+    .limit(50)
+    .lean();
 
   return res.status(200).json({
     success: true,

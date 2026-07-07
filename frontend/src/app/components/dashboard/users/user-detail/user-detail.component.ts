@@ -6,6 +6,7 @@ import {
   effect,
   OnInit,
   HostListener,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -18,7 +19,7 @@ import {
   ChevronLeft, Download, ArrowUp, Ban,
   Mail, MapPin, Calendar, CheckCircle, AlertTriangle,
   Sparkles, FileText, ExternalLink,
-  Trash2, Zap, CreditCard,
+  Trash2, Zap, CreditCard, Linkedin, Github, Phone, Globe,
 } from 'lucide-angular';
 import { AdminService } from '../../../../services/admin.service';
 import { PlanUpdateDialogComponent } from '../plan-update-dialog/plan-update-dialog.component';
@@ -49,6 +50,13 @@ interface CV {
     suggestions?: string[];
   };
   parsedData?: {
+    contact?: {
+      linkedin?: string;
+      github?: string;
+      email?: string;
+      phone?: string;
+      location?: string;
+    };
     skills?: string[] | { technical?: string[]; soft?: string[]; missingRecommended?: string[] };
     experience?: { company: string; role: string; startDate: string; endDate: string }[];
     education?: { university: string; degree: string; field: string }[];
@@ -133,6 +141,7 @@ function splitLineStyle(color: string) {
     NgxEchartsDirective,
   ],
   templateUrl: './user-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserDetailComponent implements OnInit {
   readonly ui = {
@@ -156,6 +165,7 @@ export class UserDetailComponent implements OnInit {
   icons = {
     ChevronLeft, Download, ArrowUp, Ban, Mail, MapPin, Calendar,
     CheckCircle, AlertTriangle, Sparkles, FileText, ExternalLink, Trash2, Zap, CreditCard,
+    Linkedin, Github, Phone, Globe,
   };
 
   user = signal<UserDetail | null>(null);
@@ -171,10 +181,10 @@ export class UserDetailComponent implements OnInit {
   showPlanDropdown = signal(false);
   planMenuAnchor = signal<{ top: number; left: number; flipAbove: boolean } | null>(null);
 
-  private readonly atsHistory = [55, 58, 62, 64, 67, 70, 73, 75, 78, 80, 84, 87];
-  private readonly atsMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  private readonly tokenHistory = [320000, 580000, 410000, 920000, 1050000, 880000, 700000];
-  private readonly tokenDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  atsHistory = [55, 58, 62, 64, 67, 70, 73, 75, 78, 80, 84, 87];
+  atsMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  tokenHistory = [320000, 580000, 410000, 920000, 1050000, 880000, 700000];
+  tokenDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   constructor() {
     effect(() => {
@@ -192,7 +202,14 @@ export class UserDetailComponent implements OnInit {
     }
     this.adminService.getUserById(id).subscribe({
       next: (res) => {
-        this.user.set(res.data);
+        const u = res.data;
+        if (u) {
+          if (Array.isArray(u.atsHistory))   this.atsHistory = u.atsHistory;
+          if (Array.isArray(u.atsMonths))     this.atsMonths = u.atsMonths;
+          if (Array.isArray(u.tokenHistory)) this.tokenHistory = u.tokenHistory;
+          if (Array.isArray(u.tokenDays))     this.tokenDays = u.tokenDays;
+        }
+        this.user.set(u);
         this.refreshChartOptions();
         this.loading.set(false);
       },

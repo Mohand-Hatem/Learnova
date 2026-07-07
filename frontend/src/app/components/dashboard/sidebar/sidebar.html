@@ -1,9 +1,8 @@
 <aside class="flex h-full w-full flex-col border-r border-theme bg-bg-primary">
 
-  <!-- ── Brand / Logo ──────────────────────────────────────── -->
-  <div class="flex shrink-0 items-center justify-between gap-2 border-b border-theme px-4 ">
+  <div class="flex shrink-0 items-center justify-between gap-2 border-b border-theme px-4 h-14">
     <div
-      class="flex min-w-full items-center gap-2.5 h-full"
+      class="flex flex-1 min-w-0 items-center gap-2.5 h-full"
       [ngClass]="themeService.isDark() ? 'py-[6.5px]' : 'py-[7px]'"
     >
         @if (themeService.isDark()) {
@@ -17,7 +16,7 @@
     <!-- Close button — mobile only -->
     <button
       type="button"
-      class="lg:hidden inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-bg-secondary hover:text-text-primary"
+      class="lg:hidden inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors border border-theme bg-bg-card"
       aria-label="Close sidebar"
       (click)="closeRequested.emit()"
     >

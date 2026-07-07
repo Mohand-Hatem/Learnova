@@ -6,6 +6,7 @@ import {
   OnInit,
   HostListener,
   DestroyRef,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -90,6 +91,7 @@ type UserCv = NonNullable<UserItem['cvs']>[number];
     MatButtonModule,
   ],
   templateUrl: './users.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersComponent implements OnInit {
   Math = Math;
@@ -100,8 +102,6 @@ export class UsersComponent implements OnInit {
     menuItem: USERS_MENU_ITEM,
     planSubmenu: USERS_PLAN_SUBMENU,
   };
-
-  menuAnchor = signal<{ top: number; left: number } | null>(null);
   private readonly viewportPadding = 8;
 
   openMenuUser = computed(() => {
@@ -324,14 +324,11 @@ export class UsersComponent implements OnInit {
     }
     this.planSubmenuUserId.set(null);
     this.openMenuId.set(id);
-    this.menuAnchor.set(this.computeMenuAnchor(event.currentTarget as HTMLElement));
-    this.deferMenuRealign();
   }
 
   closeMenu() {
     this.openMenuId.set(null);
     this.planSubmenuUserId.set(null);
-    this.menuAnchor.set(null);
   }
 
   @HostListener('document:click', ['$event'])
@@ -429,51 +426,10 @@ export class UsersComponent implements OnInit {
 //   return { top, left };
 // }
 
-private computeMenuAnchor(trigger: HTMLElement): { top: number; left: number } {
-  const rect = trigger.getBoundingClientRect();
-  const menuWidth = 250;
-  const estimatedHeight = 360;
-  const gap = 4;
-  const viewportPadding = this.viewportPadding;
-
-  let left = rect.right - menuWidth;
-  left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
-
-  const spaceBelow = window.innerHeight - rect.bottom;
-  const shouldOpenAbove = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
-
-  const top = shouldOpenAbove
-    ? rect.top - estimatedHeight - gap
-    : rect.bottom + gap;
-
-  return { top, left };
-}
-
-
   togglePlanSubmenu(userId: string, event: Event) {
     event.stopPropagation();
     const next = this.planSubmenuUserId() === userId ? null : userId;
     this.planSubmenuUserId.set(next);
-    this.deferMenuRealign(next !== null);
-  }
-
-  private deferMenuRealign(expanded = false): void {
-    // requestAnimationFrame(() => this.adjustMenuTop(expanded));
-  }
-
-  private adjustMenuTop(expanded = false): void {
-    const anchor = this.menuAnchor();
-    if (!anchor) return;
-    const viewportPadding = this.viewportPadding;
-    const menuHeight = this.getMenuElement()?.offsetHeight;
-    const estimatedHeight = menuHeight ?? (expanded ? 440 : 360);
-    const maxTop = Math.max(viewportPadding, window.innerHeight - estimatedHeight - viewportPadding);
-    const top = Math.max(viewportPadding, Math.min(anchor.top, maxTop));
-    if (top !== anchor.top) this.menuAnchor.set({ ...anchor, top });
-  }
-
-  private getMenuElement(): HTMLElement | null {
-    return document.querySelector('[data-users-menu]') as HTMLElement | null;
   }
 
   getPlanSubtitle(plan: string): string {

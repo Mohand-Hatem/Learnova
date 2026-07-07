@@ -41,6 +41,14 @@ const cvSchema = new mongoose.Schema(
     },
 
     parsedData: {
+      contact: {
+        linkedin: { type: String, trim: true, default: "" },
+        github: { type: String, trim: true, default: "" },
+        email: { type: String, trim: true, default: "" },
+        phone: { type: String, trim: true, default: "" },
+        location: { type: String, trim: true, default: "" },
+      },
+
       skills: {
         technical: [{ type: String, trim: true }],
 

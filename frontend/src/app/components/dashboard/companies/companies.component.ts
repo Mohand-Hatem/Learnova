@@ -554,6 +554,7 @@ import {
   OnInit,
   HostListener,
   DestroyRef,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -612,6 +613,7 @@ import {
     MatButtonModule,
   ],
   templateUrl: './companies.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompaniesComponent implements OnInit {
   Math = Math;
@@ -645,8 +647,7 @@ export class CompaniesComponent implements OnInit {
   creatingCompany = signal(false);
   openMenuId = signal<string | null>(null);
   planSubmenuCompanyId = signal<string | null>(null);
-  menuAnchor = signal<{ top: number; left: number } | null>(null);
-
+  
   searchQuery = signal('');
   planFilter = signal('');
   statusFilter = signal('');
@@ -804,13 +805,11 @@ export class CompaniesComponent implements OnInit {
     if (this.openMenuId() === id) { this.closeMenu(); return; }
     this.planSubmenuCompanyId.set(null);
     this.openMenuId.set(id);
-    this.menuAnchor.set(this.computeMenuAnchor(event.currentTarget as HTMLElement));
   }
 
   closeMenu(): void {
     this.openMenuId.set(null);
     this.planSubmenuCompanyId.set(null);
-    this.menuAnchor.set(null);
   }
 
   @HostListener('document:click', ['$event'])
@@ -824,23 +823,6 @@ export class CompaniesComponent implements OnInit {
   @HostListener('window:resize')
   onWindowResize(): void {
     if (this.openMenuId()) this.closeMenu();
-  }
-
-  private computeMenuAnchor(trigger: HTMLElement) {
-    const rect = trigger.getBoundingClientRect();
-    const menuWidth = 250;
-    const estimatedHeight = 360;
-    const gap = 4;
-    const viewportPadding = this.viewportPadding;
-
-    let left = rect.right - menuWidth;
-    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
-
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const shouldOpenAbove = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
-    const top = shouldOpenAbove ? rect.top - estimatedHeight - gap : rect.bottom + gap;
-
-    return { top, left };
   }
 
   togglePlanSubmenu(companyId: string, event: Event): void {

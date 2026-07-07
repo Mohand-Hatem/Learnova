@@ -14,7 +14,7 @@ const MIN_MATCH_SCORE = 0.4;
 const RELATIVE_GAP_CUTOFF = 0.08;
 
 // ✅ أقصى عدد نتايج نرجعها للشركة، حتى لو فيه أكتر من كده فوق الـ threshold
-const MAX_RESULTS = 10;
+const MAX_RESULTS = 7;
 
 // الرسالة اللي بترجع للشركة لو سألت حاجة برة نطاق النظام
 const OUT_OF_SCOPE_MESSAGE =
@@ -22,13 +22,15 @@ const OUT_OF_SCOPE_MESSAGE =
 
 // الرسالة اللي بترجع لو بس سلّم أو بدأ المحادثة (Hello, Hi, مرحبا...)
 const GREETING_MESSAGE =
-  "Hi! I'm your CV search assistant. Tell me what role, skill, or experience you're looking for and I'll find the best matching candidates from our database — for example: \"backend developer with Node.js experience\" or \"UI/UX designer with 3+ years\".";
+  'Hi! I\'m your CV search assistant. Tell me what role, skill, or experience you\'re looking for and I\'ll find the best matching candidates from our database — for example: "backend developer with Node.js experience" or "UI/UX designer with 3+ years".';
+
+// ✅ الرسالة اللي بترجع لو البحث فعلي، بس مفيش أي CV مرتبط فعلياً بالموضوع
+const NO_RELEVANT_CANDIDATES_MESSAGE =
+  "We don't have any candidates matching that in our database yet. Try a different skill, role, or technology.";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // TOKEN USAGE HELPER
 // ══════════════════════════════════════════════════════════════════════════════
-// كل استدعاء (intent / embedding / rerank) بيرجع usage خاص بيه، وبنجمعهم كلهم
-// في نهاية البحث عشان نحدث tokenUsage بتاع الشركة بالمجموع الحقيقي.
 
 function createUsageAccumulator() {
   const usage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
@@ -49,8 +51,6 @@ function createUsageAccumulator() {
 // ══════════════════════════════════════════════════════════════════════════════
 // INTENT CLASSIFICATION
 // ══════════════════════════════════════════════════════════════════════════════
-// خطوة قبل أي vector search: نتأكد إن رسالة الشركة فعلاً بحث عن مرشحين/CVs،
-// مش سؤال عشوائي (زي الطقس أو أي حاجة مالهاش علاقة بالنظام).
 
 const INTENT_SYSTEM_PROMPT = `
 You are an intent classifier for a company's CV/candidate search assistant.
@@ -109,9 +109,9 @@ async function classifyIntent(userMessage) {
     parsed = JSON.parse(raw);
   } catch (parseErr) {
     void parseErr;
-    // لو الموديل رجّع حاجة مش JSON سليم، نتعامل معاها كـ search عادي
-    // (fail-open) عشان منمنعش بحث حقيقي بسبب خطأ parsing
-    console.warn("[classifyIntent] failed to parse intent response, defaulting to search");
+    console.warn(
+      "[classifyIntent] failed to parse intent response, defaulting to search",
+    );
     parsed = { intent: "search", cleanedQuery: userMessage };
   }
 
@@ -121,9 +121,6 @@ async function classifyIntent(userMessage) {
 // ══════════════════════════════════════════════════════════════════════════════
 // SKILL RELEVANCE RANKING
 // ══════════════════════════════════════════════════════════════════════════════
-// بيرتب مهارات المرشح التقنية حسب قربها من كلمات سؤال الشركة، عشان لو الشركة
-// سألت عن "React" مثلاً، تطلع React في أول الـ topSkills بدل ما تفضل في آخر
-// الليستة زي ما اتخزنت وقت التحليل.
 
 function rankSkillsByRelevance(skills, queryText) {
   if (!skills?.length) return [];
@@ -140,9 +137,9 @@ function rankSkillsByRelevance(skills, queryText) {
 
     for (const word of queryWords) {
       if (skillLower === word) {
-        score += 3; // تطابق كامل
+        score += 3;
       } else if (skillLower.includes(word) || word.includes(skillLower)) {
-        score += 1; // تطابق جزئي
+        score += 1;
       }
     }
 
@@ -151,14 +148,12 @@ function rankSkillsByRelevance(skills, queryText) {
 
   scored.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
-    return a.originalIndex - b.originalIndex; // نفس الـ score → نحافظ على الترتيب الأصلي
+    return a.originalIndex - b.originalIndex;
   });
 
   return scored.slice(0, 5).map((s) => s.skill);
 }
 
-// ✅ بيقطع النتايج عند أول "نطة" كبيرة في الـ matchScore — أي نتيجة بعد النطة
-// دي بتبقى أضعف ارتباطاً بشكل واضح عن اللي قبلها، فمش بنرجعها
 function applyRelativeGapCutoff(sortedByScore) {
   if (sortedByScore.length <= 1) return sortedByScore;
 
@@ -176,9 +171,8 @@ function applyRelativeGapCutoff(sortedByScore) {
 // LLM RELEVANCE RE-RANKING
 // ══════════════════════════════════════════════════════════════════════════════
 // الـ vector similarity وحدها مش دايماً كافية للتمييز بين تخصصات كاملة
-// مختلفة (زي "Electronics" مقابل "Web Development") — ممكن ترجع تشابه عام
-// لأي نص تقني بغض النظر عن التخصص الفعلي. الخطوة دي بتبعت للموديل نفسه
-// بيانات المرشحين (المهارات + مقتطف من الـ CV) ويحدد مين فعلاً مرتبط بالسؤال.
+// مختلفة، أو بين "فيه candidates" و"مفيش candidates خالص" لموضوع معين.
+// الخطوة دي بتبعت للموديل بيانات المرشحين ويحدد مين فعلاً مرتبط بالسؤال.
 
 const RERANK_SYSTEM_PROMPT = `
 You are a candidate relevance judge for a company's CV search assistant.
@@ -193,6 +187,10 @@ Be strict about domain mismatches: e.g. if the query asks for "Electronics"
 or "embedded systems" candidates, a web/frontend developer with no
 electronics-related skills or projects is NOT relevant, even if their CV
 mentions generic technical terms.
+
+If NONE of the candidates are genuinely relevant to the query, return an
+empty array — this is a valid and expected outcome, not an error. Do not
+include a candidate just because the list would otherwise be empty.
 
 Return ONLY valid JSON, no markdown, no extra text:
 {
@@ -233,9 +231,10 @@ async function rerankByRelevance(queryText, candidates) {
     });
 
     if (!response.ok) {
-      // لو الـ rerank فشل لأي سبب، منمنعش البحث كله — نرجع النتايج زي ما هي
-      // (fail-open) بدل ما نرجع فاضي بالغلط
-      console.warn("[rerankByRelevance] LLM rerank failed, returning unfiltered candidates");
+      // ⚠️ fail-open حقيقي: الموديل فشل يرد أصلاً (network/API error)
+      console.warn(
+        "[rerankByRelevance] LLM rerank failed, returning unfiltered candidates",
+      );
       return { candidates, usage: null };
     }
 
@@ -244,17 +243,37 @@ async function rerankByRelevance(queryText, candidates) {
     let raw = data.choices?.[0]?.message?.content ?? "{}";
     raw = raw.replace(/```json|```/g, "").trim();
 
-    const { relevantCvIds } = JSON.parse(raw);
-    if (!Array.isArray(relevantCvIds)) return { candidates, usage: responseUsage };
+    let relevantCvIds;
+    try {
+      ({ relevantCvIds } = JSON.parse(raw));
+    } catch (parseErr) {
+      void parseErr;
+      // ⚠️ fail-open حقيقي: الرد مش JSON سليم
+      console.warn(
+        "[rerankByRelevance] failed to parse rerank response, returning unfiltered candidates",
+      );
+      return { candidates, usage: responseUsage };
+    }
+
+    if (!Array.isArray(relevantCvIds)) {
+      // ⚠️ fail-open حقيقي: شكل الرد مش زي المتوقع
+      return { candidates, usage: responseUsage };
+    }
 
     const relevantSet = new Set(relevantCvIds);
     const filtered = candidates.filter((c) => relevantSet.has(c.cvId));
 
-    // لو الـ LLM شال الكل بالغلط (edge case)، أحسن نرجع النتايج الأصلية
-    // بدل ما نرجع فاضي تماماً
-    return { candidates: filtered.length ? filtered : candidates, usage: responseUsage };
+    // ✅ لو الموديل رد بنجاح وقال "مفيش حد مرتبط" (relevantCvIds فاضية)،
+    // ده رد صحيح وموثوق ولازم نحترمه — منرجعش كل المرشحين تاني، لأن ده
+    // بالظبط اللي بيخلي بحث عن حاجة مش موجودة (زي "RAG") يرجع كل الـ CVs
+    // غلط لو مفيش أي واحد فعلاً مرتبط بالموضوع.
+    return { candidates: filtered, usage: responseUsage };
   } catch (err) {
-    console.warn("[rerankByRelevance] error, returning unfiltered candidates:", err.message);
+    // ⚠️ fail-open حقيقي: exception فعلي
+    console.warn(
+      "[rerankByRelevance] error, returning unfiltered candidates:",
+      err.message,
+    );
     return { candidates, usage: responseUsage };
   }
 }
@@ -263,17 +282,16 @@ async function rerankByRelevance(queryText, candidates) {
 // COMPANY SEARCH — Cross-CV semantic search
 // ══════════════════════════════════════════════════════════════════════════════
 
-/**
- * @param {string} userQuery - رسالة الشركة
- * @param {object} options
- * @param {number} options.topK
- * @returns {{ intent: "search"|"greeting"|"reject", message?: string, results: Array, usage: object }}
- */
 export async function searchCVsByQuery(userQuery, { topK = 50 } = {}) {
   const usageAcc = createUsageAccumulator();
 
   if (!userQuery || !userQuery.trim()) {
-    return { intent: "reject", message: OUT_OF_SCOPE_MESSAGE, results: [], usage: usageAcc.get() };
+    return {
+      intent: "reject",
+      message: OUT_OF_SCOPE_MESSAGE,
+      results: [],
+      usage: usageAcc.get(),
+    };
   }
 
   // 1) نفهم قصد الرسالة الأول
@@ -281,17 +299,25 @@ export async function searchCVsByQuery(userQuery, { topK = 50 } = {}) {
   usageAcc.add(intentResult.usage);
 
   if (intentResult.intent === "greeting") {
-    return { intent: "greeting", message: GREETING_MESSAGE, results: [], usage: usageAcc.get() };
+    return {
+      intent: "greeting",
+      message: GREETING_MESSAGE,
+      results: [],
+      usage: usageAcc.get(),
+    };
   }
 
   if (intentResult.intent !== "search") {
-    return { intent: "reject", message: OUT_OF_SCOPE_MESSAGE, results: [], usage: usageAcc.get() };
+    return {
+      intent: "reject",
+      message: OUT_OF_SCOPE_MESSAGE,
+      results: [],
+      usage: usageAcc.get(),
+    };
   }
 
   const effectiveQuery = intentResult.cleanedQuery?.trim() || userQuery;
 
-  // ✅ nv-embedqa-e5-v5 بيدعم input_type فعلياً، وبيحسن جودة التمييز
-  // بين النتايج القريبة والبعيدة لما نستخدم "query" على سؤال البحث
   const embData = await getEmbeddings([effectiveQuery], "query");
   usageAcc.add(embData.usage);
   const vector = embData.embeddings[0];
@@ -306,7 +332,12 @@ export async function searchCVsByQuery(userQuery, { topK = 50 } = {}) {
   console.log("[searchCVsByQuery] raw matches:", result.length);
 
   if (!result.length) {
-    return { intent: "search", results: [], usage: usageAcc.get() };
+    return {
+      intent: "search",
+      message: NO_RELEVANT_CANDIDATES_MESSAGE,
+      results: [],
+      usage: usageAcc.get(),
+    };
   }
 
   // 4) نجمع النتايج حسب الـ cvId، وناخد أحسن score لكل CV
@@ -324,9 +355,16 @@ export async function searchCVsByQuery(userQuery, { topK = 50 } = {}) {
   }
 
   const cvIds = [...bestByCv.keys()].filter(
-    (id) => bestByCv.get(id).score >= MIN_MATCH_SCORE
+    (id) => bestByCv.get(id).score >= MIN_MATCH_SCORE,
   );
-  if (!cvIds.length) return { intent: "search", results: [], usage: usageAcc.get() };
+  if (!cvIds.length) {
+    return {
+      intent: "search",
+      message: NO_RELEVANT_CANDIDATES_MESSAGE,
+      results: [],
+      usage: usageAcc.get(),
+    };
+  }
 
   // 5) بس الـ CVs اللي اتحللت فعلاً
   const cvs = await CV.find({
@@ -335,10 +373,19 @@ export async function searchCVsByQuery(userQuery, { topK = 50 } = {}) {
   })
     .populate("userId", "name email")
     .select(
-      "atsScore parsedData.education parsedData.skills.technical userId originalFile.url originalFile.fileName originalFile.fileType"
+      "atsScore parsedData.education parsedData.skills.technical userId originalFile.url originalFile.fileName originalFile.fileType",
     );
 
   console.log("[searchCVsByQuery] analyzed CVs matched:", cvs.length);
+
+  if (!cvs.length) {
+    return {
+      intent: "search",
+      message: NO_RELEVANT_CANDIDATES_MESSAGE,
+      results: [],
+      usage: usageAcc.get(),
+    };
+  }
 
   // 6) نبني الرد النهائي
   const merged = cvs.map((cv) => {
@@ -352,14 +399,12 @@ export async function searchCVsByQuery(userQuery, { topK = 50 } = {}) {
         ar: cv.userId?.name?.ar ?? "غير معروف",
       },
       email: cv.userId?.email ?? "",
-      // ✅ أعلى 5 مهارات تقنية مرتبة حسب قربها من سؤال الشركة
       topSkills: cv.parsedData?.skills?.technical?.length
         ? rankSkillsByRelevance(cv.parsedData.skills.technical, effectiveQuery)
         : [cv.parsedData?.education?.[0]?.degree ?? "N/A"],
       atsScore: cv.atsScore ?? 0,
       matchScore: bestMatch?.score ?? 0,
       matchedSnippet: bestMatch?.chunkText?.slice(0, 200) ?? "",
-      // ✅ رابط ملف الـ CV نفسه عشان الشركة تقدر تفتحه/تحمله
       cvFileUrl: cv.originalFile?.url ?? null,
       cvFileName: cv.originalFile?.fileName ?? null,
       cvFileType: cv.originalFile?.fileType ?? null,
@@ -367,16 +412,25 @@ export async function searchCVsByQuery(userQuery, { topK = 50 } = {}) {
   });
 
   // 7) طبقة تحقق ذكية: نبعت المرشحين للموديل يحدد مين مرتبط فعلاً بالسؤال
-  //    (بتمسك حالات زي "Electronics" اللي الـ cosine similarity وحدها مش
-  //    بتقدر تميزها بدقة كافية)
   const rerankResult = await rerankByRelevance(effectiveQuery, merged);
   usageAcc.add(rerankResult.usage);
   const relevanceChecked = rerankResult.candidates;
 
-  // 8) ترتيب حسب أقرب match للسؤال الأول، وبعدين ATS score كعامل ثانوي
-  const sortedByMatch = relevanceChecked.sort((a, b) => b.matchScore - a.matchScore);
+  // ✅ لو بعد التحقق الذكي مفيش أي مرشح فعلي مرتبط بالسؤال، نرجع فاضي
+  // مع رسالة واضحة بدل ما نرجع نتايج غير مرتبطة
+  if (!relevanceChecked.length) {
+    return {
+      intent: "search",
+      message: NO_RELEVANT_CANDIDATES_MESSAGE,
+      results: [],
+      usage: usageAcc.get(),
+    };
+  }
 
-  // نقطع عند أول نطة كبيرة في الـ matchScore — طبقة حماية إضافية
+  // 8) ترتيب حسب أقرب match للسؤال الأول، وبعدين ATS score كعامل ثانوي
+  const sortedByMatch = relevanceChecked.sort(
+    (a, b) => b.matchScore - a.matchScore,
+  );
   const afterGapCutoff = applyRelativeGapCutoff(sortedByMatch);
 
   const sorted = afterGapCutoff

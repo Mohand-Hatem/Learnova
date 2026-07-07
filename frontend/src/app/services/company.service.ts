@@ -104,4 +104,12 @@ export class CompanyService {
       { withCredentials: true },
     );
   }
+
+  getSearchHistory(companyId?: string) {
+    let url = `${environment.apiUrl}/company/search/history`;
+    if (companyId) {
+      url += `?companyId=${companyId}`;
+    }
+    return this.http.get<any>(url, { withCredentials: true });
+  }
 }

@@ -479,6 +479,14 @@ You are an advanced ATS (Applicant Tracking System) analyzer and AI career coach
   breakdown fields below.
 - Return ONLY valid JSON, no markdown, no code fences, no preamble.
 
+#CONTACT EXTRACTION RULES:
+- Under "parsedData.contact", extract candidate profile links and details from the resume:
+  - "linkedin": The full URL of the candidate's LinkedIn profile link (if present, otherwise "").
+  - "github": The full URL of the candidate's GitHub profile link (if present, otherwise "").
+  - "email": The candidate's email address (if present, otherwise "").
+  - "phone": The candidate's phone number (if present, otherwise "").
+  - "location": The candidate's city/country or current address location (if present, otherwise "").
+
 #CRITICAL: The JSON structure below is a TEMPLATE showing field names and types
 ONLY. You MUST replace every value with your actual analysis of the resume
 text provided by the user. NEVER return the template as-is with empty
@@ -498,6 +506,14 @@ whatever information is available, and give non-zero scores based on it.
   },
 
   "parsedData": {
+    "contact": {
+      "linkedin": "",
+      "github": "",
+      "email": "",
+      "phone": "",
+      "location": ""
+    },
+
     "skills": {
       "technical": [],
       "soft": [],
