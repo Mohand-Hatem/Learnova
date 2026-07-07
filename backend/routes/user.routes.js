@@ -9,6 +9,7 @@ import {
   userUpdateSubscription,
   getMyAiUsage,
   getPaymentStatus,
+  deleteAvatar ,
 } from "../controllers/user.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
@@ -50,4 +51,5 @@ router.put("/subscription", protect, userUpdateSubscription);
 router.post("/pay", protect, payWithPaymob);
 router.post("/webhook", paymobWebhook);
 router.get("/payment-status/:orderId", getPaymentStatus);
+router.delete("/avatar", protect, deleteAvatar);
 export default router;

@@ -50,6 +50,22 @@ export const updateProfile = asyncHandler(async (req, res) => {
   });
 });
 
+export const deleteAvatar = asyncHandler(async (req, res) => {
+  const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { avatar: DEFAULT_AVATAR },
+    { new: true }
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "Avatar removed successfully",
+    data: user,
+  });
+});
+
 export const updatePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
