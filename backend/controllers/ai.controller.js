@@ -1,5 +1,6 @@
 import axios from "axios";
 import { extractText } from "unpdf";
+import mammoth from "mammoth";
 import asyncHandler from "express-async-handler";
 import cloudinary from "../config/cloudinary.js";
 import CV from "../models/Cv.model.js";
@@ -53,9 +54,27 @@ export const analyzeCVHandler = asyncHandler(async (req, res) => {
       const fileResponse = await axios.get(cv.originalFile.url, {
         responseType: "arraybuffer",
       });
-      const buffer = new Uint8Array(fileResponse.data);
-      const { text } = await extractText(buffer);
-      extractedText = Array.isArray(text) ? text.join("\n").trim() : (text ?? "").trim();
+
+      if (cv.originalFile.fileType === "docx") {
+        const result = await mammoth.extractRawText({
+          buffer: Buffer.from(fileResponse.data),
+        });
+        extractedText = (result.value ?? "").trim();
+      } else if (cv.originalFile.fileType === "pdf") {
+        const buffer = new Uint8Array(fileResponse.data);
+        const { text } = await extractText(buffer);
+        extractedText = Array.isArray(text) ? text.join("\n").trim() : (text ?? "").trim();
+      } else if (cv.originalFile.fileType === "doc") {
+        return res.status(400).json({
+          success: false,
+          message: "We currently do not support AI analysis for the old .doc format. Please upload your CV as a .docx or .pdf file.",
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Unsupported file type for AI analysis. Please upload a PDF or DOCX file.",
+        });
+      }
     }
 
     if (!extractedText) {
