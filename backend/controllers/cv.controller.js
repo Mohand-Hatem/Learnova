@@ -59,7 +59,7 @@ export const getMyCVs = asyncHandler(async (req, res, next) => {
 });
 
 export const getCVById = asyncHandler(async (req, res, next) => {
-  const cv = await CV.findOne({ _id: req.params.id, userId: req.user._id });
+  const cv = await CV.findOne({ _id: req.params.id});
 
   if (!cv) {
     return res.status(404).json({

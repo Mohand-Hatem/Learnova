@@ -11,11 +11,11 @@ import {
 
 const router = Router();
 
-router.get("/:id", getCVById);
 router.use(protect);
 router.post("/upload", uploadFile, uploadCV);
 
 router.get("/my-cvs", getMyCVs);
+router.get("/:id", getCVById);
 
 router.delete("/:id", deleteCV);
 
