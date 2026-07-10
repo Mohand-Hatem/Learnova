@@ -593,25 +593,46 @@ export const getOneUser = asyncHandler(async (req, res) => {
 export const deleteUser = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
-  const user = await User.findByIdAndDelete(id);
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: "User not found",
+  try {
+    const user = await User.findByIdAndDelete(id).session(session);
+
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Delete related data based on role
+    if (user.role === "company") {
+      await CompanySearch.deleteMany({ company: id }).session(session);
+    } else {
+      await CV.deleteMany({ userId: id }).session(session);
+    }
+
+    await logAdminAction(req, {
+      action: "delete_user",
+      targetUser: user,
+      details: "Deleted account and related data",
     });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: "User and related data deleted successfully",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-
-  await logAdminAction(req, {
-    action: "delete_user",
-    targetUser: user,
-    details: "Deleted account",
-  });
-
-  res.status(200).json({
-    success: true,
-    message: "User deleted successfully",
-  });
 });
 
 export const updateUserRole = asyncHandler(async (req, res, next) => {

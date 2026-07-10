@@ -156,6 +156,102 @@ export const updateCV = asyncHandler(async (req, res, next) => {
   });
 });
 
+export const filterCVs = asyncHandler(async (req, res, next) => {
+  const {
+    minAts,
+    maxAts,
+    skills,
+    certifications,
+    experiences,
+    projects,
+    page = 1,
+    limit = 10,
+  } = req.query;
+
+  const andConditions = [{ processingStatus: "analyzed" }];
+
+  // ATS Score Filter
+  if (minAts || maxAts) {
+    const atsScore = {};
+    if (minAts) atsScore.$gte = Number(minAts);
+    if (maxAts) atsScore.$lte = Number(maxAts);
+    andConditions.push({ atsScore });
+  }
+
+  // Helper to parse array or comma-separated string
+  const parseList = (param) => {
+    if (!param) return [];
+    if (Array.isArray(param)) return param;
+    return param.split(",").map((item) => item.trim()).filter(Boolean);
+  };
+
+  // Skills Filter (checks technical or soft skills)
+  const skillsList = parseList(skills);
+  if (skillsList.length > 0) {
+    const skillsRegex = skillsList.map((s) => new RegExp(s, "i"));
+    andConditions.push({
+      $or: [
+        { "parsedData.skills.technical": { $in: skillsRegex } },
+        { "parsedData.skills.soft": { $in: skillsRegex } },
+      ],
+    });
+  }
+
+  // Certifications Filter
+  const certsList = parseList(certifications);
+  if (certsList.length > 0) {
+    const certsRegex = certsList.map((c) => new RegExp(c, "i"));
+    andConditions.push({
+      "parsedData.certifications.name": { $in: certsRegex },
+    });
+  }
+
+  // Experiences Filter (checks role or company)
+  const expList = parseList(experiences);
+  if (expList.length > 0) {
+    const expRegex = expList.map((e) => new RegExp(e, "i"));
+    andConditions.push({
+      $or: [
+        { "parsedData.experience.role": { $in: expRegex } },
+        { "parsedData.experience.company": { $in: expRegex } },
+      ],
+    });
+  }
+
+  // Projects Filter (checks name or technologies)
+  const projList = parseList(projects);
+  if (projList.length > 0) {
+    const projRegex = projList.map((p) => new RegExp(p, "i"));
+    andConditions.push({
+      $or: [
+        { "parsedData.projects.name": { $in: projRegex } },
+        { "parsedData.projects.technologies": { $in: projRegex } },
+      ],
+    });
+  }
+
+  const query = andConditions.length > 0 ? { $and: andConditions } : {};
+
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const total = await CV.countDocuments(query);
+  const cvs = await CV.find(query)
+    .populate("userId", "name email avatar")
+    .skip(skip)
+    .limit(Number(limit))
+    .sort({ createdAt: -1 })
+    .lean();
+
+  res.status(200).json({
+    success: true,
+    count: cvs.length,
+    total,
+    page: Number(page),
+    totalPages: Math.ceil(total / Number(limit)),
+    data: cvs,
+  });
+});
+
 // import { PDFParse } from "pdf-parse";
 // import { ChatOpenAI } from "@langchain/openai";
 

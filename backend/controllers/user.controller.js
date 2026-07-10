@@ -51,12 +51,13 @@ export const updateProfile = asyncHandler(async (req, res) => {
 });
 
 export const deleteAvatar = asyncHandler(async (req, res) => {
-  const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  const DEFAULT_AVATAR =
+    "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
     { avatar: DEFAULT_AVATAR },
-    { new: true }
+    { new: true },
   );
 
   res.status(200).json({
@@ -154,7 +155,6 @@ export const userUpdateSubscription = asyncHandler(async (req, res) => {
   });
 });
 
-
 //Payment
 export const payWithPaymob = asyncHandler(async (req, res) => {
   const user = req.user;
@@ -199,10 +199,10 @@ export const payWithPaymob = asyncHandler(async (req, res) => {
   });
 
   res.json({
-  success: true,
-  url,
-  orderId: order.id,
-});
+    success: true,
+    url,
+    orderId: order.id,
+  });
 });
 
 export const paymobWebhook = asyncHandler(async (req, res) => {
@@ -244,22 +244,20 @@ export const paymobWebhook = asyncHandler(async (req, res) => {
 });
 
 export const getPaymentStatus = asyncHandler(async (req, res) => {
+  const payment = await Payment.findOne({
+    orderId: req.params.orderId,
+  });
 
-    const payment = await Payment.findOne({
-        orderId: req.params.orderId,
+  if (!payment) {
+    return res.status(404).json({
+      success: false,
     });
+  }
 
-    if (!payment) {
-        return res.status(404).json({
-            success: false,
-        });
-    }
-
-    res.json({
-        success: true,
-        status: payment.status,
-    });
-
+  res.json({
+    success: true,
+    status: payment.status,
+  });
 });
 
 //****** */
