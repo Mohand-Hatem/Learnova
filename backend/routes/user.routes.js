@@ -40,12 +40,12 @@ router.put(
 router.put(
   "/update-password",
   protect,
+
   validate(updatePasswordSchema),
   updatePassword,
 );
 
 router.post("/upload-file", protect, uploadFile, uploadUserFile);
-
 router.put("/subscription", protect, userUpdateSubscription);
 router.post("/pay", protect, payWithPaymob);
 router.post("/webhook", paymobWebhook);

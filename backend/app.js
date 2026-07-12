@@ -16,9 +16,7 @@ import cvRoutes from "./routes/cv.routes.js";
 import aiRoutes from "./routes/ai.routes.js";
 import companyRoutes from "./routes/company.routes.js";
 import "./utils/cron.js";
-import dns from "dns";
 
-dns.setServers(["8.8.8.8","8.8.4.4"])
 const app = express();
 app.set("trust proxy", 1); 
 app.use(helmet());
@@ -33,6 +31,17 @@ app.use(cors({ origin: [
 ], credentials: true }));
 app.use(express.json());
 app.use(passport.initialize());
+
+// Ensure DB is connected before processing requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/admin", adminRoutes);
@@ -42,10 +51,10 @@ app.use("/company", companyRoutes);
 app.use(notFound);
 app.use(errorMiddleware);
 
-connectDB();
-
-app.listen(Env.PORT || 5000, () => {
-  console.log(`Server running on port ${Env.PORT || 5000}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(Env.PORT || 5000, () => {
+    console.log(`Server running on port ${Env.PORT || 5000}`);
+  });
+}
 
 export default app;

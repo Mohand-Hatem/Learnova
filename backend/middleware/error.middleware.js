@@ -26,6 +26,15 @@ const errorMiddleware = (err, req, res, next) => {
     message = "Token expired";
   }
 
+  if (
+    err.name === "MongooseServerSelectionError" ||
+    err.name === "MongoNetworkError" ||
+    err.name === "MongoTimeoutError"
+  ) {
+    statusCode = 503;
+    message = "Service temporarily unavailable. Please try again shortly.";
+  }
+
   res.status(statusCode).json({
     success: false,
     message,
