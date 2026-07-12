@@ -51,6 +51,7 @@ import {
   CreditCard,
   BarChart2,
   Sparkles,
+  Search,
 } from 'lucide-angular';
 
 import { CompanyService } from '../../../../services/company.service';
@@ -162,7 +163,7 @@ export class CompanyDetailComponent implements OnInit {
     ChevronLeft, ArrowUp, Trash2,
     Mail, Globe, MapPin, Building2,
     Zap, TrendingUp,
-    CreditCard, BarChart2, Sparkles,
+    CreditCard, BarChart2, Sparkles, Search,
   };
 
   company  = signal<CompanyDetail | null>(null);

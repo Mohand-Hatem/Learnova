@@ -9,7 +9,7 @@ import {
   userUpdateSubscription,
   getMyAiUsage,
   getPaymentStatus,
-  deleteAvatar ,
+  deleteAvatar,
 } from "../controllers/user.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
@@ -40,7 +40,6 @@ router.put(
 router.put(
   "/update-password",
   protect,
-
   validate(updatePasswordSchema),
   updatePassword,
 );

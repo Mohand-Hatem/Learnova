@@ -107,6 +107,13 @@ export const login = asyncHandler(async (req, res, next) => {
     });
   }
 
+  if (user.isBlocked) {
+    return res.status(403).json({
+      success: false,
+      message: "Your account has been blocked. Please contact support.",
+    });
+  }
+
   user.lastDashboardLoginAt = new Date();
   await user.save();
 

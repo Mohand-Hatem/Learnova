@@ -1,4 +1,3 @@
-
 // import {
 //   Component,
 //   inject,
@@ -638,8 +637,17 @@ export class CompaniesComponent implements OnInit {
   private searchSubject = new Subject<string>();
 
   icons = {
-    Search, ChevronDown, MoreVertical, Eye, ArrowUp,
-    Trash2, Building2, ChevronLeft, ChevronRight, Ban, Check,
+    Search,
+    ChevronDown,
+    MoreVertical,
+    Eye,
+    ArrowUp,
+    Trash2,
+    Building2,
+    ChevronLeft,
+    ChevronRight,
+    Ban,
+    Check,
   };
 
   companies = signal<CompanyItem[]>([]);
@@ -647,7 +655,7 @@ export class CompaniesComponent implements OnInit {
   creatingCompany = signal(false);
   openMenuId = signal<string | null>(null);
   planSubmenuCompanyId = signal<string | null>(null);
-  
+
   searchQuery = signal('');
   planFilter = signal('');
   statusFilter = signal('');
@@ -672,19 +680,15 @@ export class CompaniesComponent implements OnInit {
 
   paginatedCompanies = computed(() => this.companies());
 
-  pageNumbers = computed(() =>
-    Array.from({ length: this.totalPagesCount() }, (_, i) => i + 1)
-  );
+  pageNumbers = computed(() => Array.from({ length: this.totalPagesCount() }, (_, i) => i + 1));
 
   ngOnInit(): void {
-    this.searchSubject.pipe(
-      debounceTime(400),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => {
-      this.currentPage.set(1);
-      this.loadCompanies();
-    });
+    this.searchSubject
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.currentPage.set(1);
+        this.loadCompanies();
+      });
 
     this.loadCompanies();
   }
@@ -700,7 +704,8 @@ export class CompaniesComponent implements OnInit {
 
     if (this.searchQuery()) params['search'] = this.searchQuery();
     if (this.planFilter()) params['plan'] = this.planFilter();
-    if (this.statusFilter()) params['isBanned'] = this.statusFilter() === 'blocked' ? 'true' : 'false';
+    if (this.statusFilter())
+      params['isBanned'] = this.statusFilter() === 'blocked' ? 'true' : 'false';
 
     this.companyService.getAllCompanies(params).subscribe({
       next: (res) => {
@@ -743,19 +748,24 @@ export class CompaniesComponent implements OnInit {
 
   private createCompany(payload: CreateAccountPayload): void {
     this.creatingCompany.set(true);
-    this.companyService.registerCompanyAccount({ ...payload, role: 'company', skipLogin: true }).subscribe({
-      next: () => {
-        this.loadCompanies();
-        this.toastr.success('New company account created successfully.', 'Company created');
-        this.sessionNotifications.add(`Admin created company ${payload.name.en}`, 'success');
-        this.resetPagination();
-        this.creatingCompany.set(false);
-      },
-      error: (err) => {
-        this.toastr.error(err?.error?.message || 'Could not create company account.', 'Create failed');
-        this.creatingCompany.set(false);
-      },
-    });
+    this.companyService
+      .registerCompanyAccount({ ...payload, role: 'company', skipLogin: true })
+      .subscribe({
+        next: () => {
+          this.loadCompanies();
+          this.toastr.success('New company account created successfully.', 'Company created');
+          this.sessionNotifications.add(`Admin created company ${payload.name.en}`, 'success');
+          this.resetPagination();
+          this.creatingCompany.set(false);
+        },
+        error: (err) => {
+          this.toastr.error(
+            err?.error?.message || 'Could not create company account.',
+            'Create failed',
+          );
+          this.creatingCompany.set(false);
+        },
+      });
   }
 
   getName(c: CompanyItem): string {
@@ -765,7 +775,12 @@ export class CompaniesComponent implements OnInit {
   }
 
   getInitials(c: CompanyItem): string {
-    return this.getName(c).split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+    return this.getName(c)
+      .split(' ')
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
   }
 
   getTokenPct(c: CompanyItem): number {
@@ -785,7 +800,7 @@ export class CompaniesComponent implements OnInit {
   }
 
   getAiCallCount(c: CompanyItem): number {
-    return Number(c.aiCallsCount ?? c.searches ?? 0) || 0;
+    return Number((c as any).totalSearches ?? 0) || 0;
   }
 
   readonly avatarColors = [
@@ -802,7 +817,10 @@ export class CompaniesComponent implements OnInit {
 
   toggleMenu(id: string, event: Event): void {
     event.stopPropagation();
-    if (this.openMenuId() === id) { this.closeMenu(); return; }
+    if (this.openMenuId() === id) {
+      this.closeMenu();
+      return;
+    }
     this.planSubmenuCompanyId.set(null);
     this.openMenuId.set(id);
   }
@@ -857,19 +875,26 @@ export class CompaniesComponent implements OnInit {
       this.companyService.toggleBan(company._id).subscribe({
         next: (res) => {
           this.companies.update((list) =>
-            list.map((c) => c._id === company._id ? { ...c, isBlocked: res.data.isBlocked } : c)
+            list.map((c) => (c._id === company._id ? { ...c, isBlocked: res.data.isBlocked } : c)),
           );
           this.toastr.success(
-            res.data.isBlocked ? `${this.getName(company)} has been banned.` : `${this.getName(company)} has been unbanned.`,
+            res.data.isBlocked
+              ? `${this.getName(company)} has been banned.`
+              : `${this.getName(company)} has been unbanned.`,
             'Company updated',
           );
           this.sessionNotifications.add(
-            res.data.isBlocked ? `Admin banned company ${this.getName(company)}` : `Admin unbanned company ${this.getName(company)}`,
+            res.data.isBlocked
+              ? `Admin banned company ${this.getName(company)}`
+              : `Admin unbanned company ${this.getName(company)}`,
             'warning',
           );
         },
         error: (err) => {
-          this.toastr.error(err.error?.message || 'Could not update company status.', 'Action failed');
+          this.toastr.error(
+            err.error?.message || 'Could not update company status.',
+            'Action failed',
+          );
         },
       });
     });
@@ -882,7 +907,9 @@ export class CompaniesComponent implements OnInit {
       panelClass: COMPANIES_DIALOG_PANEL,
       data: {
         title: 'Delete company',
-        message: c ? `Are you sure you want to delete ${this.getName(c)}? This action cannot be undone.` : 'Are you sure you want to delete this company? This action cannot be undone.',
+        message: c
+          ? `Are you sure you want to delete ${this.getName(c)}? This action cannot be undone.`
+          : 'Are you sure you want to delete this company? This action cannot be undone.',
         confirmLabel: 'Delete',
         confirmDanger: true,
       },
@@ -925,13 +952,21 @@ export class CompaniesComponent implements OnInit {
         next: (res) => {
           const updatedMaxToken = res?.data?.maxToken;
           this.companies.update((list) =>
-            list.map((x) => x._id === c._id ? { ...x, plan, maxToken: updatedMaxToken ?? x.maxToken } : x)
+            list.map((x) =>
+              x._id === c._id ? { ...x, plan, maxToken: updatedMaxToken ?? x.maxToken } : x,
+            ),
           );
           this.toastr.success(`Plan changed to ${plan}.`, 'Plan updated');
-          this.sessionNotifications.add(`Admin changed plan for company ${this.getName(c)} to ${plan}`, 'info');
+          this.sessionNotifications.add(
+            `Admin changed plan for company ${this.getName(c)} to ${plan}`,
+            'info',
+          );
         },
         error: (err) => {
-          this.toastr.error(err.error?.message || 'Could not update company plan.', 'Update failed');
+          this.toastr.error(
+            err.error?.message || 'Could not update company plan.',
+            'Update failed',
+          );
         },
       });
     });

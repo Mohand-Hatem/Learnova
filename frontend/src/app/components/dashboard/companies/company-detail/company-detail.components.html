@@ -1,11 +1,12 @@
 @if (loading()) {
   <div class="flex items-center justify-center min-h-[70vh]">
     <div class="flex flex-col items-center gap-4">
-      <div class="w-10 h-10 rounded-full border-4 border-theme border-t-transparent animate-spin"></div>
+      <div
+        class="w-10 h-10 rounded-full border-4 border-theme border-t-transparent animate-spin"
+      ></div>
       <p class="text-sm text-text-muted">Loading company details...</p>
     </div>
   </div>
-
 } @else if (error()) {
   <div class="flex items-center justify-center min-h-[60vh]">
     <div class="text-center">
@@ -13,10 +14,8 @@
       <p class="text-text-muted">Unable to load company details</p>
     </div>
   </div>
-
 } @else if (company(); as c) {
   <div class="space-y-6">
-
     <button
       (click)="goBack()"
       class="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
@@ -25,15 +24,15 @@
       Back to companies
     </button>
 
-
     <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">{{ getName(c) }}</h1>
+        <h1 class="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+          {{ getName(c) }}
+        </h1>
         <p class="mt-1 text-sm text-text-muted">{{ c.email || 'No email available' }}</p>
       </div>
 
       <div class="flex items-center gap-3 flex-wrap">
-
         <div class="relative">
           <button
             data-plan-menu-trigger
@@ -65,7 +64,6 @@
           }
         </div>
 
-
         <button
           (click)="deleteCompany()"
           class="h-11 px-5 rounded-2xl bg-red-500 hover:bg-red-600 text-white transition-all inline-flex items-center gap-2 font-semibold"
@@ -76,47 +74,63 @@
       </div>
     </div>
 
-
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-
-
       <div class="flex flex-col gap-6">
-
-
         <div [class]="ui.card + ' p-6'">
           <div class="flex items-center gap-4 mb-6">
-            <div class="w-14 h-14 rounded-2xl bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-700 dark:text-violet-300 text-lg font-bold shrink-0">
+            <div
+              class="w-14 h-14 rounded-2xl bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-700 dark:text-violet-300 text-lg font-bold shrink-0"
+            >
               {{ getInitials(c) }}
             </div>
             <div>
               <h2 class="text-lg font-bold text-text-primary leading-tight">{{ getName(c) }}</h2>
-
             </div>
           </div>
           <div class="space-y-3">
             <div class="flex items-center gap-3 text-text-secondary text-sm">
-              <lucide-angular [img]="icons.Mail" size="15" class="shrink-0 text-text-muted"></lucide-angular>
+              <lucide-angular
+                [img]="icons.Mail"
+                size="15"
+                class="shrink-0 text-text-muted"
+              ></lucide-angular>
               <span class="truncate">{{ c.email || 'No email available' }}</span>
             </div>
             <div class="flex items-center gap-3 text-text-secondary text-sm">
-              <lucide-angular [img]="icons.Globe" size="15" class="shrink-0 text-text-muted"></lucide-angular>
+              <lucide-angular
+                [img]="icons.Globe"
+                size="15"
+                class="shrink-0 text-text-muted"
+              ></lucide-angular>
               @if (c.website) {
-                <a [href]="c.website" target="_blank" class="hover:text-brand transition-colors truncate">{{ c.website }}</a>
+                <a
+                  [href]="c.website"
+                  target="_blank"
+                  class="hover:text-brand transition-colors truncate"
+                  >{{ c.website }}</a
+                >
               } @else {
                 <span>No website available</span>
               }
             </div>
             <div class="flex items-center gap-3 text-text-secondary text-sm">
-              <lucide-angular [img]="icons.MapPin" size="15" class="shrink-0 text-text-muted"></lucide-angular>
+              <lucide-angular
+                [img]="icons.MapPin"
+                size="15"
+                class="shrink-0 text-text-muted"
+              ></lucide-angular>
               <span>{{ c.location || 'No location available' }}</span>
             </div>
             <div class="flex items-center gap-3 text-text-secondary text-sm">
-              <lucide-angular [img]="icons.Building2" size="15" class="shrink-0 text-text-muted"></lucide-angular>
+              <lucide-angular
+                [img]="icons.Building2"
+                size="15"
+                class="shrink-0 text-text-muted"
+              ></lucide-angular>
               <span>Joined {{ c.createdAt ? (c.createdAt | date: 'MMM d, y') : 'Unknown' }}</span>
             </div>
           </div>
         </div>
-
 
         <div [class]="ui.card + ' p-6'">
           <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
@@ -143,33 +157,24 @@
           </div>
         </div>
 
-
-        <div [class]="ui.card + ' p-6'">
-          <div class="grid grid-cols-2 gap-x-4 gap-y-5">
-            <div>
-              <p class="text-[10px] uppercase tracking-widest font-bold text-text-secondary mb-1">Total Searches</p>
-              <h3 class="text-3xl font-black text-text-primary">{{ c.totalSearches || 0 }}</h3>
-            </div>
-            <div>
-              <p class="text-[10px] uppercase tracking-widest font-bold text-text-secondary mb-1">Recruiters</p>
-              <h3 class="text-3xl font-black text-text-primary">{{ c.recruiters || 0 }}</h3>
-            </div>
-            <div>
-              <p class="text-[10px] uppercase tracking-widest font-bold text-text-secondary mb-1">Open Roles</p>
-              <h3 class="text-3xl font-black text-text-primary">{{ c.openRoles || 0 }}</h3>
-            </div>
-            <div>
-              <p class="text-[10px] uppercase tracking-widest font-bold text-text-secondary mb-1">Hires This Q</p>
-              <h3 class="text-3xl font-black text-text-primary">{{ c.hiresThisQ || 0 }}</h3>
-            </div>
+        <div
+          [class]="
+            ui.card + ' flex flex-col items-center justify-center  text-center aspect-auto py-20'
+          "
+        >
+          <div
+            class="p-4 bg-violet-100 dark:bg-violet-500/20 rounded-2xl mb-4 text-violet-600 dark:text-violet-400"
+          >
+            <lucide-angular [img]="icons.Search" size="32"></lucide-angular>
           </div>
+          <h3 class="text-5xl font-black text-text-primary mb-2">{{ c.totalSearches || 0 }}</h3>
+          <p class="text-[11px] uppercase tracking-widest font-bold text-text-secondary">
+            Total Searches
+          </p>
         </div>
-
       </div>
 
       <div class="flex flex-col gap-6">
-
-
         <div [class]="ui.card + ' p-6'">
           <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
             <h6 class="text-sm font-semibold text-text-primary">Most Searched Roles</h6>
@@ -183,13 +188,18 @@
             ></div>
           } @else {
             <div class="flex flex-col items-center justify-center py-14 text-center">
-              <lucide-angular [img]="icons.BarChart2" size="32" class="text-text-muted mb-3"></lucide-angular>
+              <lucide-angular
+                [img]="icons.BarChart2"
+                size="32"
+                class="text-text-muted mb-3"
+              ></lucide-angular>
               <p class="text-sm font-semibold text-text-primary mb-1">No role analytics yet</p>
-              <p class="text-xs text-text-muted">Role data will appear once searches are recorded</p>
+              <p class="text-xs text-text-muted">
+                Role data will appear once searches are recorded
+              </p>
             </div>
           }
         </div>
-
 
         <div [class]="ui.card + ' p-6'">
           <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
@@ -204,18 +214,21 @@
             ></div>
           } @else {
             <div class="flex flex-col items-center justify-center py-14 text-center">
-              <lucide-angular [img]="icons.TrendingUp" size="32" class="text-text-muted mb-3"></lucide-angular>
+              <lucide-angular
+                [img]="icons.TrendingUp"
+                size="32"
+                class="text-text-muted mb-3"
+              ></lucide-angular>
               <p class="text-sm font-semibold text-text-primary mb-1">No search activity yet</p>
-              <p class="text-xs text-text-muted leading-relaxed">Monthly search data will appear here once the company starts using the platform</p>
+              <p class="text-xs text-text-muted leading-relaxed">
+                Monthly search data will appear here once the company starts using the platform
+              </p>
             </div>
           }
         </div>
-
       </div>
 
       <div class="flex flex-col gap-6">
-
-
         <div [class]="ui.card + ' p-6'">
           <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
             <h6 class="text-sm font-semibold text-text-primary">Most Searched Skills</h6>
@@ -229,13 +242,16 @@
             ></div>
           } @else {
             <div class="flex flex-col items-center justify-center py-14 text-center">
-              <lucide-angular [img]="icons.Sparkles" size="32" class="text-text-muted mb-3"></lucide-angular>
+              <lucide-angular
+                [img]="icons.Sparkles"
+                size="32"
+                class="text-text-muted mb-3"
+              ></lucide-angular>
               <p class="text-sm font-semibold text-text-primary mb-1">No skill analytics yet</p>
               <p class="text-xs text-text-muted">Skill data will appear once filters are used</p>
             </div>
           }
         </div>
-
 
         <div [class]="ui.card + ' p-6'">
           <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
@@ -250,22 +266,27 @@
             ></div>
           } @else {
             <div class="flex flex-col items-center justify-center py-14 text-center">
-              <lucide-angular [img]="icons.Zap" size="32" class="text-text-muted mb-3"></lucide-angular>
+              <lucide-angular
+                [img]="icons.Zap"
+                size="32"
+                class="text-text-muted mb-3"
+              ></lucide-angular>
               <p class="text-sm font-semibold text-text-primary mb-1">No token usage yet</p>
-              <p class="text-xs text-text-muted leading-relaxed">Daily AI token consumption will appear here once the company uses AI features</p>
+              <p class="text-xs text-text-muted leading-relaxed">
+                Daily AI token consumption will appear here once the company uses AI features
+              </p>
             </div>
           }
         </div>
-
       </div>
 
       <!-- ── Search History Table ────────────────────────────── -->
       <div class="xl:col-span-3 mt-6">
-        <app-search-history-table [history]="searchHistory()" [showCompany]="false"></app-search-history-table>
+        <app-search-history-table
+          [history]="searchHistory()"
+          [showCompany]="false"
+        ></app-search-history-table>
       </div>
-
     </div>
-
-
   </div>
 }

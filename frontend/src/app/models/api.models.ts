@@ -122,6 +122,9 @@ export interface ApiAiMonthlyPoint {
   _id: string;
   aiCalls: number;
   totalTokens: number;
+  embeddingTokens?: number;
+  promptTokens?: number;
+  completionTokens?: number;
   avgResponseTimeMs: number;
   successRate: number;
 }

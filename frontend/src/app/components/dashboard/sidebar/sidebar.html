@@ -1,16 +1,14 @@
 <aside class="flex h-full w-full flex-col border-r border-theme bg-bg-primary">
-
-  <div class="flex shrink-0 items-center justify-between gap-2 border-b border-theme px-4 h-14">
+  <div class="flex shrink-0 items-center justify-between gap-2 border-b border-theme px-4 h-[61px]">
     <div
       class="flex flex-1 min-w-0 items-center gap-2.5 h-full"
-      [ngClass]="themeService.isDark() ? 'py-[6.5px]' : 'py-[7px]'"
+      [ngClass]="themeService.isDark() ? 'py-[7px]' : 'py-[7px]'"
     >
-        @if (themeService.isDark()) {
-          <img src="/Aventra-logo-white1.png" alt="Learnova"   width="150px" height="50px" />
-        } @else {
-          <img src="/Aventra-logo2.png" alt="Learnova"   width="150px" height="50px" />
-        }
-      
+      @if (themeService.isDark()) {
+        <img src="/Aventra-logo-white1.png" alt="Learnova" width="150px" height="50px" />
+      } @else {
+        <img src="/Aventra-logo2.png" alt="Learnova" width="150px" height="50px" />
+      }
     </div>
 
     <!-- Close button — mobile only -->
@@ -26,7 +24,6 @@
 
   <!-- ── Navigation ─────────────────────────────────────────── -->
   <nav class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4" aria-label="Main navigation">
-
     <p class="mb-2 px-2 text-[0.6rem] font-bold uppercase tracking-widest text-text-muted">
       Navigation
     </p>
@@ -39,7 +36,9 @@
         class="group flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-secondary no-underline transition-all duration-150 hover:bg-bg-secondary hover:text-text-primary dark:hover:bg-bg-card"
         (click)="onNavClick()"
       >
-        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors group-[.active-nav-item]:bg-indigo-600 group-[.active-nav-item]:text-white group-[.active-nav-item]:shadow-sm text-text-muted group-hover:text-text-primary dark:group-hover:text-text-primary">
+        <span
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors group-[.active-nav-item]:bg-indigo-600 group-[.active-nav-item]:text-white group-[.active-nav-item]:shadow-sm text-text-muted group-hover:text-text-primary dark:group-hover:text-text-primary"
+        >
           <lucide-angular
             [img]="iconClass(item.route)"
             size="17"
@@ -49,14 +48,17 @@
         <span class="truncate">{{ item.label }}</span>
       </a>
     </ng-container>
-
   </nav>
 
   <!-- ── Footer: AI status ──────────────────────────────────── -->
   <div class="shrink-0 border-t border-theme p-3">
-    <div class="flex items-center gap-2.5 rounded-xl border border-theme bg-bg-secondary px-3 py-2.5 dark:bg-bg-card">
+    <div
+      class="flex items-center gap-2.5 rounded-xl border border-theme bg-bg-secondary px-3 py-2.5 dark:bg-bg-card"
+    >
       <span class="relative flex h-2.5 w-2.5 shrink-0">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+        <span
+          class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
+        ></span>
         <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
       </span>
       <div class="min-w-0">
@@ -65,5 +67,4 @@
       </div>
     </div>
   </div>
-
 </aside>

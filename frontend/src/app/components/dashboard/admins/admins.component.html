@@ -8,7 +8,7 @@
     <button
       (click)="openCreateAdminDialog()"
       [disabled]="creatingAdmin()"
-      class="flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+      class="flex w-fit cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <lucide-angular [img]="icons.ShieldPlus" size="14"></lucide-angular>
       {{ creatingAdmin() ? 'Creating...' : 'Create New Admin' }}

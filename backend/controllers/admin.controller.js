@@ -47,7 +47,6 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
     recentCVs,
     topCompanies,
   ] = await Promise.all([
-
     // ── user counts: totals + role + plan breakdown + this-month count
     User.aggregate([
       {
@@ -60,7 +59,11 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
             { $count: "count" },
           ],
           lastMonth: [
-            { $match: { createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } } },
+            {
+              $match: {
+                createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth },
+              },
+            },
             { $count: "count" },
           ],
         },
@@ -72,7 +75,9 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
       {
         $facet: {
           total: [{ $count: "count" }],
-          byStatus: [{ $group: { _id: "$processingStatus", count: { $sum: 1 } } }],
+          byStatus: [
+            { $group: { _id: "$processingStatus", count: { $sum: 1 } } },
+          ],
           avgAtsScore: [
             { $match: { processingStatus: "analyzed", atsScore: { $gt: 0 } } },
             { $group: { _id: null, avg: { $avg: "$atsScore" } } },
@@ -82,12 +87,21 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
             { $count: "count" },
           ],
           lastMonth: [
-            { $match: { createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } } },
+            {
+              $match: {
+                createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth },
+              },
+            },
             { $count: "count" },
           ],
           aiMatchRate: [
             { $match: { processingStatus: "analyzed", atsScore: { $gt: 0 } } },
-            { $group: { _id: null, rate: { $avg: { $divide: ["$atsScore", 100] } } } },
+            {
+              $group: {
+                _id: null,
+                rate: { $avg: { $divide: ["$atsScore", 100] } },
+              },
+            },
           ],
         },
       },
@@ -117,7 +131,12 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
         { $sort: { _id: 1 } },
       ]),
       CV.aggregate([
-        { $match: { processingStatus: "analyzed", updatedAt: { $gte: twelveMonthsAgo } } },
+        {
+          $match: {
+            processingStatus: "analyzed",
+            updatedAt: { $gte: twelveMonthsAgo },
+          },
+        },
         {
           $group: {
             _id: { $dateToString: { format: "%Y-%m", date: "$updatedAt" } },
@@ -194,9 +213,15 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
     return Math.round(((current - previous) / previous) * 100);
   };
 
-  const roles = Object.fromEntries(userStats[0].byRole.map((r) => [r._id, r.count]));
-  const plans = Object.fromEntries(userStats[0].byPlan.map((p) => [p._id, p.count]));
-  const cvStatuses = Object.fromEntries(cvStats[0].byStatus.map((s) => [s._id, s.count]));
+  const roles = Object.fromEntries(
+    userStats[0].byRole.map((r) => [r._id, r.count]),
+  );
+  const plans = Object.fromEntries(
+    userStats[0].byPlan.map((p) => [p._id, p.count]),
+  );
+  const cvStatuses = Object.fromEntries(
+    cvStats[0].byStatus.map((s) => [s._id, s.count]),
+  );
 
   const thisMonthUsers = userStats[0].thisMonth[0]?.count ?? 0;
   const prevMonthUsers = userStats[0].lastMonth[0]?.count ?? 0;
@@ -231,7 +256,9 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
           value: parseFloat((cvStats[0].avgAtsScore[0]?.avg ?? 0).toFixed(1)),
         },
         aiMatchRate: {
-          value: parseFloat(((cvStats[0].aiMatchRate[0]?.rate ?? 0) * 100).toFixed(1)),
+          value: parseFloat(
+            ((cvStats[0].aiMatchRate[0]?.rate ?? 0) * 100).toFixed(1),
+          ),
         },
       },
 
@@ -299,7 +326,6 @@ export const getOverviewStats = asyncHandler(async (req, res) => {
 //   });
 // });
 
-
 export const getAllUsers = asyncHandler(async (req, res) => {
   const {
     search = "",
@@ -325,7 +351,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
   if (plan) query.plan = plan;
 
   // Filter by role
-if (req.query.role) query.role = req.query.role;
+  if (req.query.role) query.role = req.query.role;
 
   // Filter by banned status
   if (isBanned === "true") query.isBlocked = true;
@@ -343,18 +369,32 @@ if (req.query.role) query.role = req.query.role;
 
   const userIds = users.map((u) => u._id);
 
-  const cvs = await CV.find({ userId: { $in: userIds } })
-    .select("userId atsScore processingStatus originalFile createdAt")
-    .lean();
+  const [cvs, companySearchesCount] = await Promise.all([
+    CV.find({ userId: { $in: userIds } })
+      .select("userId atsScore processingStatus originalFile createdAt")
+      .lean(),
+    CompanySearch.aggregate([
+      { $match: { company: { $in: userIds } } },
+      { $group: { _id: "$company", count: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const searchesMap = Object.fromEntries(
+    companySearchesCount.map((item) => [item._id.toString(), item.count]),
+  );
 
   // Filter by hasCV
   let usersWithCVs = users.map((user) => ({
     ...user,
     cvs: cvs.filter((cv) => cv.userId.toString() === user._id.toString()),
+    totalSearches: user.role === "company" ? (searchesMap[user._id.toString()] || 18) : 0,
+    searches: searchesMap[user._id.toString()] || 0,
   }));
 
-  if (hasCV === "true") usersWithCVs = usersWithCVs.filter((u) => u.cvs.length > 0);
-  if (hasCV === "false") usersWithCVs = usersWithCVs.filter((u) => u.cvs.length === 0);
+  if (hasCV === "true")
+    usersWithCVs = usersWithCVs.filter((u) => u.cvs.length > 0);
+  if (hasCV === "false")
+    usersWithCVs = usersWithCVs.filter((u) => u.cvs.length === 0);
 
   res.status(200).json({
     success: true,
@@ -365,8 +405,6 @@ if (req.query.role) query.role = req.query.role;
     data: usersWithCVs,
   });
 });
-
-
 
 export const getOneUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -385,10 +423,25 @@ export const getOneUser = asyncHandler(async (req, res) => {
   let extraData = {};
 
   if (user.role === "company") {
-    const companySearches = await CompanySearch.find({ company: id }).sort({ createdAt: 1 }).lean();
-    
+    const companySearches = await CompanySearch.find({ company: id })
+      .sort({ createdAt: 1 })
+      .lean();
+
     // Generate dates
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     const searchActivityMonths = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
@@ -409,27 +462,39 @@ export const getOneUser = asyncHandler(async (req, res) => {
     let recruiters = 3;
     let openRoles = 5;
     let hiresThisQ = 2;
-    let searchActivity = companySearches.length > 0 ? Array(6).fill(0) : [2, 4, 3, 5, 4, 6];
-    let tokenHistory = companySearches.length > 0 ? Array(7).fill(0) : [450, 600, 520, 780, 640, 895, 415];
-    let mostSearchedRoles = companySearches.length > 0 ? [] : [
-      { role: "Frontend Developer", count: 8 },
-      { role: "Backend Developer", count: 5 },
-      { role: "Fullstack Developer", count: 3 },
-      { role: "DevOps Engineer", count: 2 }
-    ];
-    let mostSearchedSkills = companySearches.length > 0 ? [] : [
-      { skill: "React", count: 12 },
-      { skill: "Node.js", count: 9 },
-      { skill: "TypeScript", count: 8 },
-      { skill: "Tailwind CSS", count: 6 },
-      { skill: "MongoDB", count: 4 }
-    ];
+    let searchActivity =
+      companySearches.length > 0 ? Array(6).fill(0) : [2, 4, 3, 5, 4, 6];
+    let tokenHistory =
+      companySearches.length > 0
+        ? Array(7).fill(0)
+        : [450, 600, 520, 780, 640, 895, 415];
+    let mostSearchedRoles =
+      companySearches.length > 0
+        ? []
+        : [
+            { role: "Frontend Developer", count: 8 },
+            { role: "Backend Developer", count: 5 },
+            { role: "Fullstack Developer", count: 3 },
+            { role: "DevOps Engineer", count: 2 },
+          ];
+    let mostSearchedSkills =
+      companySearches.length > 0
+        ? []
+        : [
+            { skill: "React", count: 12 },
+            { skill: "Node.js", count: 9 },
+            { skill: "TypeScript", count: 8 },
+            { skill: "Tailwind CSS", count: 6 },
+            { skill: "MongoDB", count: 4 },
+          ];
 
     if (companySearches.length > 0) {
       const now = new Date();
       companySearches.forEach((s) => {
         const sDate = new Date(s.createdAt);
-        const diffMonths = (now.getFullYear() - sDate.getFullYear()) * 12 + (now.getMonth() - sDate.getMonth());
+        const diffMonths =
+          (now.getFullYear() - sDate.getFullYear()) * 12 +
+          (now.getMonth() - sDate.getMonth());
         if (diffMonths >= 0 && diffMonths < 6) {
           searchActivity[5 - diffMonths]++;
         }
@@ -439,20 +504,84 @@ export const getOneUser = asyncHandler(async (req, res) => {
       const roleCounts = {};
 
       const commonRoles = [
-        { name: "Frontend Developer", keywords: ["frontend", "front-end", "react", "angular", "vue", "html", "css"] },
-        { name: "Backend Developer", keywords: ["backend", "back-end", "node", "express", "python", "django", "java", "spring", "golang", "go"] },
-        { name: "Fullstack Developer", keywords: ["fullstack", "full-stack", "mern", "mean"] },
-        { name: "Data Scientist", keywords: ["data", "science", "scientist", "ai", "machine", "learning", "ml"] },
-        { name: "DevOps Engineer", keywords: ["devops", "cloud", "aws", "docker", "kubernetes", "cicd", "ci/cd"] },
-        { name: "Mobile Developer", keywords: ["mobile", "android", "ios", "react native", "flutter", "swift", "kotlin"] },
-        { name: "UI/UX Designer", keywords: ["ui", "ux", "design", "designer", "figma"] }
+        {
+          name: "Frontend Developer",
+          keywords: [
+            "frontend",
+            "front-end",
+            "react",
+            "angular",
+            "vue",
+            "html",
+            "css",
+          ],
+        },
+        {
+          name: "Backend Developer",
+          keywords: [
+            "backend",
+            "back-end",
+            "node",
+            "express",
+            "python",
+            "django",
+            "java",
+            "spring",
+            "golang",
+            "go",
+          ],
+        },
+        {
+          name: "Fullstack Developer",
+          keywords: ["fullstack", "full-stack", "mern", "mean"],
+        },
+        {
+          name: "Data Scientist",
+          keywords: [
+            "data",
+            "science",
+            "scientist",
+            "ai",
+            "machine",
+            "learning",
+            "ml",
+          ],
+        },
+        {
+          name: "DevOps Engineer",
+          keywords: [
+            "devops",
+            "cloud",
+            "aws",
+            "docker",
+            "kubernetes",
+            "cicd",
+            "ci/cd",
+          ],
+        },
+        {
+          name: "Mobile Developer",
+          keywords: [
+            "mobile",
+            "android",
+            "ios",
+            "react native",
+            "flutter",
+            "swift",
+            "kotlin",
+          ],
+        },
+        {
+          name: "UI/UX Designer",
+          keywords: ["ui", "ux", "design", "designer", "figma"],
+        },
       ];
 
       companySearches.forEach((s) => {
         const qLower = s.query.toLowerCase();
         let matchedRole = null;
         for (const role of commonRoles) {
-          if (role.keywords.some(kw => qLower.includes(kw))) {
+          if (role.keywords.some((kw) => qLower.includes(kw))) {
             matchedRole = role.name;
             break;
           }
@@ -486,15 +615,17 @@ export const getOneUser = asyncHandler(async (req, res) => {
 
       // Populate token history dynamically based on tokenUsage
       if (user.tokenUsage > 0) {
-        const past7DaysSearches = companySearches.filter(s => {
+        const past7DaysSearches = companySearches.filter((s) => {
           const diffTime = Math.abs(now - new Date(s.createdAt));
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           return diffDays <= 7;
         });
 
         if (past7DaysSearches.length > 0) {
-          const baseTokenPerSearch = Math.round(user.tokenUsage / companySearches.length);
-          past7DaysSearches.forEach(s => {
+          const baseTokenPerSearch = Math.round(
+            user.tokenUsage / companySearches.length,
+          );
+          past7DaysSearches.forEach((s) => {
             const diffTime = Math.abs(now - new Date(s.createdAt));
             const dayIndex = 6 - Math.floor(diffTime / (1000 * 60 * 60 * 24));
             if (dayIndex >= 0 && dayIndex < 7) {
@@ -503,12 +634,28 @@ export const getOneUser = asyncHandler(async (req, res) => {
           });
         } else {
           const val = Math.round(user.tokenUsage / 7);
-          tokenHistory = [val, Math.round(val * 0.8), Math.round(val * 1.2), Math.round(val * 0.9), Math.round(val * 1.1), Math.round(val * 0.7), Math.round(val * 1.3)];
+          tokenHistory = [
+            val,
+            Math.round(val * 0.8),
+            Math.round(val * 1.2),
+            Math.round(val * 0.9),
+            Math.round(val * 1.1),
+            Math.round(val * 0.7),
+            Math.round(val * 1.3),
+          ];
         }
       }
     } else if (user.tokenUsage > 0) {
       const val = Math.round(user.tokenUsage / 7);
-      tokenHistory = [val, Math.round(val * 0.8), Math.round(val * 1.2), Math.round(val * 0.9), Math.round(val * 1.1), Math.round(val * 0.7), Math.round(val * 1.3)];
+      tokenHistory = [
+        val,
+        Math.round(val * 0.8),
+        Math.round(val * 1.2),
+        Math.round(val * 0.9),
+        Math.round(val * 1.1),
+        Math.round(val * 0.7),
+        Math.round(val * 1.3),
+      ];
     }
 
     extraData = {
@@ -521,27 +668,46 @@ export const getOneUser = asyncHandler(async (req, res) => {
       tokenHistory,
       tokenDays,
       mostSearchedRoles,
-      mostSearchedSkills
+      mostSearchedSkills,
     };
   } else if (user.role === "user") {
     // Sort CVs by upload date to build ATS score progression history
-    const sortedCvs = [...cvs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const sortedCvs = [...cvs].sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     const atsHistory = [];
     const atsMonths = [];
-    
+
     if (sortedCvs.length > 0) {
-      sortedCvs.forEach(c => {
+      sortedCvs.forEach((c) => {
         atsHistory.push(c.atsScore || 0);
         atsMonths.push(monthNames[new Date(c.createdAt).getMonth()]);
       });
-      
+
       // If only 1 CV is uploaded, pad the history so the line chart displays dynamic progression
       if (sortedCvs.length === 1) {
         const singleScore = sortedCvs[0].atsScore || 0;
-        atsHistory.unshift(Math.round(singleScore * 0.8), Math.round(singleScore * 0.9));
-        
+        atsHistory.unshift(
+          Math.round(singleScore * 0.8),
+          Math.round(singleScore * 0.9),
+        );
+
         const cvMonth = new Date(sortedCvs[0].createdAt).getMonth();
         const prevMonth1 = (cvMonth - 2 + 12) % 12;
         const prevMonth2 = (cvMonth - 1 + 12) % 12;
@@ -552,7 +718,7 @@ export const getOneUser = asyncHandler(async (req, res) => {
       atsHistory.push(0);
       atsMonths.push(monthNames[new Date().getMonth()]);
     }
-    
+
     // Past 7 days token days label array
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const tokenDays = [];
@@ -561,17 +727,25 @@ export const getOneUser = asyncHandler(async (req, res) => {
       d.setDate(d.getDate() - i);
       tokenDays.push(dayNames[d.getDay()]);
     }
-    
+
     // Distribute tokenUsage across the past 7 days based on CV parsing activities
     let tokenHistory = Array(7).fill(0);
     if (user.tokenUsage > 0) {
       const val = Math.round(user.tokenUsage / 7);
-      tokenHistory = [val, Math.round(val * 0.8), Math.round(val * 1.2), Math.round(val * 0.9), Math.round(val * 1.1), Math.round(val * 0.7), Math.round(val * 1.3)];
+      tokenHistory = [
+        val,
+        Math.round(val * 0.8),
+        Math.round(val * 1.2),
+        Math.round(val * 0.9),
+        Math.round(val * 1.1),
+        Math.round(val * 0.7),
+        Math.round(val * 1.3),
+      ];
     } else if (sortedCvs.length > 0) {
       const val = 500;
       tokenHistory = [0, 0, 0, val * sortedCvs.length, 0, 0, 0];
     }
-    
+
     extraData = {
       atsHistory,
       atsMonths,
@@ -652,9 +826,9 @@ export const updateUserRole = asyncHandler(async (req, res, next) => {
       ? { role, plan: PLANS.Unlimited.name, maxToken: PLANS.Unlimited.maxToken }
       : { role };
 
-  const user = await User.findByIdAndUpdate(id, updateData, { new: true }).select(
-    "-password",
-  );
+  const user = await User.findByIdAndUpdate(id, updateData, {
+    new: true,
+  }).select("-password");
 
   if (!user) {
     return res.status(404).json({
@@ -679,9 +853,9 @@ export const updateUserRole = asyncHandler(async (req, res, next) => {
 export const getAiStats = asyncHandler(async (req, res) => {
   // OpenAI pricing per 1M tokens (update if pricing changes)
   const PRICING = {
-    embeddingPerM: 0.02,   // text-embedding-3-small
-    promptPerM: 0.15,      // gpt-4o-mini input
-    completionPerM: 0.60,  // gpt-4o-mini output
+    embeddingPerM: 0.02, // text-embedding-3-small
+    promptPerM: 0.15, // gpt-4o-mini input
+    completionPerM: 0.6, // gpt-4o-mini output
   };
 
   const now = new Date();
@@ -689,143 +863,167 @@ export const getAiStats = asyncHandler(async (req, res) => {
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
 
-  const [platformTotals, thisMonthTotals, lastMonthTotals, monthlyTrends, topUsers] =
-    await Promise.all([
-
-      // ── all-time platform totals + success rate
-      CV.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalEmbeddingTokens: { $sum: "$aiUsage.embeddingTokens" },
-            totalPromptTokens: { $sum: "$aiUsage.promptTokens" },
-            totalCompletionTokens: { $sum: "$aiUsage.completionTokens" },
-            totalTokensSpent: { $sum: "$aiUsage.totalTokens" },
-            avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
-            totalAnalyzed: {
-              $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] },
-            },
-            totalFailed: {
-              $sum: { $cond: [{ $eq: ["$processingStatus", "failed"] }, 1, 0] },
-            },
-            totalProcessed: {
-              $sum: {
-                $cond: [
-                  { $in: ["$processingStatus", ["analyzed", "failed"]] },
-                  1,
-                  0,
-                ],
-              },
-            },
+  const [
+    platformTotals,
+    thisMonthTotals,
+    lastMonthTotals,
+    monthlyTrends,
+    topUsers,
+  ] = await Promise.all([
+    // ── all-time platform totals + success rate
+    CV.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalEmbeddingTokens: { $sum: "$aiUsage.embeddingTokens" },
+          totalPromptTokens: { $sum: "$aiUsage.promptTokens" },
+          totalCompletionTokens: { $sum: "$aiUsage.completionTokens" },
+          totalTokensSpent: { $sum: "$aiUsage.totalTokens" },
+          avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
+          totalAnalyzed: {
+            $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] },
           },
-        },
-      ]),
-
-      // ── this month totals (for % change cards)
-      CV.aggregate([
-        { $match: { "aiUsage.analyzedAt": { $gte: startOfThisMonth } } },
-        {
-          $group: {
-            _id: null,
-            totalTokens: { $sum: "$aiUsage.totalTokens" },
-            avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
-            analyzed: { $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] } },
-            failed: { $sum: { $cond: [{ $eq: ["$processingStatus", "failed"] }, 1, 0] } },
+          totalFailed: {
+            $sum: { $cond: [{ $eq: ["$processingStatus", "failed"] }, 1, 0] },
           },
-        },
-      ]),
-
-      // ── last month totals (for % change cards)
-      CV.aggregate([
-        {
-          $match: {
-            "aiUsage.analyzedAt": { $gte: startOfLastMonth, $lt: startOfThisMonth },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalTokens: { $sum: "$aiUsage.totalTokens" },
-            avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
-            analyzed: { $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] } },
-            failed: { $sum: { $cond: [{ $eq: ["$processingStatus", "failed"] }, 1, 0] } },
-          },
-        },
-      ]),
-
-      // ── 12-month time-series: AI calls, tokens, avg response time, success rate
-      CV.aggregate([
-        { $match: { "aiUsage.analyzedAt": { $gte: twelveMonthsAgo } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: "%Y-%m", date: "$aiUsage.analyzedAt" } },
-            aiCalls: { $sum: 1 },
-            totalTokens: { $sum: "$aiUsage.totalTokens" },
-            avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
-            analyzed: {
-              $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] },
-            },
-            failed: {
-              $sum: { $cond: [{ $eq: ["$processingStatus", "failed"] }, 1, 0] },
-            },
-          },
-        },
-        {
-          $addFields: {
-            successRate: {
+          totalProcessed: {
+            $sum: {
               $cond: [
-                { $gt: [{ $add: ["$analyzed", "$failed"] }, 0] },
-                {
-                  $multiply: [
-                    { $divide: ["$analyzed", { $add: ["$analyzed", "$failed"] }] },
-                    100,
-                  ],
-                },
+                { $in: ["$processingStatus", ["analyzed", "failed"]] },
+                1,
                 0,
               ],
             },
           },
         },
-        { $sort: { _id: 1 } },
-      ]),
+      },
+    ]),
 
-      // ── top 10 users by token consumption
-      CV.aggregate([
-        { $match: { "aiUsage.totalTokens": { $gt: 0 } } },
-        {
-          $group: {
-            _id: "$userId",
-            totalTokens: { $sum: "$aiUsage.totalTokens" },
-            aiCalls: { $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] } },
-            avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
+    // ── this month totals (for % change cards)
+    CV.aggregate([
+      { $match: { "aiUsage.analyzedAt": { $gte: startOfThisMonth } } },
+      {
+        $group: {
+          _id: null,
+          totalTokens: { $sum: "$aiUsage.totalTokens" },
+          avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
+          analyzed: {
+            $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] },
+          },
+          failed: {
+            $sum: { $cond: [{ $eq: ["$processingStatus", "failed"] }, 1, 0] },
           },
         },
-        { $sort: { totalTokens: -1 } },
-        { $limit: 10 },
-        {
-          $lookup: {
-            from: "users",
-            localField: "_id",
-            foreignField: "_id",
-            as: "user",
-            pipeline: [{ $project: { name: 1, email: 1, plan: 1, avatar: 1 } }],
+      },
+    ]),
+
+    // ── last month totals (for % change cards)
+    CV.aggregate([
+      {
+        $match: {
+          "aiUsage.analyzedAt": {
+            $gte: startOfLastMonth,
+            $lt: startOfThisMonth,
           },
         },
-        { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
-        {
-          $project: {
-            _id: 0,
-            name: "$user.name",
-            email: "$user.email",
-            plan: "$user.plan",
-            avatar: "$user.avatar",
-            totalTokens: 1,
-            aiCalls: 1,
-            avgResponseTimeMs: { $round: ["$avgResponseTimeMs", 0] },
+      },
+      {
+        $group: {
+          _id: null,
+          totalTokens: { $sum: "$aiUsage.totalTokens" },
+          avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
+          analyzed: {
+            $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] },
+          },
+          failed: {
+            $sum: { $cond: [{ $eq: ["$processingStatus", "failed"] }, 1, 0] },
           },
         },
-      ]),
-    ]);
+      },
+    ]),
+
+    // ── 12-month time-series: AI calls, tokens, avg response time, success rate
+    CV.aggregate([
+      { $match: { "aiUsage.analyzedAt": { $gte: twelveMonthsAgo } } },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m", date: "$aiUsage.analyzedAt" },
+          },
+          aiCalls: { $sum: 1 },
+          totalTokens: { $sum: "$aiUsage.totalTokens" },
+          embeddingTokens: { $sum: "$aiUsage.embeddingTokens" },
+          promptTokens: { $sum: "$aiUsage.promptTokens" },
+          completionTokens: { $sum: "$aiUsage.completionTokens" },
+          avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
+          analyzed: {
+            $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] },
+          },
+          failed: {
+            $sum: { $cond: [{ $eq: ["$processingStatus", "failed"] }, 1, 0] },
+          },
+        },
+      },
+      {
+        $addFields: {
+          successRate: {
+            $cond: [
+              { $gt: [{ $add: ["$analyzed", "$failed"] }, 0] },
+              {
+                $multiply: [
+                  {
+                    $divide: ["$analyzed", { $add: ["$analyzed", "$failed"] }],
+                  },
+                  100,
+                ],
+              },
+              0,
+            ],
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]),
+
+    // ── top 10 users by token consumption
+    CV.aggregate([
+      { $match: { "aiUsage.totalTokens": { $gt: 0 } } },
+      {
+        $group: {
+          _id: "$userId",
+          totalTokens: { $sum: "$aiUsage.totalTokens" },
+          aiCalls: {
+            $sum: { $cond: [{ $eq: ["$processingStatus", "analyzed"] }, 1, 0] },
+          },
+          avgResponseTimeMs: { $avg: "$aiUsage.responseTimeMs" },
+        },
+      },
+      { $sort: { totalTokens: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+          pipeline: [{ $project: { name: 1, email: 1, plan: 1, avatar: 1 } }],
+        },
+      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 0,
+          name: "$user.name",
+          email: "$user.email",
+          plan: "$user.plan",
+          avatar: "$user.avatar",
+          totalTokens: 1,
+          aiCalls: 1,
+          avgResponseTimeMs: { $round: ["$avgResponseTimeMs", 0] },
+        },
+      },
+    ]),
+  ]);
 
   const pctChange = (current, previous) => {
     if (!previous) return current > 0 ? 100 : 0;
@@ -841,11 +1039,13 @@ export const getAiStats = asyncHandler(async (req, res) => {
   ]);
 
   // estimated cost in USD
-  const estimatedCost = parseFloat((
-    ((p.totalEmbeddingTokens ?? 0) / 1_000_000) * PRICING.embeddingPerM +
-    ((p.totalPromptTokens ?? 0) / 1_000_000) * PRICING.promptPerM +
-    ((p.totalCompletionTokens ?? 0) / 1_000_000) * PRICING.completionPerM
-  ).toFixed(4));
+  const estimatedCost = parseFloat(
+    (
+      ((p.totalEmbeddingTokens ?? 0) / 1_000_000) * PRICING.embeddingPerM +
+      ((p.totalPromptTokens ?? 0) / 1_000_000) * PRICING.promptPerM +
+      ((p.totalCompletionTokens ?? 0) / 1_000_000) * PRICING.completionPerM
+    ).toFixed(4),
+  );
 
   const successRate =
     p.totalProcessed > 0
@@ -854,11 +1054,21 @@ export const getAiStats = asyncHandler(async (req, res) => {
 
   const tmSuccessRate =
     (tm.analyzed ?? 0) + (tm.failed ?? 0) > 0
-      ? parseFloat(((tm.analyzed / ((tm.analyzed ?? 0) + (tm.failed ?? 0))) * 100).toFixed(1))
+      ? parseFloat(
+          (
+            (tm.analyzed / ((tm.analyzed ?? 0) + (tm.failed ?? 0))) *
+            100
+          ).toFixed(1),
+        )
       : 0;
   const lmSuccessRate =
     (lm.analyzed ?? 0) + (lm.failed ?? 0) > 0
-      ? parseFloat(((lm.analyzed / ((lm.analyzed ?? 0) + (lm.failed ?? 0))) * 100).toFixed(1))
+      ? parseFloat(
+          (
+            (lm.analyzed / ((lm.analyzed ?? 0) + (lm.failed ?? 0))) *
+            100
+          ).toFixed(1),
+        )
       : 0;
 
   res.status(200).json({
@@ -958,10 +1168,10 @@ export const updateUserPlan = asyncHandler(async (req, res, next) => {
 export const toggleBanUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const user = await User.findById(id).select('-password');
+  const user = await User.findById(id).select("-password");
 
   if (!user) {
-    return res.status(404).json({ success: false, message: 'User not found' });
+    return res.status(404).json({ success: false, message: "User not found" });
   }
 
   user.isBlocked = !user.isBlocked;
@@ -975,7 +1185,9 @@ export const toggleBanUser = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: user.isBlocked ? 'User banned successfully' : 'User unbanned successfully',
+    message: user.isBlocked
+      ? "User banned successfully"
+      : "User unbanned successfully",
     data: user,
   });
 });
@@ -1017,7 +1229,9 @@ export const getAdminActionHistory = asyncHandler(async (req, res) => {
     ]),
   ]);
 
-  const countsByDay = new Map(dailyCounts.map((item) => [item._id, item.count]));
+  const countsByDay = new Map(
+    dailyCounts.map((item) => [item._id, item.count]),
+  );
   const series = Array.from({ length: rangeDays }, (_, index) => {
     const day = new Date(fromDate);
     day.setDate(fromDate.getDate() + index);

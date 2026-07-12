@@ -19,6 +19,11 @@ export interface AiMonthlyView {
   labels: string[];
   aiCalls: number[];
   totalTokens: number[];
+  embeddingTokens: number[];
+  promptTokens: number[];
+  completionTokens: number[];
+  avgResponseTimeMs: number[];
+  successRate: number[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -36,6 +41,11 @@ export class AiMonitoringService {
     labels: [],
     aiCalls: [],
     totalTokens: [],
+    embeddingTokens: [],
+    promptTokens: [],
+    completionTokens: [],
+    avgResponseTimeMs: [],
+    successRate: [],
   });
   readonly topUsers = signal<AiTopUserView[]>([]);
 
@@ -147,6 +157,11 @@ export class AiMonitoringService {
       labels: ordered.map((m) => m._id.slice(2)),
       aiCalls: ordered.map((m) => Number(m.aiCalls) || 0),
       totalTokens: ordered.map((m) => Number(m.totalTokens) || 0),
+      embeddingTokens: ordered.map((m) => Number(m.embeddingTokens) || 0),
+      promptTokens: ordered.map((m) => Number(m.promptTokens) || 0),
+      completionTokens: ordered.map((m) => Number(m.completionTokens) || 0),
+      avgResponseTimeMs: ordered.map((m) => Number(m.avgResponseTimeMs) || 0),
+      successRate: ordered.map((m) => Number(m.successRate) || 0),
     };
   }
 
@@ -178,7 +193,7 @@ export class AiMonitoringService {
   private resetEmpty(): void {
     this.statCards.set([]);
     this.tokenBreakdown.set({ embedding: 0, prompt: 0, completion: 0 });
-    this.monthly.set({ labels: [], aiCalls: [], totalTokens: [] });
+    this.monthly.set({ labels: [], aiCalls: [], totalTokens: [], embeddingTokens: [], promptTokens: [], completionTokens: [], avgResponseTimeMs: [], successRate: [] });
     this.topUsers.set([]);
     this.hasStats.set(false);
     this.hasTokenBreakdown.set(false);

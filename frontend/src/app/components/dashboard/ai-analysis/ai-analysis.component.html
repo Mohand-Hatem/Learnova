@@ -1,5 +1,4 @@
-<div class="flex w-full min-w-0 max-w-full flex-col gap-6">
-
+<div class="flex w-full min-w-0 max-w-full flex-col gap-8">
   <!-- ── Page header ─────────────────────────────────────────────────── -->
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <h1 class="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">AI Monitoring</h1>
@@ -8,18 +7,25 @@
 
   @if (loading()) {
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      @for (_ of [1,2,3,4]; track $index) {
-        <div class="h-[124px] animate-pulse rounded-2xl border border-theme bg-bg-card"></div>
+      @for (_ of [1, 2, 3, 4]; track $index) {
+        <div
+          class="h-[124px] animate-pulse rounded-3xl bg-bg-card shadow-sm border border-theme"
+        ></div>
       }
     </div>
-    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-      <div class="h-[320px] animate-pulse rounded-2xl border border-theme bg-bg-card"></div>
-      <div class="h-[320px] animate-pulse rounded-2xl border border-theme bg-bg-card"></div>
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <div
+        class="xl:col-span-1 h-[400px] animate-pulse rounded-3xl bg-bg-card shadow-sm border border-theme"
+      ></div>
+      <div
+        class="xl:col-span-2 h-[400px] animate-pulse rounded-3xl bg-bg-card shadow-sm border border-theme"
+      ></div>
     </div>
-    <div class="h-[360px] animate-pulse rounded-2xl border border-theme bg-bg-card"></div>
   } @else {
     @if (loadError()) {
-      <div class="rounded-2xl border border-amber-300/40 bg-amber-50 px-5 py-3 text-sm text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-300">
+      <div
+        class="rounded-2xl border border-rose-300/40 bg-rose-50 px-5 py-4 text-sm font-medium text-rose-700 shadow-sm dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400"
+      >
         {{ loadError() }}
       </div>
     }
@@ -28,78 +34,247 @@
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       @if (hasStats()) {
         @for (card of statCards(); track card.title) {
-          <app-stat-card [stat]="card" />
+          <app-stat-card
+            [stat]="card"
+            class="transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg block"
+          />
         }
       } @else {
-        <div class="col-span-full rounded-2xl border border-theme bg-bg-card px-5 py-6 text-sm text-text-secondary">
+        <div
+          class="col-span-full rounded-3xl border border-theme bg-bg-card px-8 py-10 text-center text-sm text-text-secondary"
+        >
           No AI statistics available yet.
         </div>
       }
     </div>
 
-    <!-- ── Charts row ─────────────────────────────────────────────────── -->
-    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-
-      <!-- Token Breakdown -->
-      <div class="rounded-2xl border border-theme bg-white p-5 shadow-sm dark:bg-bg-card">
-        <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
-          <h6 class="text-sm font-semibold text-text-primary">Token Type Breakdown</h6>
-        </div>
-        @if (hasTokenBreakdown()) {
-          <div echarts [options]="tokenBreakdownChartOption()" class="h-64 w-full"></div>
-        } @else {
-          <div class="flex h-64 items-center justify-center rounded-xl border border-dashed border-theme text-sm text-text-muted">
-            No token breakdown data available yet.
+    <!-- ── Main Content Area ───────────────────────────────────────────── -->
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <!-- Top AI Consumers & Token Breakdown (Sidebar column) -->
+      <div class="flex flex-col gap-6 xl:col-span-1">
+        <!-- Token Breakdown -->
+        <div
+          class="flex flex-col rounded-3xl border border-theme bg-bg-card p-6 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md"
+        >
+          <div
+            class="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-indigo-500/10 blur-3xl"
+          ></div>
+          <div class="mb-4 flex items-center justify-between">
+            <div>
+              <h6 class="text-base font-bold text-text-primary">Token Distribution</h6>
+              <p class="text-xs text-text-muted mt-0.5">Usage across model endpoints</p>
+            </div>
+            <div class="rounded-xl bg-bg-secondary p-2 text-indigo-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+              </svg>
+            </div>
           </div>
-        }
-      </div>
-
-      <!-- Top AI Consumers -->
-      <div class="rounded-2xl border border-theme bg-white p-5 shadow-sm dark:bg-bg-card">
-        <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
-          <h6 class="text-sm font-semibold text-text-primary">Top AI Consumers</h6>
+          @if (hasTokenBreakdown()) {
+            <div
+              echarts
+              [options]="tokenBreakdownChartOption()"
+              class="h-64 w-full mt-2 relative z-10"
+            ></div>
+          } @else {
+            <div
+              class="flex h-64 items-center justify-center rounded-2xl border border-dashed border-theme text-sm text-text-muted"
+            >
+              No token breakdown data.
+            </div>
+          }
         </div>
-        @if (hasTopUsers()) {
-          <div class="space-y-1">
-            @for (company of companies(); track company.rank) {
-              <div class="flex items-center justify-between rounded-xl px-2 py-2.5 transition hover:bg-bg-secondary dark:hover:bg-bg-primary">
-                <div class="flex items-center gap-3">
-                  <span class="flex h-6 w-6 items-center justify-center rounded-full bg-bg-secondary text-xs font-bold text-text-secondary dark:bg-bg-primary">
-                    {{ company.rank }}
-                  </span>
-                  <div>
-                    <p class="text-sm font-semibold text-text-primary">{{ company.name }}</p>
-                    <p class="text-xs text-text-muted">{{ company.searches | number }} calls</p>
+
+        <!-- Top Consumers List -->
+        <div
+          class="flex flex-col rounded-3xl border border-theme bg-bg-card p-6 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md"
+        >
+          <div
+            class="absolute -left-12 -bottom-12 h-32 w-32 rounded-full bg-emerald-500/10 blur-3xl"
+          ></div>
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <h6 class="text-base font-bold text-text-primary">Top Consumers</h6>
+              <p class="text-xs text-text-muted mt-0.5">Highest API utilization</p>
+            </div>
+            <div class="rounded-xl bg-bg-secondary p-2 text-emerald-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                <path d="M4 22h16"></path>
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+              </svg>
+            </div>
+          </div>
+          @if (hasTopUsers()) {
+            <div class="space-y-3 relative z-10">
+              @for (company of companies(); track company.rank) {
+                <div
+                  class="group flex items-center justify-between rounded-2xl border border-transparent bg-bg-secondary/50 px-3 py-3 transition-all duration-300 hover:border-theme hover:bg-bg-primary hover:shadow-sm dark:bg-bg-secondary/30 dark:hover:bg-bg-secondary"
+                >
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 text-sm font-bold text-indigo-700 shadow-inner dark:from-indigo-500/20 dark:to-indigo-500/10 dark:text-indigo-300"
+                    >
+                      {{ company.rank }}
+                    </div>
+                    <div>
+                      <p
+                        class="text-sm font-bold text-text-primary transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                      >
+                        {{ company.name }}
+                      </p>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="text-text-muted"
+                        >
+                          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                        <p class="text-xs font-medium text-text-muted">
+                          {{ company.searches | number }} calls
+                        </p>
+                      </div>
+                    </div>
                   </div>
+                  <span
+                    class="rounded-xl border border-theme bg-bg-card px-2.5 py-1 text-[11px] font-semibold tracking-wide text-text-secondary shadow-sm"
+                  >
+                    {{ company.plan }}
+                  </span>
                 </div>
-                <span class="rounded-lg border border-theme px-2.5 py-0.5 text-xs text-text-secondary">
-                  {{ company.plan }}
-                </span>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="flex h-64 items-center justify-center rounded-xl border border-dashed border-theme text-sm text-text-muted">
-            No top consumers data available yet.
-          </div>
-        }
-      </div>
-
-    </div>
-
-    <!-- ── Token Usage Chart ───────────────────────────────────────────── -->
-    <div class="rounded-2xl border border-theme bg-white p-5 shadow-sm dark:bg-bg-card">
-      <div class="mb-4 flex items-center justify-between border-b border-theme pb-3">
-        <h6 class="text-sm font-semibold text-text-primary">AI Usage &amp; Token Consumption</h6>
-      </div>
-      @if (hasMonthly()) {
-        <div echarts [options]="tokenChartOption()" class="h-72 w-full"></div>
-      } @else {
-        <div class="flex h-72 items-center justify-center rounded-xl border border-dashed border-theme text-sm text-text-muted">
-          No monthly usage data available yet.
+              }
+            </div>
+          } @else {
+            <div
+              class="flex h-64 items-center justify-center rounded-2xl border border-dashed border-theme text-sm text-text-muted"
+            >
+              No top consumers data.
+            </div>
+          }
         </div>
-      }
+      </div>
+
+      <!-- Main Chart Column -->
+      <div class="flex flex-col gap-6 xl:col-span-2">
+        <!-- Consumption Trends -->
+        <div
+          class="flex flex-col rounded-3xl border border-theme bg-bg-card p-6 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md"
+        >
+          <div
+            class="absolute -right-32 -top-32 h-64 w-64 rounded-full bg-cyan-500/5 blur-[100px]"
+          ></div>
+          <div class="mb-6 flex items-center justify-between">
+            <div>
+              <h6 class="text-lg font-bold text-text-primary">Consumption Trends</h6>
+              <p class="text-sm text-text-muted mt-1">Monthly AI calls vs Token usage</p>
+            </div>
+            <div class="rounded-xl bg-bg-secondary p-2.5 text-cyan-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 3v18h18"></path>
+                <path d="m19 9-5 5-4-4-3 3"></path>
+              </svg>
+            </div>
+          </div>
+          @if (hasMonthly()) {
+            <div
+              echarts
+              [options]="tokenChartOption()"
+              class="h-[400px] w-full relative z-10 flex-1"
+            ></div>
+          } @else {
+            <div
+              class="flex h-[400px] flex-1 items-center justify-center rounded-2xl border border-dashed border-theme text-sm text-text-muted"
+            >
+              No monthly usage data available yet.
+            </div>
+          }
+        </div>
+
+        <!-- Performance & Reliability -->
+        <div
+          class="flex flex-col rounded-3xl border border-theme bg-bg-card p-6 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md"
+        >
+          <div
+            class="absolute -left-32 -bottom-32 h-64 w-64 rounded-full bg-rose-500/5 blur-[100px]"
+          ></div>
+          <div class="mb-6 flex items-center justify-between">
+            <div>
+              <h6 class="text-lg font-bold text-text-primary">Performance & Reliability</h6>
+              <p class="text-sm text-text-muted mt-1">Response times and analysis success rates</p>
+            </div>
+            <div class="rounded-xl bg-bg-secondary p-2.5 text-rose-500">
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                stroke-width="2" 
+                stroke-linecap="round" 
+                stroke-linejoin="round"
+              >
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+            </div>
+          </div>
+          @if (hasMonthly()) {
+            <div
+              echarts
+              [options]="performanceChartOption()"
+              class="h-[350px] w-full relative z-10 flex-1"
+            ></div>
+          } @else {
+            <div
+              class="flex h-[350px] flex-1 items-center justify-center rounded-2xl border border-dashed border-theme text-sm text-text-muted"
+            >
+              No performance data available yet.
+            </div>
+          }
+        </div>
+      </div>
     </div>
   }
-
 </div>
