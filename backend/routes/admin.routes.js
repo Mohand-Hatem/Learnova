@@ -12,15 +12,14 @@ import {
   getAdminActionHistory,
 } from "../controllers/admin.controller.js";
 
-import { protectDashboard } from "../middleware/auth.middleware.js";
+import { protect } from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 import { updateRoleSchema, updatePlanSchema } from "../schemas/admin.schema.js";
 
 const router = express.Router();
 
-// ✅ /admin/* كله traffic من الداشبورد بس، فبيستخدم الكوكي المنفصل بتاعها
-router.use(protectDashboard);
+router.use(protect);
 router.use(roleMiddleware("admin"));
 
 router.get("/all", getAllUsers);

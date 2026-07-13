@@ -25,12 +25,8 @@ export class AuthService {
   }
 
   login(loginData: LoginData): Observable<ApiResponse> {
-    // This app IS the admin dashboard, so it uses the dashboard-scoped
-    // auth endpoints/cookies (dashboardAccessToken/dashboardRefreshToken)
-    // instead of the main site's accessToken/refreshToken — keeps the two
-    // sessions from clobbering each other since they hit the same backend.
     return this.http
-      .post<ApiResponse>(`${environment.apiUrl}/auth/dashboard-login`, loginData, {
+      .post<ApiResponse>(`${environment.apiUrl}/auth/login`, loginData, {
         withCredentials: true,
       })
       .pipe(
@@ -45,26 +41,24 @@ export class AuthService {
     this.currentUser.set(null);
     // Session notifications should survive refresh, but not logout.
     this.sessionNotifications.clear();
-    return this.http
-      .post(`${environment.apiUrl}/auth/dashboard-logout`, {}, { withCredentials: true })
-      .pipe(
-        tap(() => this.router.navigate(['/login'])),
-        catchError(() => {
-          this.router.navigate(['/login']);
-          return of(null);
-        }),
-      );
+    return this.http.post(`${environment.apiUrl}/auth/logout`, {}, { withCredentials: true }).pipe(
+      tap(() => this.router.navigate(['/login'])),
+      catchError(() => {
+        this.router.navigate(['/login']);
+        return of(null);
+      }),
+    );
   }
 
   refresh() {
     return this.http
-      .post<ApiResponse>(`${environment.apiUrl}/auth/dashboard-refresh`, {}, { withCredentials: true })
+      .post<ApiResponse>(`${environment.apiUrl}/auth/refresh`, {}, { withCredentials: true })
       .pipe(tap((res) => this.setAuthenticatedUser(res)));
   }
 
   getMe() {
     return this.http
-      .get<ApiResponse>(`${environment.apiUrl}/auth/dashboard-me`, { withCredentials: true })
+      .get<ApiResponse>(`${environment.apiUrl}/auth/me`, { withCredentials: true })
       .pipe(tap((res) => this.setAuthenticatedUser(res)));
   }
 

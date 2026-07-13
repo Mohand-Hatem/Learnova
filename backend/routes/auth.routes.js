@@ -9,16 +9,12 @@ import {
   googleAuthCallback,
   forgotPassword,
   resetPassword,
-  dashboardLogin,
-  dashboardRefreshToken,
-  dashboardLogout,
-  getDashboardMe,
 } from "../controllers/auth.controller.js";
 import {
   forgotPasswordSchema,
   resetPasswordSchema,
 } from "../schemas/user.schema.js";
-import { protect, protectDashboard } from "../middleware/auth.middleware.js";
+import { protect } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 import { registerSchema, loginSchema } from "../schemas/auth.schema.js";
 
@@ -33,17 +29,6 @@ router.post("/refresh", refreshAccessToken);
 router.post("/logout", logout);
 
 router.get("/me", protect, getMe);
-
-// ✅ نسخة الداشبورد من endpoints الـ auth — كوكيز منفصلة تماماً عن
-// الموقع الرئيسي (شوف dashboardLogin/dashboardRefreshToken/dashboardLogout
-// /getDashboardMe في auth.controller.js)
-router.post("/dashboard-login", validate(loginSchema), dashboardLogin);
-
-router.post("/dashboard-refresh", dashboardRefreshToken);
-
-router.post("/dashboard-logout", dashboardLogout);
-
-router.get("/dashboard-me", protectDashboard, getDashboardMe);
 
 router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
 router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
