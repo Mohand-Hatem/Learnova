@@ -4,6 +4,7 @@ import CompanySearch from "../models/Companysearch.model.js";
 import Conversation, {
   CONVERSATION_TTL_SECONDS,
 } from "../models/Conversation.model.js";
+import CV from "../models/Cv.model.js";
 import User from "../models/User.model.js";
 
 const TOKEN_LIMIT_REACHED_MESSAGE =
@@ -11,6 +12,9 @@ const TOKEN_LIMIT_REACHED_MESSAGE =
 
 // ✅ عدد الرسائل (user + assistant) اللي بنفتكرها ونبعتها كسياق للمحادثة
 const HISTORY_MESSAGE_LIMIT = 6;
+
+const DEFAULT_FILTER_LIMIT = 25;
+const MAX_FILTER_LIMIT = 50;
 
 // ✅ بيضيف turn (رسالة المستخدم + رد المساعد) للمحادثة، ويمدد الـ TTL،
 // وبيحدث آخر نتايج بحث فعلية لو البحث ده رجع نتايج جديدة (مش cached follow-up)
@@ -193,6 +197,120 @@ export const chatSearchHandler = asyncHandler(async (req, res) => {
     results,
     ...(uncertainCount > 0 ? { uncertainCount } : {}),
     usage,
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// COMPANY STRUCTURED FILTER — deterministic, no LLM calls
+// ══════════════════════════════════════════════════════════════════════════════
+// ده مختلف تماماً عن chatSearchHandler: مفيش classifyIntent ولا embeddings
+// ولا vector search — بس Mongo query عادي + مطابقة skills نصية بسيطة
+// (زي rankSkillsByRelevance في company.ai.js) بدل regex غير آمن على الداتا
+export const filterCVsHandler = asyncHandler(async (req, res) => {
+  if (req.user?.role !== "company") {
+    return res.status(403).json({
+      success: false,
+      message: "Access restricted to company accounts",
+    });
+  }
+
+  const {
+    skills = [],
+    requireEducation = false,
+    requireCertificate = false,
+    requireProject = false,
+    limit,
+  } = req.body;
+
+  if (!Array.isArray(skills)) {
+    return res.status(400).json({
+      success: false,
+      message: "skills must be an array of strings",
+    });
+  }
+
+  const requestedSkills = skills
+    .map((s) => String(s).trim().toLowerCase())
+    .filter(Boolean);
+
+  const effectiveLimit = Math.min(
+    Number.isInteger(limit) && limit > 0 ? limit : DEFAULT_FILTER_LIMIT,
+    MAX_FILTER_LIMIT,
+  );
+
+  // ✅ الفلاتر البوليانية (وجود قسم بالكامل أو لأ) بتتعمل على مستوى الـ
+  // query نفسه — أرخص وأسرع من إننا نجيب كل الـ CVs ونفلترهم في الكود
+  const query = { processingStatus: "analyzed" };
+  if (requireEducation) query["parsedData.education.0"] = { $exists: true };
+  if (requireCertificate)
+    query["parsedData.certifications.0"] = { $exists: true };
+  if (requireProject) query["parsedData.projects.0"] = { $exists: true };
+
+  const cvs = await CV.find(query)
+    .populate("userId", "name email")
+    .select(
+      "atsScore parsedData.education parsedData.certifications parsedData.projects parsedData.skills.technical userId originalFile.url originalFile.fileName originalFile.fileType",
+    );
+
+  let mapped = cvs.map((cv) => {
+    const technical = cv.parsedData?.skills?.technical ?? [];
+
+    // ✅ substring matching زي rankSkillsByRelevance، بس مع حد أدنى لطول
+    // الكلمتين (2 حروف) قبل نعتبرهم substring match — من غير الشرط ده
+    // سكيل قصير زي "C" ممكن يتطابق غلط مع أي كلمة تانية فيها الحرف ده
+    // (مثال حقيقي: "C" كانت بتتطابق مع "React" لأن "react".includes("c"))
+    const matchedSkills = requestedSkills.length
+      ? technical.filter((t) => {
+          const tLower = t.toLowerCase();
+          return requestedSkills.some((s) => {
+            if (tLower === s) return true;
+            if (tLower.length < 2 || s.length < 2) return false;
+            return tLower.includes(s) || s.includes(tLower);
+          });
+        })
+      : [];
+
+    return {
+      cvId: cv._id.toString(),
+      name: {
+        en: cv.userId?.name?.en ?? "Unknown",
+        ar: cv.userId?.name?.ar ?? "غير معروف",
+      },
+      email: cv.userId?.email ?? "",
+      topSkills: technical,
+      matchedSkills,
+      matchCount: matchedSkills.length,
+      atsScore: cv.atsScore ?? 0,
+      education: cv.parsedData?.education ?? [],
+      certifications: cv.parsedData?.certifications ?? [],
+      projects: cv.parsedData?.projects ?? [],
+      cvFileUrl: cv.originalFile?.url ?? null,
+      cvFileName: cv.originalFile?.fileName ?? null,
+      cvFileType: cv.originalFile?.fileType ?? null,
+    };
+  });
+
+  // ✅ لو الشركة كتبت skills فعلاً، ده بيفلتر (لازم matchCount > 0) —
+  // الـ "Skills" checkbox بيتحكم بس في الـ sort order مش الفلترة نفسها
+  if (requestedSkills.length) {
+    mapped = mapped.filter((c) => c.matchCount > 0);
+  }
+
+  const sortBySkillMatch = req.body.sortBySkillMatch === true;
+  if (sortBySkillMatch && requestedSkills.length) {
+    mapped.sort(
+      (a, b) => b.matchCount - a.matchCount || b.atsScore - a.atsScore,
+    );
+  } else {
+    mapped.sort((a, b) => b.atsScore - a.atsScore);
+  }
+
+  const results = mapped.slice(0, effectiveLimit);
+
+  return res.status(200).json({
+    success: true,
+    resultsCount: results.length,
+    results,
   });
 });
 
