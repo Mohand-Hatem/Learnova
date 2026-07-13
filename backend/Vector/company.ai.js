@@ -234,7 +234,28 @@ async function classifyIntent(userMessage, history = []) {
       void parseErr;
       // ⚠️ fail-open حقيقي: الرد مش JSON سليم
       console.warn(
-        "[classifyIntent] failed to parse intent response, defaulting to search",
+        "[classifyIntent] failed to parse intent response, defaulting to search. Raw:",
+        raw,
+      );
+      return {
+        intent: "search",
+        cleanedQuery: userMessage,
+        usage: data.usage,
+      };
+    }
+
+    console.log("[classifyIntent] parsed intent:", parsed.intent, "| raw:", raw);
+
+    // ⚠️ fail-open حقيقي: الـ JSON نفسه سليم بس مفيهوش "intent" من القيم
+    // التلاتة المعروفة (undefined، مكتوبة غلط، أو الموديل لفّها في شكل
+    // تاني). من غير الفحص ده، أي رد مش مضبوط الشكل كان بيتحسب "reject"
+    // تلقائياً بالغلط — ده كان بيخلي رسايل بحث عادية زي "Looking for
+    // TypeScript developers" ترجع "out of scope" رغم إنها مش reject حقيقي
+    const VALID_INTENTS = ["search", "greeting", "reject"];
+    if (!VALID_INTENTS.includes(parsed.intent)) {
+      console.warn(
+        `[classifyIntent] unexpected/missing intent value (got: ${JSON.stringify(parsed.intent)}), defaulting to search. Raw:`,
+        raw,
       );
       return {
         intent: "search",
