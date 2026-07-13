@@ -1,5 +1,5 @@
 import express from "express";
-import { protectDashboard } from "../middleware/auth.middleware.js";
+import { protect } from "../middleware/auth.middleware.js";
 import {
   chatSearchHandler,
   filterCVsHandler,
@@ -8,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.use(protectDashboard);
+router.use(protect);
 router.post("/search", chatSearchHandler);
 router.get("/search/history", getSearchHistory);
 router.post("/filter", filterCVsHandler);
