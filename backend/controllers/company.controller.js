@@ -219,6 +219,7 @@ export const filterCVsHandler = asyncHandler(async (req, res) => {
     requireEducation = false,
     requireCertificate = false,
     requireProject = false,
+    scope = "all",
     limit,
   } = req.body;
 
@@ -226,6 +227,13 @@ export const filterCVsHandler = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "skills must be an array of strings",
+    });
+  }
+
+  if (!["all", "lastSearch"].includes(scope)) {
+    return res.status(400).json({
+      success: false,
+      message: 'scope must be "all" or "lastSearch"',
     });
   }
 
@@ -245,6 +253,32 @@ export const filterCVsHandler = asyncHandler(async (req, res) => {
   if (requireCertificate)
     query["parsedData.certifications.0"] = { $exists: true };
   if (requireProject) query["parsedData.projects.0"] = { $exists: true };
+
+  // ✅ scope="lastSearch": نقصر الفلترة على نفس الـ CVs اللي ظهرت في آخر
+  // نتايج بحث AI للشركة دي، بدل كل قاعدة الـ CVs. بنجيب الـ cvIds بس من
+  // المحادثة المخزنة ونعمل fresh CV.find عليهم — مش هنعتمد على الداتا
+  // المخزنة في conversation.lastResults نفسها لأنها ماعندهاش
+  // certifications/projects (اتخزنت بس experience/education للـ filter
+  // القديم)، فـ CV.find هنا بيضمن بيانات كاملة ومحدثة
+  if (scope === "lastSearch") {
+    const conversation = await Conversation.findOne({
+      company: req.user._id,
+    }).select("lastResults");
+
+    const cachedCvIds = conversation?.lastResults?.map((r) => r.cvId) ?? [];
+
+    if (!cachedCvIds.length) {
+      return res.status(200).json({
+        success: true,
+        resultsCount: 0,
+        results: [],
+        message:
+          "No previous AI search results to filter. Search for candidates first, then apply filters.",
+      });
+    }
+
+    query._id = { $in: cachedCvIds };
+  }
 
   const cvs = await CV.find(query)
     .populate("userId", "name email")
