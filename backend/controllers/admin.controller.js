@@ -387,7 +387,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
   let usersWithCVs = users.map((user) => ({
     ...user,
     cvs: cvs.filter((cv) => cv.userId.toString() === user._id.toString()),
-    totalSearches: user.role === "company" ? (searchesMap[user._id.toString()] || 18) : 0,
+    totalSearches: user.role === "company" ? (searchesMap[user._id.toString()] || 0) : 0,
     searches: searchesMap[user._id.toString()] || 0,
   }));
 
@@ -457,36 +457,14 @@ export const getOneUser = asyncHandler(async (req, res) => {
       tokenDays.push(dayNames[d.getDay()]);
     }
 
-    // Default mock values if they have no searches yet
-    let totalSearches = companySearches.length || 18;
-    let recruiters = 3;
-    let openRoles = 5;
-    let hiresThisQ = 2;
-    let searchActivity =
-      companySearches.length > 0 ? Array(6).fill(0) : [2, 4, 3, 5, 4, 6];
-    let tokenHistory =
-      companySearches.length > 0
-        ? Array(7).fill(0)
-        : [450, 600, 520, 780, 640, 895, 415];
-    let mostSearchedRoles =
-      companySearches.length > 0
-        ? []
-        : [
-            { role: "Frontend Developer", count: 8 },
-            { role: "Backend Developer", count: 5 },
-            { role: "Fullstack Developer", count: 3 },
-            { role: "DevOps Engineer", count: 2 },
-          ];
-    let mostSearchedSkills =
-      companySearches.length > 0
-        ? []
-        : [
-            { skill: "React", count: 12 },
-            { skill: "Node.js", count: 9 },
-            { skill: "TypeScript", count: 8 },
-            { skill: "Tailwind CSS", count: 6 },
-            { skill: "MongoDB", count: 4 },
-          ];
+    let totalSearches = companySearches.length;
+    let recruiters = 0;
+    let openRoles = 0;
+    let hiresThisQ = 0;
+    let searchActivity = Array(6).fill(0);
+    let tokenHistory = Array(7).fill(0);
+    let mostSearchedRoles = [];
+    let mostSearchedSkills = [];
 
     if (companySearches.length > 0) {
       const now = new Date();
@@ -621,41 +599,17 @@ export const getOneUser = asyncHandler(async (req, res) => {
           return diffDays <= 7;
         });
 
-        if (past7DaysSearches.length > 0) {
-          const baseTokenPerSearch = Math.round(
-            user.tokenUsage / companySearches.length,
-          );
-          past7DaysSearches.forEach((s) => {
-            const diffTime = Math.abs(now - new Date(s.createdAt));
-            const dayIndex = 6 - Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            if (dayIndex >= 0 && dayIndex < 7) {
-              tokenHistory[dayIndex] += baseTokenPerSearch;
-            }
-          });
-        } else {
-          const val = Math.round(user.tokenUsage / 7);
-          tokenHistory = [
-            val,
-            Math.round(val * 0.8),
-            Math.round(val * 1.2),
-            Math.round(val * 0.9),
-            Math.round(val * 1.1),
-            Math.round(val * 0.7),
-            Math.round(val * 1.3),
-          ];
-        }
+        const baseTokenPerSearch = Math.round(
+          user.tokenUsage / companySearches.length,
+        );
+        past7DaysSearches.forEach((s) => {
+          const diffTime = Math.abs(now - new Date(s.createdAt));
+          const dayIndex = 6 - Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          if (dayIndex >= 0 && dayIndex < 7) {
+            tokenHistory[dayIndex] += baseTokenPerSearch;
+          }
+        });
       }
-    } else if (user.tokenUsage > 0) {
-      const val = Math.round(user.tokenUsage / 7);
-      tokenHistory = [
-        val,
-        Math.round(val * 0.8),
-        Math.round(val * 1.2),
-        Math.round(val * 0.9),
-        Math.round(val * 1.1),
-        Math.round(val * 0.7),
-        Math.round(val * 1.3),
-      ];
     }
 
     extraData = {
@@ -699,22 +653,7 @@ export const getOneUser = asyncHandler(async (req, res) => {
         atsHistory.push(c.atsScore || 0);
         atsMonths.push(monthNames[new Date(c.createdAt).getMonth()]);
       });
-
-      // If only 1 CV is uploaded, pad the history so the line chart displays dynamic progression
-      if (sortedCvs.length === 1) {
-        const singleScore = sortedCvs[0].atsScore || 0;
-        atsHistory.unshift(
-          Math.round(singleScore * 0.8),
-          Math.round(singleScore * 0.9),
-        );
-
-        const cvMonth = new Date(sortedCvs[0].createdAt).getMonth();
-        const prevMonth1 = (cvMonth - 2 + 12) % 12;
-        const prevMonth2 = (cvMonth - 1 + 12) % 12;
-        atsMonths.unshift(monthNames[prevMonth1], monthNames[prevMonth2]);
-      }
     } else {
-      // Default placeholder points if no CV exists
       atsHistory.push(0);
       atsMonths.push(monthNames[new Date().getMonth()]);
     }
@@ -728,22 +667,26 @@ export const getOneUser = asyncHandler(async (req, res) => {
       tokenDays.push(dayNames[d.getDay()]);
     }
 
-    // Distribute tokenUsage across the past 7 days based on CV parsing activities
+    // Distribute tokenUsage across the past 7 days based on CV upload dates
     let tokenHistory = Array(7).fill(0);
-    if (user.tokenUsage > 0) {
-      const val = Math.round(user.tokenUsage / 7);
-      tokenHistory = [
-        val,
-        Math.round(val * 0.8),
-        Math.round(val * 1.2),
-        Math.round(val * 0.9),
-        Math.round(val * 1.1),
-        Math.round(val * 0.7),
-        Math.round(val * 1.3),
-      ];
-    } else if (sortedCvs.length > 0) {
-      const val = 500;
-      tokenHistory = [0, 0, 0, val * sortedCvs.length, 0, 0, 0];
+    if (user.tokenUsage > 0 && sortedCvs.length > 0) {
+      const now = new Date();
+      const past7DaysCvs = sortedCvs.filter((c) => {
+        const diffTime = Math.abs(now - new Date(c.createdAt));
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 7;
+      });
+
+      const baseTokenPerCv = Math.round(
+        user.tokenUsage / sortedCvs.length,
+      );
+      past7DaysCvs.forEach((c) => {
+        const diffTime = Math.abs(now - new Date(c.createdAt));
+        const dayIndex = 6 - Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        if (dayIndex >= 0 && dayIndex < 7) {
+          tokenHistory[dayIndex] += baseTokenPerCv;
+        }
+      });
     }
 
     extraData = {
