@@ -25,14 +25,30 @@ const refreshCookieOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
-const setAuthCookies = (res, accessToken, refreshToken) => {
-  res.cookie("accessToken", accessToken, accessCookieOptions);
-  res.cookie("refreshToken", refreshToken, refreshCookieOptions);
+// ✅ الموقع الرئيسي والداشبورد بيكلموا نفس الـ backend، فلو استخدموا نفس
+// اسم الكوكي، تسجيل دخول في حتة بيمسح جلسة التانية على طول (نفس الـ
+// domain + نفس الاسم = نفس الكوكي في المتصفح). الافتراضي هنا هو أسماء
+// الموقع الرئيسي عشان أي كود قديم بيستخدم setAuthCookies/clearAuthCookies
+// من غير ما يبعت cookieNames يفضل شغال زي ما هو بالظبط
+const SITE_COOKIE_NAMES = { access: "accessToken", refresh: "refreshToken" };
+const DASHBOARD_COOKIE_NAMES = {
+  access: "dashboardAccessToken",
+  refresh: "dashboardRefreshToken",
 };
 
-const clearAuthCookies = (res) => {
-  res.clearCookie("accessToken", baseCookieOptions);
-  res.clearCookie("refreshToken", baseCookieOptions);
+const setAuthCookies = (
+  res,
+  accessToken,
+  refreshToken,
+  cookieNames = SITE_COOKIE_NAMES,
+) => {
+  res.cookie(cookieNames.access, accessToken, accessCookieOptions);
+  res.cookie(cookieNames.refresh, refreshToken, refreshCookieOptions);
+};
+
+const clearAuthCookies = (res, cookieNames = SITE_COOKIE_NAMES) => {
+  res.clearCookie(cookieNames.access, baseCookieOptions);
+  res.clearCookie(cookieNames.refresh, baseCookieOptions);
 };
 
 const formatUser = async (user) => ({
@@ -273,4 +289,137 @@ export const googleAuthCallback = asyncHandler(async (req, res, next) => {
 
 return res.redirect(`${Env.MAIN_SITE}/en/auth/callback`);
 
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD AUTH — نفس منطق login/refreshAccessToken/logout/getMe بالظبط،
+// بس بيستخدموا كوكيز منفصلة (dashboardAccessToken/dashboardRefreshToken)
+// عشان جلسة الداشبورد متتعارضش مع جلسة الموقع الرئيسي على نفس الـ backend
+// ══════════════════════════════════════════════════════════════════════════════
+
+export const dashboardLogin = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid email or password",
+    });
+  }
+
+  const isMatch = await user.matchPassword(password);
+
+  if (!isMatch) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid email or password",
+    });
+  }
+
+  if (user.isBlocked) {
+    return res.status(403).json({
+      success: false,
+      message: "Your account has been blocked. Please contact support.",
+    });
+  }
+
+  // ✅ الـ check ده كان قبل كده بس على الـ frontend (login.component.ts) —
+  // يعني أي حد يقدر يعمل login صحيح من الـ API مباشرة كان بياخد كوكي شغال
+  // حتى لو مش admin. دلوقتي الـ enforcement بقى على السيرفر فعلاً
+  if (user.role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Admins only.",
+    });
+  }
+
+  user.lastDashboardLoginAt = new Date();
+  await user.save();
+
+  const { accessToken, refreshToken } = generateTokens(user);
+
+  setAuthCookies(res, accessToken, refreshToken, DASHBOARD_COOKIE_NAMES);
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged in successfully",
+    data: {
+      user: await formatUser(user),
+    },
+  });
+});
+
+export const dashboardRefreshToken = asyncHandler(async (req, res, next) => {
+  const token = req.cookies?.dashboardRefreshToken;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: "Refresh token is required",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, Env.JWT_REFRESH_SECRET);
+
+    const user = await User.findById(decoded.id);
+
+    if (!user || user.role !== "admin") {
+      clearAuthCookies(res, DASHBOARD_COOKIE_NAMES);
+
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token",
+      });
+    }
+
+    user.lastDashboardLoginAt = new Date();
+    await user.save();
+
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    setAuthCookies(res, accessToken, refreshToken, DASHBOARD_COOKIE_NAMES);
+
+    return res.status(200).json({
+      success: true,
+      message: "Token refreshed successfully",
+      data: {
+        user: await formatUser(user),
+      },
+    });
+  } catch (error) {
+    clearAuthCookies(res, DASHBOARD_COOKIE_NAMES);
+    throw error;
+  }
+});
+
+export const dashboardLogout = (req, res) => {
+  clearAuthCookies(res, DASHBOARD_COOKIE_NAMES);
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+};
+
+export const getDashboardMe = asyncHandler(async (req, res) => {
+  try {
+    const token = req.cookies.dashboardAccessToken;
+
+    const decoded = verifyToken(token);
+
+    const user = await User.findById(decoded.id).select("-password");
+
+    return res.json({
+      success: true,
+      user,
+    });
+  } catch (err) {
+    return res.status(401).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });

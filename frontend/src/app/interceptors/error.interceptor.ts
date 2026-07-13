@@ -3,7 +3,12 @@ import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
-const AUTH_SKIP_URLS = ['/auth/login', '/auth/logout', '/auth/refresh', '/auth/me'];
+const AUTH_SKIP_URLS = [
+  '/auth/dashboard-login',
+  '/auth/dashboard-logout',
+  '/auth/dashboard-refresh',
+  '/auth/dashboard-me',
+];
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);

@@ -102,7 +102,7 @@ export class DashboardService {
   private async fetchUserName(): Promise<string> {
     return firstValueFrom(
       this.http
-        .get<ApiResponse<{ user: AuthMeUser }>>(`${this.baseUrl}/auth/me`, { withCredentials: true })
+        .get<ApiResponse<{ user: AuthMeUser }>>(`${this.baseUrl}/auth/dashboard-me`, { withCredentials: true })
         .pipe(
           map((res) => res.data.user?.name?.en?.split(' ')?.[0] ?? 'Admin'),
           catchError(() => of('Admin')),
